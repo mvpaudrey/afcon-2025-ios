@@ -1,0 +1,65 @@
+# Swift
+.DS_Store
+.build/
+.swiftpm/
+*.xcodeproj
+*.xcworkspace
+DerivedData/
+.derivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager
+Packages/
+Package.pins
+Package.resolved
+.build/
+xcuserdata/
+
+# Environment
+.env
+.env.local
+
+# Generated Protocol Buffer code
+Sources/App/gRPC/Generated/*.swift
+Sources/App/gRPC/Generated/*.grpc.swift
+!Sources/App/gRPC/Generated/README.md
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Redis
+dump.rdb
+
+# Xcode
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
