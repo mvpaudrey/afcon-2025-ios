@@ -1,0 +1,167 @@
+import Foundation
+import SwiftData
+
+/// SwiftData model for storing AFCON fixtures locally
+@Model
+final class FixtureModel {
+    @Attribute(.unique) var id: Int
+    var referee: String
+    var timezone: String
+    var date: Date
+    var timestamp: Int
+
+    // Venue
+    var venueId: Int
+    var venueName: String
+    var venueCity: String
+
+    // Status
+    var statusLong: String
+    var statusShort: String
+    var statusElapsed: Int
+
+    // Teams
+    var homeTeamId: Int
+    var homeTeamName: String
+    var homeTeamLogo: String
+    var homeTeamWinner: Bool
+
+    var awayTeamId: Int
+    var awayTeamName: String
+    var awayTeamLogo: String
+    var awayTeamWinner: Bool
+
+    // Goals
+    var homeGoals: Int
+    var awayGoals: Int
+
+    // Score details
+    var halftimeHome: Int
+    var halftimeAway: Int
+    var fulltimeHome: Int
+    var fulltimeAway: Int
+
+    // Additional metadata
+    var competition: String
+    var lastUpdated: Date
+
+    init(
+        id: Int,
+        referee: String = "",
+        timezone: String = "",
+        date: Date,
+        timestamp: Int,
+        venueId: Int,
+        venueName: String,
+        venueCity: String,
+        statusLong: String,
+        statusShort: String,
+        statusElapsed: Int,
+        homeTeamId: Int,
+        homeTeamName: String,
+        homeTeamLogo: String,
+        homeTeamWinner: Bool,
+        awayTeamId: Int,
+        awayTeamName: String,
+        awayTeamLogo: String,
+        awayTeamWinner: Bool,
+        homeGoals: Int,
+        awayGoals: Int,
+        halftimeHome: Int,
+        halftimeAway: Int,
+        fulltimeHome: Int,
+        fulltimeAway: Int,
+        competition: String,
+        lastUpdated: Date = Date()
+    ) {
+        self.id = id
+        self.referee = referee
+        self.timezone = timezone
+        self.date = date
+        self.timestamp = timestamp
+        self.venueId = venueId
+        self.venueName = venueName
+        self.venueCity = venueCity
+        self.statusLong = statusLong
+        self.statusShort = statusShort
+        self.statusElapsed = statusElapsed
+        self.homeTeamId = homeTeamId
+        self.homeTeamName = homeTeamName
+        self.homeTeamLogo = homeTeamLogo
+        self.homeTeamWinner = homeTeamWinner
+        self.awayTeamId = awayTeamId
+        self.awayTeamName = awayTeamName
+        self.awayTeamLogo = awayTeamLogo
+        self.awayTeamWinner = awayTeamWinner
+        self.homeGoals = homeGoals
+        self.awayGoals = awayGoals
+        self.halftimeHome = halftimeHome
+        self.halftimeAway = halftimeAway
+        self.fulltimeHome = fulltimeHome
+        self.fulltimeAway = fulltimeAway
+        self.competition = competition
+        self.lastUpdated = lastUpdated
+    }
+}
+
+// MARK: - Convenience Properties
+extension FixtureModel {
+    var isLive: Bool {
+        ["LIVE", "1H", "2H", "HT", "ET", "P"].contains(statusShort)
+    }
+
+    var isFinished: Bool {
+        ["FT", "AET", "PEN"].contains(statusShort)
+    }
+
+    var isUpcoming: Bool {
+        !isLive && !isFinished
+    }
+
+    var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "E, MMM d"
+        return formatter.string(from: date)
+    }
+
+    var formattedTime: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
+    }
+
+    var fullVenue: String {
+        venueCity.isEmpty ? venueName : "\(venueName), \(venueCity)"
+    }
+
+    /// Convert FixtureModel to Game for UI display
+    func toGame() -> Game {
+        let status: MatchStatus
+        switch statusShort {
+        case "LIVE", "1H", "2H", "HT", "ET", "P":
+            status = .live
+        case "FT", "AET", "PEN":
+            status = .finished
+        default:
+            status = .upcoming
+        }
+
+        let minute = statusElapsed > 0 ? "\(statusElapsed)'" : statusShort
+
+        return Game(
+            id: id,
+            homeTeam: homeTeamName,
+            awayTeam: awayTeamName,
+            homeTeamId: homeTeamId,
+            awayTeamId: awayTeamId,
+            homeScore: homeGoals,
+            awayScore: awayGoals,
+            status: status,
+            minute: minute,
+            competition: competition,
+            venue: fullVenue,
+            date: date,
+            statusShort: statusShort
+        )
+    }
+}
