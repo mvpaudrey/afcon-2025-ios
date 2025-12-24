@@ -82,9 +82,14 @@ class AFCONServiceWrapper {
     /// Stream live match updates
     func streamLiveMatches(
         leagueId: Int32 = 6,
+        season: Int32 = 2025,
         onUpdate: @escaping @Sendable (Afcon_LiveMatchUpdate) -> Void
     ) async throws {
-        try await service.streamLiveMatches(leagueId: leagueId, onUpdate: onUpdate)
+        try await service.streamLiveMatches(
+            leagueId: leagueId,
+            season: season,
+            onUpdate: onUpdate
+        )
     }
 
     /// Sync fixtures to server database (admin operation)

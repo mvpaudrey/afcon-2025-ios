@@ -10,9 +10,13 @@ import SwiftData
 
 @main
 struct AFCON2025App: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @StateObject private var notificationService = AppNotificationService.shared
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            FixtureModel.self
+            FixtureModel.self,
+            FixtureEventModel.self,
+            FavoriteTeam.self
         ])
 
         // Get app support directory
@@ -48,21 +52,67 @@ struct AFCON2025App: App {
             print("✅ SwiftData initialized at: \(storeURL.path)")
             return container
         } catch {
-            // Fallback to in-memory storage
-            print("⚠️ File storage failed, using in-memory: \(error)")
-            let inMemoryConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            // Migration failed - delete old database and create fresh one
+            print("⚠️ File storage failed, deleting old database: \(error)")
+
+            // Delete the old database files
+            try? FileManager.default.removeItem(at: storeURL)
+            try? FileManager.default.removeItem(at: storeURL.deletingPathExtension().appendingPathExtension("store-shm"))
+            try? FileManager.default.removeItem(at: storeURL.deletingPathExtension().appendingPathExtension("store-wal"))
+
+            // Try again with fresh database
             do {
-                return try ModelContainer(for: schema, configurations: [inMemoryConfig])
+                let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+                print("✅ SwiftData initialized with fresh database at: \(storeURL.path)")
+                return container
             } catch {
-                fatalError("Could not create ModelContainer: \(error)")
+                // Final fallback to in-memory storage
+                print("⚠️ Still failed, using in-memory storage: \(error)")
+                let inMemoryConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+                do {
+                    return try ModelContainer(for: schema, configurations: [inMemoryConfig])
+                } catch {
+                    fatalError("Could not create ModelContainer: \(error)")
+                }
             }
         }
     }()
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppView()
+                .environmentObject(notificationService)
+                .onAppear {
+                    notificationService.setupNotificationCategories()
+                }
         }
         .modelContainer(sharedModelContainer)
+    }
+}
+
+// MARK: - AppDelegate
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        // Setup notification categories
+        AppNotificationService.shared.setupNotificationCategories()
+        return true
+    }
+
+    func application(
+        _ application: UIApplication,
+        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+    ) {
+        AppNotificationService.shared.setDeviceToken(deviceToken)
+    }
+
+    func application(
+        _ application: UIApplication,
+        didFailToRegisterForRemoteNotificationsWithError error: Error
+    ) {
+        AppNotificationService.shared.handleRegistrationError(error)
     }
 }

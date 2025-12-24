@@ -1,131 +1,181 @@
 import SwiftUI
 import AFCONClient
+import SwiftData
 
 struct QuickStatsBarLive: View {
-    @State private var viewModel = QuickStatsViewModel()
+    @Environment(\.modelContext) private var modelContext
+    @State private var viewModel: QuickStatsViewModel?
+
+    @Environment(\.tabBarMinimized) private var _isMinimized: Bool
+
+    private var isMinimized: Bool { _isMinimized }
 
     var body: some View {
-        HStack {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    // Current live match or latest result
-                    if let liveMatch = viewModel.liveMatch {
-                        HStack(spacing: 6) {
-                            // Home team
-                            if let homeFlag = TeamFlagMapper.flagAssetName(for: liveMatch.homeTeamId) {
-                                Image(homeFlag)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 20, height: 20)
-                                    .clipShape(Circle())
-                            }
-                            Text(liveMatch.homeTeam)
-                                .fontWeight(.semibold)
-                                .lineLimit(1)
-
-                            Text("\(liveMatch.homeScore)-\(liveMatch.awayScore)")
-                                .fontWeight(.bold)
-
-                            // Away team
-                            Text(liveMatch.awayTeam)
-                                .fontWeight(.semibold)
-                                .lineLimit(1)
-                            if let awayFlag = TeamFlagMapper.flagAssetName(for: liveMatch.awayTeamId) {
-                                Image(awayFlag)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 20, height: 20)
-                                    .clipShape(Circle())
-                            }
-
-                            Text(liveMatch.minute)
-                                .fontWeight(.medium)
-                                .opacity(0.9)
-                        }
-                        .font(.subheadline)
-                    } else if viewModel.isLoading {
-                        HStack(spacing: 4) {
-                            ProgressView()
-                                .scaleEffect(0.7)
-                            Text("Loading...")
-                                .font(.caption)
-                                .opacity(0.7)
-                        }
-                    } else {
-                        // Show next match if no live match
-                        if let nextMatch = viewModel.nextMatch {
-                            HStack(spacing: 6) {
-                                // Home team
-                                if let homeFlag = TeamFlagMapper.flagAssetName(for: nextMatch.homeTeamId) {
-                                    Image(homeFlag)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 20, height: 20)
-                                        .clipShape(Circle())
-                                }
-                                Text(nextMatch.homeTeam)
-                                    .fontWeight(.semibold)
-                                    .lineLimit(1)
-
-                                Text("vs")
-                                    .fontWeight(.medium)
-                                    .opacity(0.8)
-
-                                // Away team
-                                Text(nextMatch.awayTeam)
-                                    .fontWeight(.semibold)
-                                    .lineLimit(1)
-                                if let awayFlag = TeamFlagMapper.flagAssetName(for: nextMatch.awayTeamId) {
-                                    Image(awayFlag)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 20, height: 20)
-                                        .clipShape(Circle())
-                                }
-
-                                Text("•")
-                                    .opacity(0.5)
-                                Text(nextMatch.dateTime)
-                                    .fontWeight(.medium)
-                                    .opacity(0.9)
-                            }
-                            .font(.subheadline)
-                        } else {
+        VStack(spacing: 0) {
+            if let viewModel = viewModel {
+                HStack {
+                    HStack(spacing: isMinimized ? 8 : 12) {
+                        // Current live match or latest result
+                        if let liveMatch = viewModel.liveMatch {
+                            liveMatchView(liveMatch, isMinimized: isMinimized)
+                        } else if viewModel.isLoading {
                             HStack(spacing: 4) {
-                                Text("No matches scheduled")
-                                    .font(.caption)
-                                    .opacity(0.7)
+                                ProgressView()
+                                    .scaleEffect(0.7)
+                                if !isMinimized {
+                                    Text(LocalizedStringKey("Loading..."))
+                                        .font(.caption)
+                                        .opacity(0.7)
+                                }
                             }
+                        } else {
+                            // Show next match if no live match
+                            if let nextMatch = viewModel.nextMatch {
+                                upcomingMatchView(nextMatch, isMinimized: isMinimized)
+                            } else {
+                                if !isMinimized {
+                                    HStack(spacing: 4) {
+                                        Text(LocalizedStringKey("No matches scheduled"))
+                                            .font(.caption)
+                                            .opacity(0.7)
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer()
+
+                        if !isMinimized, let statusText = viewModel.statusText {
+                            Text(LocalizedStringKey(statusText))
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .opacity(0.8)
                         }
                     }
                 }
-
-                Spacer()
-
-                Text(viewModel.statusText)
-                    .font(.caption2)
-                    .fontWeight(.medium)
-                    .opacity(0.8)
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, isMinimized ? 8 : 12)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color("moroccoRed"), Color("moroccoGreen")]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+            } else {
+                // Loading state while viewModel initializes
+                ProgressView()
+                    .scaleEffect(0.7)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color("moroccoRed"), Color("moroccoGreen")]),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
             }
         }
-        .foregroundColor(.white)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(
-            LinearGradient(
-                colors: [Color("moroccoRed"), Color("moroccoGreen")],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-        )
         .onAppear {
+            if viewModel == nil {
+                viewModel = QuickStatsViewModel(modelContext: modelContext)
+            }
             Task {
-                await viewModel.loadData()
+                await viewModel?.loadData()
             }
         }
         .onDisappear {
-            viewModel.cleanup()
+            viewModel?.cleanup()
         }
+    }
+
+    @ViewBuilder
+    private func liveMatchView(_ liveMatch: LiveMatchInfo, isMinimized: Bool) -> some View {
+        HStack(spacing: 6) {
+            // Halftime icon
+            if liveMatch.isHalftime {
+                Image(systemName: "pause.circle.fill")
+                    .font(.caption2)
+                    .foregroundColor(.orange)
+            }
+
+            // Home team
+            if let homeFlag = TeamFlagMapper.flagAssetName(for: liveMatch.homeTeamId) {
+                Image(homeFlag)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 20, height: 20)
+                    .clipShape(Circle())
+            }
+
+            Text("\(liveMatch.homeScore)-\(liveMatch.awayScore)")
+                .fontWeight(.bold)
+
+            // Away team
+            if let awayFlag = TeamFlagMapper.flagAssetName(for: liveMatch.awayTeamId) {
+                Image(awayFlag)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 20, height: 20)
+                    .clipShape(Circle())
+            }
+
+            Text(liveMatch.displayMinute)
+                .fontWeight(liveMatch.isHalftime ? .semibold : .medium)
+                .foregroundColor(liveMatch.isHalftime ? .orange : .white)
+                .opacity(liveMatch.isHalftime ? 1.0 : 0.9)
+        }
+        .font(.subheadline)
+    }
+
+    @ViewBuilder
+    private func upcomingMatchView(_ nextMatch: UpcomingMatchInfo, isMinimized: Bool) -> some View {
+        let timeUntilMatch = nextMatch.matchDate.timeIntervalSince(Date())
+        let showCountdown = timeUntilMatch > 0 && timeUntilMatch < 3600 && Calendar.current.isDateInToday(nextMatch.matchDate)
+
+        HStack(spacing: 6) {
+            // Home team
+            if let homeFlag = TeamFlagMapper.flagAssetName(for: nextMatch.homeTeamId) {
+                Image(homeFlag)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 20, height: 20)
+                    .clipShape(Circle())
+            }
+
+            Text(LocalizedStringKey("vs"))
+                .fontWeight(.medium)
+                .opacity(0.8)
+
+            // Away team
+            if let awayFlag = TeamFlagMapper.flagAssetName(for: nextMatch.awayTeamId) {
+                Image(awayFlag)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 20, height: 20)
+                    .clipShape(Circle())
+            }
+
+            if !isMinimized {
+                Text("•")
+                    .opacity(0.5)
+
+                // Use SwiftUI countdown timer for matches less than 1 hour away
+                if showCountdown {
+                    Text(nextMatch.matchDate, style: .timer)
+                        .fontWeight(.medium)
+                        .opacity(0.9)
+                        .monospacedDigit()
+                } else {
+                    Text(nextMatch.dateTime)
+                        .fontWeight(.medium)
+                        .opacity(0.9)
+                }
+            }
+        }
+        .font(.subheadline)
     }
 }
 
@@ -135,108 +185,85 @@ final class QuickStatsViewModel {
     var liveMatch: LiveMatchInfo?
     var nextMatch: UpcomingMatchInfo?
     var isLoading = false
-    var statusText = "Live updates"
+    var statusText: String? = NSLocalizedString("Live updates", comment: "")
 
-    private var afconService: AFCONServiceWrapper?
+    private var dataManager: FixtureDataManager?
     private var updateTask: Task<Void, Never>?
     private var scheduleTask: Task<Void, Never>?
+    private let modelContext: ModelContext
 
-    // League configuration - African Cup of Nations
-    private let leagueID: Int32 = 6
-    private let season: Int32 = 2025
-
-    init() {
-        self.afconService = AFCONServiceWrapper.shared
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+        self.dataManager = FixtureDataManager(modelContext: modelContext)
     }
 
     @MainActor
     func loadData() async {
         isLoading = true
 
-        // Fetch live matches and upcoming matches in parallel
-        async let liveFixtures = fetchLiveFixtures()
-        async let upcomingFixtures = fetchUpcomingFixtures()
-
-        // Wait for both to complete
-        let (live, upcoming) = await (liveFixtures, upcomingFixtures)
-
-        // Process live match
-        if let firstLive = live?.first {
-            liveMatch = LiveMatchInfo(
-                homeTeam: firstLive.teams.home.name,
-                awayTeam: firstLive.teams.away.name,
-                homeTeamId: Int(firstLive.teams.home.id),
-                awayTeamId: Int(firstLive.teams.away.id),
-                homeScore: Int(firstLive.goals.home),
-                awayScore: Int(firstLive.goals.away),
-                minute: "\(firstLive.status.elapsed)'"
-            )
-            statusText = "Live now"
+        guard let dataManager = dataManager else {
+            isLoading = false
+            return
         }
 
-        // Process next upcoming match
-        if let firstUpcoming = upcoming?.first {
-            let date = Date(timeIntervalSince1970: TimeInterval(firstUpcoming.timestamp))
-            nextMatch = UpcomingMatchInfo(
-                homeTeam: firstUpcoming.teams.home.name,
-                awayTeam: firstUpcoming.teams.away.name,
-                homeTeamId: Int(firstUpcoming.teams.home.id),
-                awayTeamId: Int(firstUpcoming.teams.away.id),
-                dateTime: formatMatchDate(date)
-            )
+        do {
+            // Load fixtures from SwiftData
+            let allFixtures = try dataManager.getAllFixtures()
+            let allGames = allFixtures.map { $0.toGame() }
+
+            let now = Date()
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: now)
+
+            // Separate into categories
+            let liveGames = allGames.filter { $0.status == .live }
+            let upcomingGames = allGames.filter { $0.status == .upcoming && $0.date > now }
+                .sorted { $0.date < $1.date }
+
+            // Process live match
+            if let firstLive = liveGames.first {
+                let isHalftime = firstLive.statusShort.uppercased() == "HT"
+                liveMatch = LiveMatchInfo(
+                    homeTeam: firstLive.homeTeam,
+                    awayTeam: firstLive.awayTeam,
+                    homeTeamId: firstLive.homeTeamId,
+                    awayTeamId: firstLive.awayTeamId,
+                    homeScore: firstLive.homeScore,
+                    awayScore: firstLive.awayScore,
+                    minute: firstLive.minute,
+                    statusShort: firstLive.statusShort
+                )
+                statusText = isHalftime ? NSLocalizedString("match.status.halftime", value: "HALFTIME", comment: "Halftime status") : NSLocalizedString("quickstats.live", value: "Live now", comment: "Live now status")
+            } else {
+                liveMatch = nil
+                statusText = nil
+            }
+
+            // Process next upcoming match
+            if let firstUpcoming = upcomingGames.first {
+                nextMatch = UpcomingMatchInfo(
+                    homeTeam: firstUpcoming.homeTeam,
+                    awayTeam: firstUpcoming.awayTeam,
+                    homeTeamId: firstUpcoming.homeTeamId,
+                    awayTeamId: firstUpcoming.awayTeamId,
+                    dateTime: formatMatchDate(firstUpcoming.date),
+                    matchDate: firstUpcoming.date
+                )
+            } else {
+                nextMatch = nil
+            }
+
+            // Start auto-refresh for live matches
+            if liveMatch != nil {
+                startAutoRefresh()
+            } else if nextMatch != nil {
+                scheduleUpcomingMatchUpdates(nextMatch!.matchDate)
+            }
+        } catch {
+            print("❌ QuickStatsViewModel failed to load fixtures: \(error)")
         }
 
         isLoading = false
-
-        // Start auto-refresh for live matches
-        if liveMatch != nil {
-            startAutoRefresh()
-        } else if let firstUpcoming = upcoming?.first {
-            // No live matches - schedule updates for upcoming match
-            scheduleUpcomingMatchUpdates(firstUpcoming)
-        }
-    }
-
-    private func fetchLiveFixtures() async -> [Afcon_Fixture]? {
-        guard let service = afconService else { return nil }
-
-        do {
-            return try await service.getFixtures(
-                leagueId: leagueID,
-                season: season,
-                live: true
-            )
-        } catch {
-            print("❌ Failed to fetch live fixtures: \(error)")
-            return nil
-        }
-    }
-
-    private func fetchUpcomingFixtures() async -> [Afcon_Fixture]? {
-        guard let service = afconService else { return nil }
-
-        do {
-            // Fetch ALL fixtures for the season (not just today)
-            let fixtures = try await service.getFixtures(
-                leagueId: leagueID,
-                season: season
-            )
-
-            // Filter for upcoming matches only (not started) and in the future
-            let now = Date()
-            let upcoming = fixtures.filter { fixture in
-                let status = fixture.status.short
-                let fixtureDate = Date(timeIntervalSince1970: TimeInterval(fixture.timestamp))
-                return (status == "NS" || status == "TBD") && fixtureDate > now
-            }
-
-            // Sort by timestamp (earliest first)
-            return upcoming.sorted { $0.timestamp < $1.timestamp }
-
-        } catch {
-            print("❌ Failed to fetch upcoming fixtures: \(error)")
-            return nil
-        }
     }
 
     private func startAutoRefresh() {
@@ -248,21 +275,11 @@ final class QuickStatsViewModel {
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 15_000_000_000) // 15 seconds
 
-                if let fixtures = await fetchLiveFixtures(), let firstLive = fixtures.first {
-                    liveMatch = LiveMatchInfo(
-                        homeTeam: firstLive.teams.home.name,
-                        awayTeam: firstLive.teams.away.name,
-                        homeTeamId: Int(firstLive.teams.home.id),
-                        awayTeamId: Int(firstLive.teams.away.id),
-                        homeScore: Int(firstLive.goals.home),
-                        awayScore: Int(firstLive.goals.away),
-                        minute: "\(firstLive.status.elapsed)'"
-                    )
-                    statusText = "Live now"
-                } else {
-                    // No more live matches, stop refreshing
-                    liveMatch = nil
-                    statusText = "Live updates"
+                // Reload from SwiftData
+                await loadData()
+
+                // Stop if no more live matches
+                if liveMatch == nil {
                     break
                 }
             }
@@ -272,16 +289,17 @@ final class QuickStatsViewModel {
     private func formatMatchDate(_ date: Date) -> String {
         let formatter = DateFormatter()
 
-        // Check if today
+        // Check if today - just show time (SwiftUI timer handles countdown)
         if Calendar.current.isDateInToday(date) {
             formatter.dateFormat = "HH:mm"
-            return "Today, \(formatter.string(from: date))"
+            return formatter.string(from: date)
         }
 
         // Check if tomorrow
         if Calendar.current.isDateInTomorrow(date) {
             formatter.dateFormat = "HH:mm"
-            return "Tomorrow, \(formatter.string(from: date))"
+            let tomorrow = NSLocalizedString("Tomorrow", comment: "")
+            return "\(tomorrow), \(formatter.string(from: date))"
         }
 
         // Otherwise, show full date
@@ -298,24 +316,21 @@ final class QuickStatsViewModel {
 
     // MARK: - Scheduled Updates
 
-    private func scheduleUpcomingMatchUpdates(_ fixture: Afcon_Fixture) {
+    private func scheduleUpcomingMatchUpdates(_ fixtureDate: Date) {
         scheduleTask?.cancel()
 
-        let fixtureDate = Date(timeIntervalSince1970: TimeInterval(fixture.timestamp))
         let now = Date()
 
         scheduleTask = Task { @MainActor in
             // Calculate time until match start
             if fixtureDate > now && !Task.isCancelled {
                 let timeUntilMatch = fixtureDate.timeIntervalSince(now)
-                statusText = "Match starts in \(formatTimeInterval(timeUntilMatch))"
 
                 try? await Task.sleep(nanoseconds: UInt64(timeUntilMatch * 1_000_000_000))
 
                 if !Task.isCancelled {
-                    // Match should be starting - begin live updates
-                    statusText = "Match starting..."
-                    await loadData() // Reload to check for live matches
+                    // Match should be starting - reload to check for live matches
+                    await loadData()
                 }
             }
         }
@@ -333,7 +348,7 @@ final class QuickStatsViewModel {
         } else if minutes > 0 {
             return "\(minutes)m"
         } else {
-            return "soon"
+            return NSLocalizedString("soon", comment: "")
         }
     }
 }
@@ -347,6 +362,18 @@ struct LiveMatchInfo {
     let homeScore: Int
     let awayScore: Int
     let minute: String
+    let statusShort: String
+
+    var isHalftime: Bool {
+        statusShort.uppercased() == "HT"
+    }
+
+    var displayMinute: String {
+        if isHalftime {
+            return NSLocalizedString("match.status.halftime", value: "HALFTIME", comment: "Halftime status")
+        }
+        return minute
+    }
 }
 
 struct UpcomingMatchInfo {
@@ -355,6 +382,7 @@ struct UpcomingMatchInfo {
     let homeTeamId: Int
     let awayTeamId: Int
     let dateTime: String
+    let matchDate: Date
 }
 
 // MARK: - Preview

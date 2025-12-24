@@ -4,7 +4,7 @@ import SwiftData
 /// SwiftData model for storing AFCON fixtures locally
 @Model
 final class FixtureModel {
-    @Attribute(.unique) var id: Int
+    var id: Int
     var referee: String
     var timezone: String
     var date: Date
@@ -19,6 +19,7 @@ final class FixtureModel {
     var statusLong: String
     var statusShort: String
     var statusElapsed: Int
+    var statusExtra: Int
 
     // Teams
     var homeTeamId: Int
@@ -43,6 +44,7 @@ final class FixtureModel {
 
     // Additional metadata
     var competition: String
+    var round: String?
     var lastUpdated: Date
 
     init(
@@ -57,6 +59,7 @@ final class FixtureModel {
         statusLong: String,
         statusShort: String,
         statusElapsed: Int,
+        statusExtra: Int = 0,
         homeTeamId: Int,
         homeTeamName: String,
         homeTeamLogo: String,
@@ -72,6 +75,7 @@ final class FixtureModel {
         fulltimeHome: Int,
         fulltimeAway: Int,
         competition: String,
+        round: String? = nil,
         lastUpdated: Date = Date()
     ) {
         self.id = id
@@ -85,6 +89,7 @@ final class FixtureModel {
         self.statusLong = statusLong
         self.statusShort = statusShort
         self.statusElapsed = statusElapsed
+        self.statusExtra = statusExtra
         self.homeTeamId = homeTeamId
         self.homeTeamName = homeTeamName
         self.homeTeamLogo = homeTeamLogo
@@ -100,6 +105,7 @@ final class FixtureModel {
         self.fulltimeHome = fulltimeHome
         self.fulltimeAway = fulltimeAway
         self.competition = competition
+        self.round = round
         self.lastUpdated = lastUpdated
     }
 }
@@ -146,7 +152,18 @@ extension FixtureModel {
             status = .upcoming
         }
 
-        let minute = statusElapsed > 0 ? "\(statusElapsed)'" : statusShort
+        // Display minute with extra time from API
+        let minute: String
+        if statusElapsed > 0 {
+            if statusExtra > 0 {
+                // Use the extra time provided by the API
+                minute = "\(statusElapsed)'+\(statusExtra)"
+            } else {
+                minute = "\(statusElapsed)'"
+            }
+        } else {
+            minute = statusShort
+        }
 
         return Game(
             id: id,

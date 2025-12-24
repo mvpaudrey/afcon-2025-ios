@@ -54,7 +54,8 @@ class BundledFixturesLoader {
                 halftimeAway: data.halftimeAway,
                 fulltimeHome: data.fulltimeHome,
                 fulltimeAway: data.fulltimeAway,
-                competition: data.competition
+                competition: data.competition,
+                round: data.round
             )
 
             modelContext.insert(fixture)
@@ -105,6 +106,7 @@ struct FixtureData: Codable {
     let fulltimeHome: Int
     let fulltimeAway: Int
     let competition: String
+    let round: String?
 }
 
 // MARK: - Errors

@@ -15,7 +15,7 @@ struct HeaderView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Morocco Football")
+                    Text("AFCON 2025")
                         .font(.title2)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)

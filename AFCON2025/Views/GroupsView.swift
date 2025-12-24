@@ -1,74 +1,58 @@
 import SwiftUI
+import SwiftData
+
+private enum Metrics {
+    static let horizontalPadding: CGFloat = 20
+    static let positionWidth: CGFloat = 32
+    static let statWidth: CGFloat = 28
+    static let gdWidth: CGFloat = 32
+    static let pointsWidth: CGFloat = 36
+}
 
 struct GroupsView: View {
-    let groups = [
-        Group(
-            name: "Group A - AFCON 2025",
-            teams: [
-                Team(name: "Morocco", teamId: 31, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 1),
-                Team(name: "Mali", teamId: 1500, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 2),
-                Team(name: "Zambia", teamId: 1507, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 3),
-                Team(name: "Comoros", teamId: 1524, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 4)
-            ]
-        ),
-        Group(
-            name: "Group B - AFCON 2025",
-            teams: [
-                Team(name: "Egypt", teamId: 32, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 1),
-                Team(name: "South Africa", teamId: 1531, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 2),
-                Team(name: "Angola", teamId: 1529, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 3),
-                Team(name: "Zimbabwe", teamId: 1522, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 4)
-            ]
-        ),
-        Group(
-            name: "Group C - AFCON 2025",
-            teams: [
-                Team(name: "Nigeria", teamId: 19, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 1),
-                Team(name: "Tunisia", teamId: 28, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 2),
-                Team(name: "Uganda", teamId: 1519, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 3),
-                Team(name: "Tanzania", teamId: 1489, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 4)
-            ]
-        ),
-        Group(
-            name: "Group D - AFCON 2025",
-            teams: [
-                Team(name: "Senegal", teamId: 13, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 1),
-                Team(name: "DR Congo", teamId: 1508, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 2),
-                Team(name: "Benin", teamId: 1516, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 3),
-                Team(name: "Botswana", teamId: 1520, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 4)
-            ]
-        ),
-        Group(
-            name: "Group E - AFCON 2025",
-            teams: [
-                Team(name: "Algeria", teamId: 1532, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 1),
-                Team(name: "Burkina Faso", teamId: 1502, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 2),
-                Team(name: "Equatorial Guinea", teamId: 1521, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 3),
-                Team(name: "Sudan", teamId: 1510, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 4)
-            ]
-        ),
-        Group(
-            name: "Group F - AFCON 2025",
-            teams: [
-                Team(name: "Ivory Coast", teamId: 1501, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 1),
-                Team(name: "Cameroon", teamId: 1530, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 2),
-                Team(name: "Gabon", teamId: 1503, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 3),
-                Team(name: "Mozambique", teamId: 1512, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0, position: 4)
-            ]
-        )
-    ]
+    @Environment(\.modelContext) private var modelContext
+    @State private var viewModel = GroupsViewModel()
 
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 24) {
-                ForEach(groups, id: \.name) { group in
-                    GroupCard(group: group)
+                if viewModel.isLoading && viewModel.groups.isEmpty {
+                    ProgressView()
+                        .padding()
+                } else if let error = viewModel.errorMessage {
+                    VStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.largeTitle)
+                            .foregroundColor(.orange)
+                        Text(error)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                        Button(LocalizedStringKey("Retry")) {
+                            Task {
+                                await viewModel.loadStandings()
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .padding()
+                } else {
+                    ForEach(viewModel.groups, id: \.name) { group in
+                        GroupCard(group: group)
+                    }
                 }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 20)
         }
         .background(Color(.systemGroupedBackground))
+        .refreshable {
+            await viewModel.loadStandings()
+        }
+        .task {
+            viewModel.configure(modelContext: modelContext)
+            await viewModel.loadStandings()
+        }
     }
 }
 
@@ -95,27 +79,34 @@ struct GroupCard: View {
                 // Table Header with better spacing
                 HStack(spacing: 4) {
                     Text(LocalizedStringKey("#"))
-                        .frame(width: 32, alignment: .center)
+                        .frame(minWidth: Metrics.positionWidth, maxWidth: Metrics.positionWidth, alignment: .center)
+                        .monospacedDigit()
                     Text(LocalizedStringKey("Team"))
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Text(LocalizedStringKey("P"))
-                        .frame(width: 28, alignment: .center)
+                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .center)
+                        .monospacedDigit()
                     Text(LocalizedStringKey("W"))
-                        .frame(width: 28, alignment: .center)
+                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .center)
+                        .monospacedDigit()
                     Text(LocalizedStringKey("D"))
-                        .frame(width: 28, alignment: .center)
+                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .center)
+                        .monospacedDigit()
                     Text(LocalizedStringKey("L"))
-                        .frame(width: 28, alignment: .center)
+                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .center)
+                        .monospacedDigit()
                     Text(LocalizedStringKey("GD"))
-                        .frame(width: 32, alignment: .center)
+                        .frame(minWidth: Metrics.gdWidth, maxWidth: Metrics.gdWidth, alignment: .center)
+                        .monospacedDigit()
                     Text(LocalizedStringKey("Pts"))
-                        .frame(width: 36, alignment: .center)
+                        .frame(minWidth: Metrics.pointsWidth, maxWidth: Metrics.pointsWidth, alignment: .center)
                         .fontWeight(.bold)
+                        .monospacedDigit()
                 }
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundColor(.secondary)
-                .padding(.horizontal, 16)
+                .padding(.horizontal, Metrics.horizontalPadding)
                 .padding(.vertical, 12)
                 .background(
                     LinearGradient(
@@ -165,7 +156,7 @@ struct TeamRow: View {
                     .frame(width: 24, height: 24)
                     .background(positionBadgeColor)
                     .cornerRadius(6)
-                    .frame(width: 32, alignment: .center)
+                    .frame(width: Metrics.positionWidth, alignment: .center)
 
                 // Team with flag
                 HStack(spacing: 10) {
@@ -207,39 +198,45 @@ struct TeamRow: View {
                 Text("\(team.played)")
                     .font(.caption)
                     .fontWeight(.medium)
-                    .frame(width: 28, alignment: .center)
+                    .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .center)
+                    .monospacedDigit()
 
                 Text("\(team.won)")
                     .font(.caption)
                     .foregroundColor(Color("moroccoGreen"))
                     .fontWeight(.bold)
-                    .frame(width: 28, alignment: .center)
+                    .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .center)
+                    .monospacedDigit()
 
                 Text("\(team.drawn)")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .fontWeight(.medium)
-                    .frame(width: 28, alignment: .center)
+                    .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .center)
+                    .monospacedDigit()
 
                 Text("\(team.lost)")
                     .font(.caption)
                     .foregroundColor(Color("moroccoRed"))
                     .fontWeight(.bold)
-                    .frame(width: 28, alignment: .center)
+                    .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .center)
+                    .monospacedDigit()
 
                 Text(goalDifferenceText)
                     .font(.caption)
                     .fontWeight(.bold)
                     .foregroundColor(goalDifferenceColor)
-                    .frame(width: 32, alignment: .center)
+                    .frame(minWidth: Metrics.gdWidth, maxWidth: Metrics.gdWidth, alignment: .center)
+                    .monospacedDigit()
 
                 Text("\(team.points)")
                     .font(.footnote)
                     .fontWeight(.black)
                     .foregroundColor(Color("moroccoRed"))
-                    .frame(width: 36, alignment: .center)
+                    .frame(minWidth: Metrics.pointsWidth, maxWidth: Metrics.pointsWidth, alignment: .center)
+                    .monospacedDigit()
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, Metrics.horizontalPadding)
             .padding(.vertical, 16)
             .background(
                 Rectangle()
@@ -305,25 +302,7 @@ struct TeamRow: View {
     }
 }
 
-// MARK: - Data Models
-struct Group {
-    let name: String
-    let teams: [Team]
-}
-
-struct Team {
-    let name: String
-    let teamId: Int
-    let played: Int
-    let won: Int
-    let drawn: Int
-    let lost: Int
-    let gf: Int
-    let ga: Int
-    let points: Int
-    let position: Int
-}
-
 #Preview {
     GroupsView()
 }
+
