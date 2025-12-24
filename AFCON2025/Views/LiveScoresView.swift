@@ -1,13 +1,34 @@
 import SwiftUI
+import SwiftData
+#if canImport(ActivityKit)
+import ActivityKit
+#endif
 
 struct LiveScoresView: View {
-    @State private var viewModel: LiveScoresViewModel
+    @Environment(\.modelContext) private var modelContext
+    @State private var viewModel: LiveScoresViewModel?
 
-    init(viewModel: LiveScoresViewModel = LiveScoresViewModel()) {
-        self.viewModel = viewModel
+    init(viewModel: LiveScoresViewModel? = nil) {
+        _viewModel = State(initialValue: viewModel)
     }
 
     var body: some View {
+        ZStack {
+            if let viewModel = viewModel {
+                contentView(viewModel: viewModel)
+            } else {
+                ProgressView("Initializing...")
+            }
+        }
+        .onAppear {
+            if viewModel == nil {
+                viewModel = LiveScoresViewModel(modelContext: modelContext)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func contentView(viewModel: LiveScoresViewModel) -> some View {
         VStack(spacing: 0) {
             ScrollView {
                 LazyVStack(spacing: 16) {
@@ -62,7 +83,7 @@ struct LiveScoresView: View {
                                     Circle()
                                         .fill(.red)
                                         .frame(width: 8, height: 8)
-                                    Text(LocalizedStringKey("LIVE NOW"))
+                                    Text(NSLocalizedString("matches.section.live", value: "LIVE NOW", comment: "Live matches section"))
                                         .font(.subheadline)
                                         .fontWeight(.bold)
                                         .foregroundColor(.red)
@@ -70,48 +91,54 @@ struct LiveScoresView: View {
                                 .padding(.horizontal)
 
                                 ForEach(viewModel.liveMatches) { match in
-                                    MatchCard(match: match)
-                                        .padding(.horizontal)
+                                    MatchCard(
+                                        match: match,
+                                        events: viewModel.fixtureEvents[match.id] ?? []
+                                    )
+                                    .padding(.horizontal)
                                 }
                             }
                             .padding(.top, 8)
                         }
 
-                        // Finished Today Section (when no live matches)
-                        if viewModel.shouldShowFinishedToday {
+                        // Finished Matches Section (Today)
+                        if !viewModel.finishedMatches.isEmpty {
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(Color("moroccoGreen"))
-                                    Text(LocalizedStringKey("TODAY"))
+                                        .foregroundColor(.green)
+                                    Text(NSLocalizedString("matches.section.finished", value: "FINISHED TODAY", comment: "Finished matches section"))
                                         .font(.subheadline)
                                         .fontWeight(.bold)
-                                        .foregroundColor(Color("moroccoRed"))
+                                        .foregroundColor(.green)
                                 }
                                 .padding(.horizontal)
 
-                                ForEach(viewModel.finishedTodayMatches) { match in
-                                    MatchCard(match: match)
-                                        .padding(.horizontal)
+                                ForEach(viewModel.finishedMatches) { match in
+                                    MatchCard(
+                                        match: match,
+                                        events: viewModel.fixtureEvents[match.id] ?? []
+                                    )
+                                    .padding(.horizontal)
                                 }
                             }
                             .padding(.top, 8)
                         }
 
-                        // Next Day Section (when no live and no finished today)
-                        if viewModel.shouldShowNextDay {
+                        // Today's Upcoming Matches Section
+                        if viewModel.shouldShowUpcomingToday {
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
-                                    Image(systemName: "calendar")
+                                    Image(systemName: "clock.fill")
                                         .foregroundColor(Color("moroccoRed"))
-                                    Text(LocalizedStringKey("TOMORROW"))
+                                    Text(NSLocalizedString("matches.section.upcoming", value: "UPCOMING", comment: "Upcoming matches section"))
                                         .font(.subheadline)
                                         .fontWeight(.bold)
                                         .foregroundColor(Color("moroccoRed"))
                                 }
                                 .padding(.horizontal)
 
-                                ForEach(viewModel.nextDayMatches) { match in
+                                ForEach(viewModel.upcomingTodayMatches) { match in
                                     MatchCard(match: match)
                                         .padding(.horizontal)
                                 }
@@ -119,41 +146,13 @@ struct LiveScoresView: View {
                             .padding(.top, 8)
                         }
 
-                        // Upcoming Matches Section (Grouped by Date)
-                        if !viewModel.upcomingMatches.isEmpty {
-                            VStack(alignment: .leading, spacing: 16) {
-                                if !viewModel.liveMatches.isEmpty {
-                                    Divider()
-                                        .padding(.vertical, 8)
-                                }
-
-                                ForEach(viewModel.upcomingMatchesByDate, id: \.date) { dateGroup in
-                                    VStack(alignment: .leading, spacing: 12) {
-                                        // Date Header
-                                        Text(formatDateHeader(dateGroup.date))
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(Color("moroccoRed"))
-                                            .padding(.horizontal)
-                                            .padding(.top, 8)
-
-                                        // Matches for this date
-                                        ForEach(dateGroup.matches) { match in
-                                            MatchCard(match: match)
-                                                .padding(.horizontal)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Empty State (only if both are empty)
-                        if viewModel.liveMatches.isEmpty && viewModel.upcomingMatches.isEmpty && !viewModel.isLoading {
+                        // Empty State (only if no games today)
+                        if !viewModel.hasGamesToday && !viewModel.isLoading {
                             VStack(spacing: 8) {
                                 Image(systemName: "sportscourt")
                                     .font(.largeTitle)
                                     .foregroundColor(.gray)
-                                Text(LocalizedStringKey("No matches available"))
+                                Text(LocalizedStringKey("No matches today"))
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
@@ -166,6 +165,9 @@ struct LiveScoresView: View {
         .task {
             await viewModel.fetchLiveMatches()
             viewModel.startLiveUpdates()
+        }
+        .onDisappear {
+            viewModel.stopLiveUpdates()
         }
     }
 
@@ -185,11 +187,9 @@ struct LiveScoresView: View {
 
 // MARK: - Preview Helpers
 private class MockLiveScoresViewModel: LiveScoresViewModel {
-    init(liveMatches: [Game] = [], finishedToday: [Game] = [], nextDay: [Game] = [], upcoming: [Game] = []) {
+    init(liveMatches: [Game] = [], upcoming: [Game] = []) {
         super.init()
         self.liveMatches = liveMatches
-        self.finishedTodayMatches = finishedToday
-        self.nextDayMatches = nextDay
         self.upcomingMatches = upcoming
     }
 
@@ -222,24 +222,6 @@ private extension Game {
         )
     }
 
-    static func mockFinished(id: Int, homeTeam: String, homeTeamId: Int, awayTeam: String, awayTeamId: Int, homeScore: Int, awayScore: Int) -> Game {
-        Game(
-            id: id,
-            homeTeam: homeTeam,
-            awayTeam: awayTeam,
-            homeTeamId: homeTeamId,
-            awayTeamId: awayTeamId,
-            homeScore: homeScore,
-            awayScore: awayScore,
-            status: .finished,
-            minute: "90'",
-            competition: "AFCON 2025",
-            venue: "Stade Mohammed V",
-            date: Date().addingTimeInterval(-3600 * 2), // 2 hours ago
-            statusShort: "FT"
-        )
-    }
-
     static func mockUpcoming(id: Int, homeTeam: String, homeTeamId: Int, awayTeam: String, awayTeamId: Int, hoursFromNow: TimeInterval) -> Game {
         Game(
             id: id,
@@ -265,49 +247,25 @@ private extension Game {
         liveMatches: [
             .mockLive(id: 1, homeTeam: "Morocco", homeTeamId: 31, awayTeam: "Senegal", awayTeamId: 13, homeScore: 2, awayScore: 1, minute: "67'"),
             .mockLive(id: 2, homeTeam: "Egypt", homeTeamId: 32, awayTeam: "Nigeria", awayTeamId: 19, homeScore: 0, awayScore: 0, minute: "23'")
-        ],
-        upcoming: [
-            .mockUpcoming(id: 3, homeTeam: "Algeria", homeTeamId: 1532, awayTeam: "Tunisia", awayTeamId: 28, hoursFromNow: 6),
-            .mockUpcoming(id: 4, homeTeam: "Cameroon", homeTeamId: 1530, awayTeam: "Gabon", awayTeamId: 1503, hoursFromNow: 8)
         ]
     )
 
-    return LiveScoresView(viewModel: viewModel)
+    LiveScoresView(viewModel: viewModel)
 }
 
-#Preview("Finished Today") {
+#Preview("Upcoming Today") {
     let viewModel = MockLiveScoresViewModel(
-        finishedToday: [
-            .mockFinished(id: 1, homeTeam: "Morocco", homeTeamId: 31, awayTeam: "Ivory Coast", awayTeamId: 1501, homeScore: 3, awayScore: 1),
-            .mockFinished(id: 2, homeTeam: "Senegal", homeTeamId: 13, awayTeam: "Egypt", awayTeamId: 32, homeScore: 1, awayScore: 1),
-            .mockFinished(id: 3, homeTeam: "Nigeria", homeTeamId: 19, awayTeam: "Cameroon", awayTeamId: 1530, homeScore: 2, awayScore: 0)
-        ],
         upcoming: [
-            .mockUpcoming(id: 4, homeTeam: "Algeria", homeTeamId: 1532, awayTeam: "Tunisia", awayTeamId: 28, hoursFromNow: 48),
-            .mockUpcoming(id: 5, homeTeam: "Mali", homeTeamId: 1500, awayTeam: "Gabon", awayTeamId: 1503, hoursFromNow: 50)
+            .mockUpcoming(id: 1, homeTeam: "Morocco", homeTeamId: 31, awayTeam: "Ivory Coast", awayTeamId: 1501, hoursFromNow: 2),
+            .mockUpcoming(id: 2, homeTeam: "Senegal", homeTeamId: 13, awayTeam: "Egypt", awayTeamId: 32, hoursFromNow: 4),
+            .mockUpcoming(id: 3, homeTeam: "Nigeria", homeTeamId: 19, awayTeam: "Cameroon", awayTeamId: 1530, hoursFromNow: 6)
         ]
     )
 
-    return LiveScoresView(viewModel: viewModel)
-}
-
-#Preview("Tomorrow's Games") {
-    let viewModel = MockLiveScoresViewModel(
-        nextDay: [
-            .mockUpcoming(id: 1, homeTeam: "Morocco", homeTeamId: 31, awayTeam: "Comoros", awayTeamId: 1524, hoursFromNow: 26),
-            .mockUpcoming(id: 2, homeTeam: "Gabon", homeTeamId: 1503, awayTeam: "Benin", awayTeamId: 1516, hoursFromNow: 29),
-            .mockUpcoming(id: 3, homeTeam: "Mali", homeTeamId: 1500, awayTeam: "Zambia", awayTeamId: 1507, hoursFromNow: 32)
-        ],
-        upcoming: [
-            .mockUpcoming(id: 4, homeTeam: "Algeria", homeTeamId: 1532, awayTeam: "Tunisia", awayTeamId: 28, hoursFromNow: 50),
-            .mockUpcoming(id: 5, homeTeam: "Egypt", homeTeamId: 32, awayTeam: "Tanzania", awayTeamId: 1489, hoursFromNow: 54)
-        ]
-    )
-
-    return LiveScoresView(viewModel: viewModel)
+    LiveScoresView(viewModel: viewModel)
 }
 
 #Preview("Empty State") {
     let viewModel = MockLiveScoresViewModel()
-    return LiveScoresView(viewModel: viewModel)
+    LiveScoresView(viewModel: viewModel)
 }

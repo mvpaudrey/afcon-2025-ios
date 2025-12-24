@@ -1,16 +1,25 @@
 import SwiftUI
+import AFCONClient
+import ActivityKit
 
 struct MatchCard: View {
     let match: Game
+    var events: [Afcon_FixtureEvent] = []
 
     private var statusText: String {
+        let isHalftime = match.statusShort.uppercased() == "HT"
+
+        if isHalftime {
+            return NSLocalizedString("match.status.halftime", value: "HALFTIME", comment: "Halftime status")
+        }
+
         switch match.status {
         case .live:
             return match.minute
         case .upcoming:
             return formatMatchTime(match.date)
         case .finished:
-            return "FINISHED"
+            return NSLocalizedString("match.status.finished", value: "FINISHED", comment: "Finished status")
         }
     }
 
@@ -21,10 +30,19 @@ struct MatchCard: View {
     }
 
     var body: some View {
+        let isHalftime = match.statusShort.uppercased() == "HT"
+        let isLive = match.status == .live && !isHalftime
+
         VStack(spacing: 12) {
             HStack {
                 HStack(spacing: 4) {
-                    if match.status == .live || match.status == .upcoming {
+                    if isLive {
+                        Image(systemName: "clock")
+                            .font(.caption2)
+                    } else if isHalftime {
+                        Image(systemName: "pause.circle.fill")
+                            .font(.caption2)
+                    } else if match.status == .upcoming {
                         Image(systemName: "clock")
                             .font(.caption2)
                     }
@@ -35,11 +53,10 @@ struct MatchCard: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(
-                    match.status == .live ?
-                    Color("moroccoRed") : Color(.systemGray5)
+                    isHalftime ? Color.orange : (isLive ? Color("moroccoRed") : Color(.systemGray5))
                 )
                 .foregroundColor(
-                    match.status == .live ? .white : .secondary
+                    (isLive || isHalftime) ? .white : .secondary
                 )
                 .cornerRadius(12)
                 
@@ -87,19 +104,26 @@ struct MatchCard: View {
                 Spacer()
                 
                 // Score
-                HStack(spacing: 16) {
-                    Text("\(match.homeScore)")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color("moroccoRed"))
-                    
-                    Text("-")
+                if match.status == .upcoming && match.homeScore == 0 && match.awayScore == 0 {
+                    Text(LocalizedStringKey("VS"))
+                        .font(.caption)
+                        .fontWeight(.semibold)
                         .foregroundColor(.secondary)
-                    
-                    Text("\(match.awayScore)")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color("moroccoGreen"))
+                } else {
+                    HStack(spacing: 16) {
+                        Text("\(match.homeScore)")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color("moroccoRed"))
+                        
+                        Text("-")
+                            .foregroundColor(.secondary)
+                        
+                        Text("\(match.awayScore)")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color("moroccoGreen"))
+                    }
                 }
                 
                 Spacer()
@@ -142,10 +166,223 @@ struct MatchCard: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
+
+            // Events Section (goals, cards, etc.)
+            if !events.isEmpty {
+                Divider()
+                    .padding(.vertical, 4)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text("Match Events")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+
+                        Spacer()
+
+                        Text("\(events.count) event\(events.count == 1 ? "" : "s")")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+
+                    ForEach(0..<min(events.count, 5), id: \.self) { index in
+                        MatchEventRow(
+                            event: events[index],
+                            isHomeEvent: events[index].team.name == match.homeTeam
+                        )
+                    }
+
+                    if events.count > 5 {
+                        Text("+\(events.count - 5) more events")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .italic()
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                }
+            }
         }
         .padding()
         .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+}
+
+// MARK: - Match Event Row
+    struct MatchEventRow: View {
+        let event: Afcon_FixtureEvent
+        let isHomeEvent: Bool
+        
+        var body: some View {
+            HStack(spacing: 0) {
+                if !isHomeEvent {
+                    Spacer(minLength: 0)
+                }
+                
+                eventBubble
+                
+                if isHomeEvent {
+                    Spacer(minLength: 0)
+                }
+            }
+        }
+        
+        private var eventBubble: some View {
+            HStack(spacing: 8) {
+                timeBadge
+                
+                Image(systemName: eventIconForType(event.type, detail: event.detail))
+                    .font(.caption)
+                    .foregroundColor(eventColorForType(event.type, detail: event.detail))
+                    .frame(width: 20)
+                
+                descriptionStack
+            }
+            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .background(Color(.secondarySystemBackground))
+            .cornerRadius(8)
+        }
+        
+        private var timeBadge: some View {
+            Text("\(event.time.elapsed)'\(event.time.extra > 0 ? "+\(event.time.extra)" : "")")
+                .font(.caption2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(timeBackgroundColor)
+                .cornerRadius(4)
+                .frame(width: 45, alignment: .center)
+        }
+        
+        private var descriptionStack: some View {
+            VStack(alignment: isHomeEvent ? .leading : .trailing, spacing: 2) {
+                Text(eventDescriptionText)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(isHomeEvent ? .leading : .trailing)
+                
+                let eventType = event.type.lowercased()
+                
+                if !event.player.name.isEmpty {
+                    if eventType == "subst" {
+                        Text("Out: \(event.player.name)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(isHomeEvent ? .leading : .trailing)
+                    } else {
+                        Text(event.player.name)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(isHomeEvent ? .leading : .trailing)
+                    }
+                }
+                
+                if !event.assist.name.isEmpty {
+                    if eventType == "subst" {
+                        Text("In: \(event.assist.name)")
+                            .font(.caption2)
+                            .foregroundColor(.green)
+                            .fontWeight(.medium)
+                            .multilineTextAlignment(isHomeEvent ? .leading : .trailing)
+                    } else if eventType == "goal" &&
+                                !event.detail.lowercased().contains("penalty") &&
+                                !event.detail.lowercased().contains("own") {
+                        Text("Assist: \(event.assist.name)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .italic()
+                            .multilineTextAlignment(isHomeEvent ? .leading : .trailing)
+                    }
+                }
+            }
+        }
+        
+        private var timeBackgroundColor: Color {
+            let type = event.type.lowercased()
+            let detail = event.detail.lowercased()
+            
+            if detail.contains("missed penalty") || detail.contains("penalty missed") {
+                return .orange
+            } else if type == "goal" {
+                return .green
+            } else if detail.contains("red") {
+                return .red
+            } else if detail.contains("yellow") {
+                return .yellow
+            } else if type == "subst" {
+                return .blue
+            } else if type == "var" {
+                return .purple
+            }
+            return .gray
+        }
+        
+        private var eventDescriptionText: String {
+            let type = event.type.lowercased()
+            let detail = event.detail
+            
+            if type == "goal" {
+                if detail.lowercased().contains("own") {
+                    return "Own Goal"
+                } else if detail.lowercased().contains("penalty") {
+                    return "Penalty Goal ⚽"
+                } else {
+                    return "Goal"
+                }
+            } else if detail.lowercased().contains("missed penalty") || detail.lowercased().contains("penalty missed") {
+                return "Penalty Missed ✗"
+            } else if type == "card" {
+                return detail
+            } else if type == "subst" {
+                return "Substitution"
+            } else if type == "var" {
+                return "VAR - \(detail)"
+            }
+            return detail.isEmpty ? type.capitalized : detail
+        }
+        
+        private func eventIconForType(_ type: String, detail: String) -> String {
+            let lowerType = type.lowercased()
+            let lowerDetail = detail.lowercased()
+            
+            if lowerDetail.contains("missed penalty") || lowerDetail.contains("penalty missed") {
+                return "xmark.circle.fill"
+            } else if lowerType == "goal" {
+                return "soccerball.circle.fill"
+            } else if lowerDetail.contains("red") {
+                return "xmark.square.fill"
+            } else if lowerDetail.contains("yellow") {
+                return "square.fill"
+            } else if lowerType == "subst" {
+                return "arrow.left.arrow.right.circle.fill"
+            } else if lowerType == "var" {
+                return "video.circle.fill"
+            }
+            return "circle.fill"
+        }
+        
+        private func eventColorForType(_ type: String, detail: String) -> Color {
+            let lowerType = type.lowercased()
+            let lowerDetail = detail.lowercased()
+            
+            if lowerDetail.contains("missed penalty") || lowerDetail.contains("penalty missed") {
+                return .red
+            } else if lowerType == "goal" {
+                return .green
+            } else if lowerDetail.contains("red") {
+                return .red
+            } else if lowerDetail.contains("yellow") {
+                return .yellow
+            } else if lowerType == "subst" {
+                return .blue
+            } else if lowerType == "var" {
+                return .purple
+            }
+            return .gray
+        }
     }
 }

@@ -97,12 +97,25 @@ struct SettingsView: View {
                     }
                 }
 
+                // Notifications Section
+                Section("Notifications") {
+                    NavigationLink {
+                        NotificationSettingsView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "bell.badge.fill")
+                                .foregroundColor(.blue)
+                            Text("Notification Settings")
+                        }
+                    }
+                }
+
                 // About Section
                 Section("About") {
                     HStack {
                         Text("Version")
                         Spacer()
-                        Text("1.0.0")
+                        Text(AppSettings.shared.currentAppVersion)
                             .foregroundColor(.secondary)
                     }
 
@@ -112,7 +125,63 @@ struct SettingsView: View {
                         Text("AFCON 2025")
                             .foregroundColor(.secondary)
                     }
+
+                    if AppSettings.shared.hasCompletedOnboarding {
+                        HStack {
+                            Text("Onboarding Status")
+                            Spacer()
+                            Text("Completed")
+                                .foregroundColor(.secondary)
+                        }
+                    }
                 }
+
+                // Developer Section (for testing)
+                #if DEBUG
+                Section("Developer") {
+                    Button {
+                        resetOnboarding()
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                                .foregroundColor(.orange)
+                            Text("Reset Onboarding")
+                        }
+                    }
+
+                    Button {
+                        AppNotificationService.shared.clearAllNotifications()
+                    } label: {
+                        HStack {
+                            Image(systemName: "bell.slash")
+                                .foregroundColor(.orange)
+                            Text("Clear All Notifications")
+                        }
+                    }
+
+                    NavigationLink {
+                        LiveActivityDiagnosticsView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "livephoto.badge.automatic")
+                                .foregroundColor(.purple)
+                            Text("Live Activity Diagnostics")
+                        }
+                    }
+
+                    Button {
+                        Task {
+                            await LiveActivityManager.shared.endAllActivities()
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "livephoto.slash")
+                                .foregroundColor(.red)
+                            Text("Stop All Live Activities")
+                        }
+                    }
+                }
+                #endif
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
@@ -180,6 +249,11 @@ struct SettingsView: View {
         } catch {
             print("Error clearing fixtures: \(error)")
         }
+    }
+
+    private func resetOnboarding() {
+        AppSettings.shared.resetOnboarding()
+        // Note: App needs to be restarted to see onboarding again
     }
 }
 

@@ -1,5 +1,12 @@
 import SwiftUI
 import SwiftData
+import UIKit
+
+private let moroccoGradient = LinearGradient(
+    colors: [Color("moroccoRed"), Color("moroccoGreen")],
+    startPoint: .topLeading,
+    endPoint: .bottomTrailing
+)
 
 /// Root AFCON experience with the core tournament tabs.
 struct AFCONHomeView: View {
@@ -63,10 +70,10 @@ struct AFCONHomeView: View {
         }
         .overlay(alignment: .bottom) {
             if #available(iOS 26.0, *) {
-                // Fallback overlay is empty on iOS 26+ since accessory is applied natively
+                // iOS 26+ uses native tabViewBottomAccessory, no overlay needed
                 EmptyView()
             } else {
-                // Fallback on earlier iOS versions: show the quick stats bar as a bottom overlay
+                // Fallback for iOS < 26: show as bottom overlay
                 QuickStatsBarLive()
             }
         }
@@ -92,26 +99,21 @@ struct AFCONHomeView: View {
         let descriptor = FetchDescriptor<FixtureModel>()
         let count = (try? modelContext.fetchCount(descriptor)) ?? 0
 
-        // If no fixtures, load them from bundled JSON
+        // Always fetch from API if no fixtures
         if count == 0 {
-            print("No fixtures found - loading from bundle...")
+            print("No fixtures found - fetching from server...")
             isInitializingFixtures = true
 
-            do {
-                let loader = BundledFixturesLoader(modelContext: modelContext)
-                try loader.loadBundledFixtures()
-                print("Successfully loaded bundled fixtures!")
-            } catch {
-                print("Failed to load bundled fixtures: \(error)")
-                // Fallback to server fetch if bundled load fails
-                print("Falling back to server fetch...")
-                let dataManager = FixtureDataManager(modelContext: modelContext)
-                await dataManager.initializeFixtures()
-            }
+            let dataManager = FixtureDataManager(modelContext: modelContext)
+            await dataManager.initializeFixtures()
 
             isInitializingFixtures = false
         } else {
-            print("Found \(count) fixtures - skipping initialization")
+            print("Found \(count) fixtures in SwiftData")
+
+            // Even if fixtures exist, sync live matches to ensure fresh data
+            let dataManager = FixtureDataManager(modelContext: modelContext)
+            await dataManager.syncLiveFixtures()
         }
     }
 }
@@ -119,34 +121,59 @@ struct AFCONHomeView: View {
 // MARK: - Initializing Overlay
 
 struct InitializingOverlay: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         ZStack {
-            Color.black.opacity(0.7)
+            Color(.systemBackground)
+                .opacity(colorScheme == .dark ? 0.95 : 0.7)
                 .ignoresSafeArea()
 
             VStack(spacing: 20) {
+                logoView
+
                 ProgressView()
                     .scaleEffect(1.5)
-                    .tint(.white)
+                    .tint(Color("moroccoRed"))
 
                 VStack(spacing: 8) {
                     Text("Initializing Tournament Data")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
 
                     Text("Loading fixtures for AFCON 2025...")
                         .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                 }
             }
             .padding(40)
             .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(Color(.systemBackground).opacity(0.95))
+                    .fill(Color(.secondarySystemBackground))
             )
-            .shadow(radius: 20)
+            .shadow(color: Color.primary.opacity(0.2), radius: 20)
             .padding(40)
+        }
+    }
+
+    @ViewBuilder
+    private var logoView: some View {
+        if let logo = UIImage(named: "AppIcon") {
+            Image(uiImage: logo)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 96, height: 96)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(moroccoGradient, lineWidth: 2)
+                )
+                .shadow(color: Color("moroccoRed").opacity(0.3), radius: 8)
+        } else {
+            Image(systemName: "trophy.fill")
+                .font(.system(size: 56, weight: .bold))
+                .foregroundStyle(moroccoGradient)
         }
     }
 }

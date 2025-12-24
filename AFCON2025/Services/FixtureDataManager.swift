@@ -151,6 +151,10 @@ class FixtureDataManager {
         let timestamp = Int(grpcFixture.timestamp)
         let date = Date(timeIntervalSince1970: TimeInterval(timestamp))
 
+        // Use localized team names
+        let homeTeamName = localizedTeamName(grpcFixture.teams.home.name)
+        let awayTeamName = localizedTeamName(grpcFixture.teams.away.name)
+
         return FixtureModel(
             id: Int(grpcFixture.id),
             referee: grpcFixture.referee,
@@ -164,11 +168,11 @@ class FixtureDataManager {
             statusShort: grpcFixture.status.short,
             statusElapsed: Int(grpcFixture.status.elapsed),
             homeTeamId: Int(grpcFixture.teams.home.id),
-            homeTeamName: grpcFixture.teams.home.name,
+            homeTeamName: homeTeamName,
             homeTeamLogo: grpcFixture.teams.home.logo,
             homeTeamWinner: grpcFixture.teams.home.winner,
             awayTeamId: Int(grpcFixture.teams.away.id),
-            awayTeamName: grpcFixture.teams.away.name,
+            awayTeamName: awayTeamName,
             awayTeamLogo: grpcFixture.teams.away.logo,
             awayTeamWinner: grpcFixture.teams.away.winner,
             homeGoals: Int(grpcFixture.goals.home),
@@ -177,15 +181,130 @@ class FixtureDataManager {
             halftimeAway: Int(grpcFixture.score.halftime.away),
             fulltimeHome: Int(grpcFixture.score.fulltime.home),
             fulltimeAway: Int(grpcFixture.score.fulltime.away),
-            competition: "AFCON 2025"
+            competition: "AFCON 2025",
+            round: grpcFixture.league.round.isEmpty ? nil : grpcFixture.league.round
         )
     }
 
-    private func updateFixtureModel(_ model: FixtureModel, with grpcFixture: Afcon_Fixture) {
+    // MARK: - Localization Helper
+
+    private func localizedTeamName(_ name: String) -> String {
+        let language = Locale.current.language.languageCode?.identifier ?? Locale.current.languageCode ?? "en"
+
+        switch language {
+        case "fr":
+            return frenchTeamNames[name] ?? name
+        case "ar":
+            return arabicTeamNames[name] ?? name
+        case "es":
+            return spanishTeamNames[name] ?? name
+        default:
+            return name
+        }
+    }
+
+    private let frenchTeamNames: [String: String] = [
+        "Morocco": "Maroc",
+        "Senegal": "Sénégal",
+        "Algeria": "Algérie",
+        "Tunisia": "Tunisie",
+        "Egypt": "Égypte",
+        "Nigeria": "Nigeria",
+        "Cameroon": "Cameroun",
+        "Ghana": "Ghana",
+        "Ivory Coast": "Côte d'Ivoire",
+        "Cote d'Ivoire": "Côte d'Ivoire",
+        "South Africa": "Afrique du Sud",
+        "Mali": "Mali",
+        "Burkina Faso": "Burkina Faso",
+        "Guinea": "Guinée",
+        "Guinea-Bissau": "Guinée-Bissau",
+        "Equatorial Guinea": "Guinée équatoriale",
+        "Gabon": "Gabon",
+        "Angola": "Angola",
+        "Zambia": "Zambie",
+        "Zimbabwe": "Zimbabwe",
+        "Tanzania": "Tanzanie",
+        "Comoros": "Comores",
+        "Botswana": "Botswana",
+        "Benin": "Bénin",
+        "Uganda": "Ouganda",
+        "Mozambique": "Mozambique",
+        "DR Congo": "RD Congo",
+        "Congo DR": "RD Congo",
+        "Sudan": "Soudan"
+    ]
+
+    private let arabicTeamNames: [String: String] = [
+        "Morocco": "المغرب",
+        "Senegal": "السنغال",
+        "Algeria": "الجزائر",
+        "Tunisia": "تونس",
+        "Egypt": "مصر",
+        "Nigeria": "نيجيريا",
+        "Cameroon": "الكاميرون",
+        "Ghana": "غانا",
+        "Ivory Coast": "كوت ديفوار",
+        "Cote d'Ivoire": "كوت ديفوار",
+        "South Africa": "جنوب أفريقيا",
+        "Mali": "مالي",
+        "Burkina Faso": "بوركينا فاسو",
+        "Guinea": "غينيا",
+        "Guinea-Bissau": "غينيا بيساو",
+        "Equatorial Guinea": "غينيا الاستوائية",
+        "Gabon": "الغابون",
+        "Angola": "أنغولا",
+        "Zambia": "زامبيا",
+        "Zimbabwe": "زيمبابوي",
+        "Tanzania": "تنزانيا",
+        "Comoros": "جزر القمر",
+        "Botswana": "بوتسوانا",
+        "Benin": "بنين",
+        "Uganda": "أوغندا",
+        "Mozambique": "موزمبيق",
+        "DR Congo": "جمهورية الكونغو الديمقراطية",
+        "Congo DR": "جمهورية الكونغو الديمقراطية",
+        "Sudan": "السودان"
+    ]
+
+    private let spanishTeamNames: [String: String] = [
+        "Morocco": "Marruecos",
+        "Senegal": "Senegal",
+        "Algeria": "Argelia",
+        "Tunisia": "Túnez",
+        "Egypt": "Egipto",
+        "Nigeria": "Nigeria",
+        "Cameroon": "Camerún",
+        "Ghana": "Ghana",
+        "Ivory Coast": "Costa de Marfil",
+        "Cote d'Ivoire": "Costa de Marfil",
+        "South Africa": "Sudáfrica",
+        "Mali": "Malí",
+        "Burkina Faso": "Burkina Faso",
+        "Guinea": "Guinea",
+        "Guinea-Bissau": "Guinea-Bisáu",
+        "Equatorial Guinea": "Guinea Ecuatorial",
+        "Gabon": "Gabón",
+        "Angola": "Angola",
+        "Zambia": "Zambia",
+        "Zimbabwe": "Zimbabue",
+        "Tanzania": "Tanzania",
+        "Comoros": "Comoras",
+        "Botswana": "Botsuana",
+        "Benin": "Benín",
+        "Uganda": "Uganda",
+        "Mozambique": "Mozambique",
+        "DR Congo": "RD del Congo",
+        "Congo DR": "RD del Congo",
+        "Sudan": "Sudán"
+    ]
+
+    func updateFixtureModel(_ model: FixtureModel, with grpcFixture: Afcon_Fixture) {
         // Update mutable fields that might change during a match
         model.statusLong = grpcFixture.status.long
         model.statusShort = grpcFixture.status.short
         model.statusElapsed = Int(grpcFixture.status.elapsed)
+        model.statusExtra = Int(grpcFixture.status.extra)
 
         model.homeGoals = Int(grpcFixture.goals.home)
         model.awayGoals = Int(grpcFixture.goals.away)
@@ -198,7 +317,76 @@ class FixtureDataManager {
         model.homeTeamWinner = grpcFixture.teams.home.winner
         model.awayTeamWinner = grpcFixture.teams.away.winner
 
+        // Note: round is not updated as it's not available from gRPC API
+
         model.lastUpdated = Date()
+    }
+}
+
+// MARK: - Event Management
+extension FixtureDataManager {
+    /// Store events for a fixture in SwiftData
+    func storeEvents(_ grpcEvents: [Afcon_FixtureEvent], for fixtureId: Int) async {
+        do {
+            for grpcEvent in grpcEvents {
+                let eventModel = FixtureEventModel.from(grpcEvent, fixtureId: fixtureId)
+
+                // Check if event already exists
+                let eventId = eventModel.id
+                let descriptor = FetchDescriptor<FixtureEventModel>(
+                    predicate: #Predicate<FixtureEventModel> { event in
+                        event.id == eventId
+                    }
+                )
+
+                if try modelContext.fetch(descriptor).isEmpty {
+                    // Insert new event
+                    modelContext.insert(eventModel)
+                    print("📝 Stored new event: \(eventModel.eventType) at \(eventModel.timeElapsed)' for fixture \(fixtureId)")
+                }
+            }
+
+            try modelContext.save()
+        } catch {
+            print("❌ Failed to store events: \(error)")
+        }
+    }
+
+    /// Get all events for a specific fixture from SwiftData
+    func getEvents(for fixtureId: Int) throws -> [FixtureEventModel] {
+        let descriptor = FetchDescriptor<FixtureEventModel>(
+            predicate: #Predicate { event in
+                event.fixtureId == fixtureId
+            },
+            sortBy: [
+                SortDescriptor(\.timeElapsed),
+                SortDescriptor(\.createdAt)
+            ]
+        )
+        return try modelContext.fetch(descriptor)
+    }
+
+    /// Convert stored events to Afcon_FixtureEvent for UI
+    func getAfconEvents(for fixtureId: Int) throws -> [Afcon_FixtureEvent] {
+        let storedEvents = try getEvents(for: fixtureId)
+        return storedEvents.map { $0.toAfconFixtureEvent() }
+    }
+
+    /// Delete all events for a fixture
+    func deleteEvents(for fixtureId: Int) throws {
+        let descriptor = FetchDescriptor<FixtureEventModel>(
+            predicate: #Predicate { event in
+                event.fixtureId == fixtureId
+            }
+        )
+
+        let events = try modelContext.fetch(descriptor)
+        for event in events {
+            modelContext.delete(event)
+        }
+
+        try modelContext.save()
+        print("🗑️ Deleted \(events.count) events for fixture \(fixtureId)")
     }
 }
 

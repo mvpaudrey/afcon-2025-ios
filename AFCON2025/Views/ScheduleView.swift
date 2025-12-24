@@ -11,8 +11,7 @@ struct ScheduleView: View {
             awayTeam: "Comoros",
             competition: "AFCON 2025 - Group A",
             venue: "Prince Moulay Abdellah Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
 
         // December 22, 2025
@@ -24,8 +23,7 @@ struct ScheduleView: View {
             awayTeam: "Zambia",
             competition: "AFCON 2025 - Group A",
             venue: "Mohammed V Stadium",
-            city: "Casablanca",
-            ticketsAvailable: true
+            city: "Casablanca"
         ),
         ScheduledMatch(
             id: 3,
@@ -35,8 +33,7 @@ struct ScheduleView: View {
             awayTeam: "Zimbabwe",
             competition: "AFCON 2025 - Group B",
             venue: "Adrar Stadium",
-            city: "Agadir",
-            ticketsAvailable: true
+            city: "Agadir"
         ),
         ScheduledMatch(
             id: 4,
@@ -46,8 +43,7 @@ struct ScheduleView: View {
             awayTeam: "Angola",
             competition: "AFCON 2025 - Group B",
             venue: "Marrakesh Stadium",
-            city: "Marrakesh",
-            ticketsAvailable: true
+            city: "Marrakesh"
         ),
 
         // December 23, 2025
@@ -59,8 +55,7 @@ struct ScheduleView: View {
             awayTeam: "Tanzania",
             competition: "AFCON 2025 - Group C",
             venue: "Fez Stadium",
-            city: "Fez",
-            ticketsAvailable: true
+            city: "Fez"
         ),
         ScheduledMatch(
             id: 6,
@@ -70,8 +65,7 @@ struct ScheduleView: View {
             awayTeam: "Uganda",
             competition: "AFCON 2025 - Group C",
             venue: "Prince Moulay Abdellah Olympic Annex Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
         ScheduledMatch(
             id: 7,
@@ -81,8 +75,7 @@ struct ScheduleView: View {
             awayTeam: "Botswana",
             competition: "AFCON 2025 - Group D",
             venue: "Ibn Batouta Stadium",
-            city: "Tangier",
-            ticketsAvailable: true
+            city: "Tangier"
         ),
         ScheduledMatch(
             id: 8,
@@ -92,8 +85,7 @@ struct ScheduleView: View {
             awayTeam: "Benin",
             competition: "AFCON 2025 - Group D",
             venue: "Al Barid Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
 
         // December 24, 2025
@@ -105,8 +97,7 @@ struct ScheduleView: View {
             awayTeam: "Sudan",
             competition: "AFCON 2025 - Group E",
             venue: "Moulay Hassan Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
         ScheduledMatch(
             id: 10,
@@ -116,8 +107,7 @@ struct ScheduleView: View {
             awayTeam: "Equatorial Guinea",
             competition: "AFCON 2025 - Group E",
             venue: "Mohammed V Stadium",
-            city: "Casablanca",
-            ticketsAvailable: true
+            city: "Casablanca"
         ),
         ScheduledMatch(
             id: 11,
@@ -127,8 +117,7 @@ struct ScheduleView: View {
             awayTeam: "Mozambique",
             competition: "AFCON 2025 - Group F",
             venue: "Marrakesh Stadium",
-            city: "Marrakesh",
-            ticketsAvailable: true
+            city: "Marrakesh"
         ),
         ScheduledMatch(
             id: 12,
@@ -138,8 +127,7 @@ struct ScheduleView: View {
             awayTeam: "Gabon",
             competition: "AFCON 2025 - Group F",
             venue: "Adrar Stadium",
-            city: "Agadir",
-            ticketsAvailable: true
+            city: "Agadir"
         ),
 
         // December 26, 2025 - Second Round Matches
@@ -151,8 +139,7 @@ struct ScheduleView: View {
             awayTeam: "Mali",
             competition: "AFCON 2025 - Group A",
             venue: "Prince Moulay Abdellah Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
         ScheduledMatch(
             id: 14,
@@ -162,8 +149,7 @@ struct ScheduleView: View {
             awayTeam: "Comoros",
             competition: "AFCON 2025 - Group A",
             venue: "Mohammed V Stadium",
-            city: "Casablanca",
-            ticketsAvailable: true
+            city: "Casablanca"
         ),
         ScheduledMatch(
             id: 15,
@@ -173,8 +159,7 @@ struct ScheduleView: View {
             awayTeam: "South Africa",
             competition: "AFCON 2025 - Group B",
             venue: "Adrar Stadium",
-            city: "Agadir",
-            ticketsAvailable: true
+            city: "Agadir"
         ),
         ScheduledMatch(
             id: 16,
@@ -184,8 +169,7 @@ struct ScheduleView: View {
             awayTeam: "Zimbabwe",
             competition: "AFCON 2025 - Group B",
             venue: "Marrakesh Stadium",
-            city: "Marrakesh",
-            ticketsAvailable: true
+            city: "Marrakesh"
         ),
 
         // December 27, 2025
@@ -197,8 +181,7 @@ struct ScheduleView: View {
             awayTeam: "Tunisia",
             competition: "AFCON 2025 - Group C",
             venue: "Fez Stadium",
-            city: "Fez",
-            ticketsAvailable: true
+            city: "Fez"
         ),
         ScheduledMatch(
             id: 18,
@@ -208,8 +191,7 @@ struct ScheduleView: View {
             awayTeam: "Tanzania",
             competition: "AFCON 2025 - Group C",
             venue: "Prince Moulay Abdellah Olympic Annex Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
         ScheduledMatch(
             id: 19,
@@ -219,8 +201,7 @@ struct ScheduleView: View {
             awayTeam: "DR Congo",
             competition: "AFCON 2025 - Group D",
             venue: "Ibn Batouta Stadium",
-            city: "Tangier",
-            ticketsAvailable: true
+            city: "Tangier"
         ),
         ScheduledMatch(
             id: 20,
@@ -230,8 +211,7 @@ struct ScheduleView: View {
             awayTeam: "Botswana",
             competition: "AFCON 2025 - Group D",
             venue: "Al Barid Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
 
         // December 28, 2025
@@ -243,8 +223,7 @@ struct ScheduleView: View {
             awayTeam: "Burkina Faso",
             competition: "AFCON 2025 - Group E",
             venue: "Moulay Hassan Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
         ScheduledMatch(
             id: 22,
@@ -254,8 +233,7 @@ struct ScheduleView: View {
             awayTeam: "Sudan",
             competition: "AFCON 2025 - Group E",
             venue: "Mohammed V Stadium",
-            city: "Casablanca",
-            ticketsAvailable: true
+            city: "Casablanca"
         ),
         ScheduledMatch(
             id: 23,
@@ -265,8 +243,7 @@ struct ScheduleView: View {
             awayTeam: "Cameroon",
             competition: "AFCON 2025 - Group F",
             venue: "Marrakesh Stadium",
-            city: "Marrakesh",
-            ticketsAvailable: true
+            city: "Marrakesh"
         ),
         ScheduledMatch(
             id: 24,
@@ -276,8 +253,7 @@ struct ScheduleView: View {
             awayTeam: "Mozambique",
             competition: "AFCON 2025 - Group F",
             venue: "Adrar Stadium",
-            city: "Agadir",
-            ticketsAvailable: true
+            city: "Agadir"
         ),
 
         // December 29, 2025 - Group A Final
@@ -289,8 +265,7 @@ struct ScheduleView: View {
             awayTeam: "Morocco",
             competition: "AFCON 2025 - Group A",
             venue: "Prince Moulay Abdellah Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
         ScheduledMatch(
             id: 26,
@@ -300,8 +275,7 @@ struct ScheduleView: View {
             awayTeam: "Mali",
             competition: "AFCON 2025 - Group A",
             venue: "Mohammed V Stadium",
-            city: "Casablanca",
-            ticketsAvailable: true
+            city: "Casablanca"
         ),
         ScheduledMatch(
             id: 27,
@@ -311,8 +285,7 @@ struct ScheduleView: View {
             awayTeam: "Egypt",
             competition: "AFCON 2025 - Group B",
             venue: "Adrar Stadium",
-            city: "Agadir",
-            ticketsAvailable: true
+            city: "Agadir"
         ),
         ScheduledMatch(
             id: 28,
@@ -322,8 +295,7 @@ struct ScheduleView: View {
             awayTeam: "South Africa",
             competition: "AFCON 2025 - Group B",
             venue: "Marrakesh Stadium",
-            city: "Marrakesh",
-            ticketsAvailable: true
+            city: "Marrakesh"
         ),
 
         // December 30, 2025 - Groups C & D Final
@@ -335,8 +307,7 @@ struct ScheduleView: View {
             awayTeam: "Nigeria",
             competition: "AFCON 2025 - Group C",
             venue: "Fez Stadium",
-            city: "Fez",
-            ticketsAvailable: true
+            city: "Fez"
         ),
         ScheduledMatch(
             id: 30,
@@ -346,8 +317,7 @@ struct ScheduleView: View {
             awayTeam: "Tunisia",
             competition: "AFCON 2025 - Group C",
             venue: "Prince Moulay Abdellah Olympic Annex Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
         ScheduledMatch(
             id: 31,
@@ -357,8 +327,7 @@ struct ScheduleView: View {
             awayTeam: "Senegal",
             competition: "AFCON 2025 - Group D",
             venue: "Ibn Batouta Stadium",
-            city: "Tangier",
-            ticketsAvailable: true
+            city: "Tangier"
         ),
         ScheduledMatch(
             id: 32,
@@ -368,8 +337,7 @@ struct ScheduleView: View {
             awayTeam: "DR Congo",
             competition: "AFCON 2025 - Group D",
             venue: "Al Barid Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
 
         // December 31, 2025 - Groups E & F Final
@@ -381,8 +349,7 @@ struct ScheduleView: View {
             awayTeam: "Algeria",
             competition: "AFCON 2025 - Group E",
             venue: "Moulay Hassan Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
         ScheduledMatch(
             id: 34,
@@ -392,8 +359,7 @@ struct ScheduleView: View {
             awayTeam: "Burkina Faso",
             competition: "AFCON 2025 - Group E",
             venue: "Mohammed V Stadium",
-            city: "Casablanca",
-            ticketsAvailable: true
+            city: "Casablanca"
         ),
         ScheduledMatch(
             id: 35,
@@ -403,8 +369,7 @@ struct ScheduleView: View {
             awayTeam: "Ivory Coast",
             competition: "AFCON 2025 - Group F",
             venue: "Marrakesh Stadium",
-            city: "Marrakesh",
-            ticketsAvailable: true
+            city: "Marrakesh"
         ),
         ScheduledMatch(
             id: 36,
@@ -414,8 +379,7 @@ struct ScheduleView: View {
             awayTeam: "Cameroon",
             competition: "AFCON 2025 - Group F",
             venue: "Adrar Stadium",
-            city: "Agadir",
-            ticketsAvailable: true
+            city: "Agadir"
         ),
 
         // Round of 16 - January 3-6, 2026
@@ -427,8 +391,7 @@ struct ScheduleView: View {
             awayTeam: "3rd Group C/D/E/F",
             competition: "AFCON 2025 - Round of 16",
             venue: "Ibn Batouta Stadium",
-            city: "Tangier",
-            ticketsAvailable: true
+            city: "Tangier"
         ),
         ScheduledMatch(
             id: 38,
@@ -438,8 +401,7 @@ struct ScheduleView: View {
             awayTeam: "3rd Group A/C/D/E",
             competition: "AFCON 2025 - Round of 16",
             venue: "Mohammed V Stadium",
-            city: "Casablanca",
-            ticketsAvailable: true
+            city: "Casablanca"
         ),
         ScheduledMatch(
             id: 39,
@@ -449,8 +411,7 @@ struct ScheduleView: View {
             awayTeam: "3rd Group A/B/E/F",
             competition: "AFCON 2025 - Round of 16",
             venue: "Prince Moulay Abdellah Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
         ScheduledMatch(
             id: 40,
@@ -460,8 +421,7 @@ struct ScheduleView: View {
             awayTeam: "Runner-up Group B",
             competition: "AFCON 2025 - Round of 16",
             venue: "Al Barid Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
         ScheduledMatch(
             id: 41,
@@ -471,8 +431,7 @@ struct ScheduleView: View {
             awayTeam: "Runner-up Group F",
             competition: "AFCON 2025 - Round of 16",
             venue: "Adrar Stadium",
-            city: "Agadir",
-            ticketsAvailable: true
+            city: "Agadir"
         ),
         ScheduledMatch(
             id: 42,
@@ -482,8 +441,7 @@ struct ScheduleView: View {
             awayTeam: "Runner-up Group E",
             competition: "AFCON 2025 - Round of 16",
             venue: "Marrakesh Stadium",
-            city: "Marrakesh",
-            ticketsAvailable: true
+            city: "Marrakesh"
         ),
         ScheduledMatch(
             id: 43,
@@ -493,8 +451,7 @@ struct ScheduleView: View {
             awayTeam: "3rd Group B/C/D/F",
             competition: "AFCON 2025 - Round of 16",
             venue: "Moulay Hassan Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
         ScheduledMatch(
             id: 44,
@@ -504,8 +461,7 @@ struct ScheduleView: View {
             awayTeam: "3rd Group A/B/D/F",
             competition: "AFCON 2025 - Round of 16",
             venue: "Ibn Batouta Stadium",
-            city: "Tangier",
-            ticketsAvailable: true
+            city: "Tangier"
         ),
 
         // Quarter-finals - January 9-10, 2026
@@ -517,8 +473,7 @@ struct ScheduleView: View {
             awayTeam: "Winner R2",
             competition: "AFCON 2025 - Quarter-final",
             venue: "Ibn Batouta Stadium",
-            city: "Tangier",
-            ticketsAvailable: true
+            city: "Tangier"
         ),
         ScheduledMatch(
             id: 46,
@@ -528,8 +483,7 @@ struct ScheduleView: View {
             awayTeam: "Winner R4",
             competition: "AFCON 2025 - Quarter-final",
             venue: "Prince Moulay Abdellah Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
         ScheduledMatch(
             id: 47,
@@ -539,8 +493,7 @@ struct ScheduleView: View {
             awayTeam: "Winner R6",
             competition: "AFCON 2025 - Quarter-final",
             venue: "Marrakesh Stadium",
-            city: "Marrakesh",
-            ticketsAvailable: true
+            city: "Marrakesh"
         ),
         ScheduledMatch(
             id: 48,
@@ -550,8 +503,7 @@ struct ScheduleView: View {
             awayTeam: "Winner R8",
             competition: "AFCON 2025 - Quarter-final",
             venue: "Adrar Stadium",
-            city: "Agadir",
-            ticketsAvailable: true
+            city: "Agadir"
         ),
 
         // Semi-finals - January 14, 2026
@@ -563,8 +515,7 @@ struct ScheduleView: View {
             awayTeam: "Winner QF2",
             competition: "AFCON 2025 - Semi-final",
             venue: "Ibn Batouta Stadium",
-            city: "Tangier",
-            ticketsAvailable: true
+            city: "Tangier"
         ),
         ScheduledMatch(
             id: 50,
@@ -574,8 +525,7 @@ struct ScheduleView: View {
             awayTeam: "Winner QF4",
             competition: "AFCON 2025 - Semi-final",
             venue: "Prince Moulay Abdellah Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         ),
 
         // Third Place Play-off - January 17, 2026
@@ -587,8 +537,7 @@ struct ScheduleView: View {
             awayTeam: "Semi-final Loser 2",
             competition: "AFCON 2025 - Third Place",
             venue: "Mohammed V Stadium",
-            city: "Casablanca",
-            ticketsAvailable: true
+            city: "Casablanca"
         ),
 
         // Final - January 18, 2026
@@ -600,8 +549,7 @@ struct ScheduleView: View {
             awayTeam: "Semi-final Winner 2",
             competition: "AFCON 2025 - FINAL",
             venue: "Prince Moulay Abdellah Stadium",
-            city: "Rabat",
-            ticketsAvailable: true
+            city: "Rabat"
         )
     ]
 
@@ -657,16 +605,6 @@ struct ScheduledMatchCard: View {
                     .foregroundColor(.secondary)
                 }
 
-                Spacer()
-
-                Text(match.ticketsAvailable ? "Tickets Available" : "Sold Out")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(match.ticketsAvailable ? Color("moroccoGreen") : Color.gray)
-                    .foregroundColor(.white)
-                    .cornerRadius(4)
             }
 
             // Competition
@@ -756,14 +694,6 @@ struct ScheduledMatchCard: View {
                     .buttonStyle(.bordered)
                     .font(.caption)
 
-                    if match.ticketsAvailable {
-                        Button("Get Tickets") {
-                            // Add action
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .font(.caption)
-                        .tint(Color("moroccoRed"))
-                    }
                 }
             }
         }
@@ -794,7 +724,6 @@ struct ScheduledMatch {
     let competition: String
     let venue: String
     let city: String
-    let ticketsAvailable: Bool
 }
 
 #Preview {
