@@ -67,6 +67,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				"Views/String+TeamNames.swift",
 			);
 			target = 768D4CB42EEEF4EE00BE7EC5 /* AFCON2025 */;
 		};
@@ -83,6 +84,7 @@
 				Common/HomeWidgetSnapshotStore.swift,
 				Models/LiveScoreActivityAttributes.swift,
 				Services/AppGroup.swift,
+				"Views/String+TeamNames.swift",
 			);
 			target = 768D4E142EEF350500BE7EC5 /* LiveScoreWidgetExtension */;
 		};
