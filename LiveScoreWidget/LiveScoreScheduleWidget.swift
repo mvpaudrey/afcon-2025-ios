@@ -90,12 +90,20 @@ private struct ScheduleListView: View {
                     .foregroundColor(.secondary)
                     .padding(.bottom, 4)
 
-                ForEach(Array(matches.enumerated()), id: \.element.fixtureID) { index, match in
-                    ScheduleRow(match: match)
-                    if index < matches.count - 1 {
-                        Divider().overlay(Color.white.opacity(0.1))
+                Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 8) {
+                    ForEach(Array(matches.enumerated()), id: \.element.fixtureID) { index, match in
+                        ScheduleRow(match: match)
+
+                        if index < matches.count - 1 {
+                            GridRow {
+                                Divider()
+                                    .gridCellColumns(3)
+                                    .overlay(Color.white.opacity(0.1))
+                            }
+                        }
                     }
                 }
+
                 Spacer(minLength: 0)
             }
             .padding()
@@ -107,16 +115,17 @@ private struct ScheduleRow: View {
     let match: LiveMatchWidgetSnapshot
 
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
+        GridRow(alignment: .center) {
+            // Column 1: Status badge (auto-sized, aligns all badges)
             statusBadge
 
+            // Column 2: Team names (auto-sized, all team columns align)
             VStack(alignment: .leading, spacing: 6) {
                 TeamLine(name: match.homeTeam, logoPath: match.homeLogoPath)
                 TeamLine(name: match.awayTeam, logoPath: match.awayLogoPath)
             }
 
-            Spacer()
-
+            // Column 3: Score/Time (auto-sized, trailing alignment)
             scoreAndTimerSection
         }
     }
@@ -124,8 +133,8 @@ private struct ScheduleRow: View {
     private var statusBadge: some View {
         let (label, color) = statusLabelAndColor(for: match)
         return Text(label)
-            .font(.caption2)
-            .fontWeight(.bold)
+            .font(.system(size: 10, weight: .bold))
+            .lineLimit(1)
             .padding(.horizontal, 6)
             .padding(.vertical, 4)
             .background(color.opacity(0.15))
@@ -139,7 +148,7 @@ private struct ScheduleRow: View {
         } else if match.isFinished {
             return ("FT", .gray)
         } else {
-            return ("UPCOMING", .blue)
+            return ("SOON", .blue)
         }
     }
 
@@ -147,39 +156,40 @@ private struct ScheduleRow: View {
         VStack(alignment: .trailing, spacing: 4) {
             if match.isLive {
                 Text("\(match.homeScore) - \(match.awayScore)")
-                    .font(.headline)
-                    .fontWeight(.semibold)
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.primary)
                     .monospacedDigit()
 
                 LiveMatchTimerLabel(match: match)
             } else if match.isFinished {
                 Text("\(match.homeScore) - \(match.awayScore)")
-                    .font(.headline)
-                    .fontWeight(.semibold)
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.primary)
                     .monospacedDigit()
 
                 Text("FT")
-                    .font(.caption2)
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundColor(.secondary)
             } else if let kickoff = match.kickoffDate, kickoff > Date() {
-                VStack(alignment: .trailing, spacing: 0) {
+                VStack(alignment: .trailing, spacing: 2) {
                     Text(kickoff, style: .time)
-                        .font(.caption)
-                        .fontWeight(.semibold)
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(.primary)
-                    Text(kickoff, style: .date)
-                        .font(.caption2)
+                        .lineLimit(1)
+                    Text(kickoff, format: .dateTime.month(.abbreviated).day())
+                        .font(.system(size: 10, weight: .medium))
                         .foregroundColor(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
+                .frame(minWidth: 50, alignment: .trailing)
             } else {
                 Text(match.statusLabel)
-                    .font(.caption)
-                    .fontWeight(.semibold)
+                    .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(.secondary)
             }
         }
+        .frame(minWidth: 60, alignment: .trailing)
     }
 
     private struct TeamLine: View {
@@ -188,9 +198,9 @@ private struct ScheduleRow: View {
 
         var body: some View {
             HStack(spacing: 6) {
-                LogoImageView(path: logoPath, size: CGSize(width: 22, height: 22))
-                Text(name)
-                    .font(.callout)
+                LogoImageView(path: logoPath, size: CGSize(width: 22, height: 22), useCircle: true)
+                Text(localizedTeamName(name))
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundColor(Color.primary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
@@ -221,8 +231,7 @@ private struct LiveMatchTimerLabel: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { timeline in
             Text(match.timerText(reference: timeline.date))
-                .font(.caption)
-                .fontWeight(.bold)
+                .font(.system(size: 10, weight: .bold))
                 .foregroundColor(.green)
                 .monospacedDigit()
         }

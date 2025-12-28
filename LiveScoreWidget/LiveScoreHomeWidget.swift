@@ -67,50 +67,107 @@ private struct MediumLiveScoreView: View {
     let match: LiveMatchWidgetSnapshot
     let date: Date
 
+    private var isHalftime: Bool {
+        match.status.uppercased() == "HT"
+    }
+
+    private var statusBadgeColor: Color {
+        if isHalftime {
+            return .orange
+        } else if match.isLive {
+            return Color("moroccoRed")
+        } else {
+            return Color(.systemGray5)
+        }
+    }
+
+    private var statusBadgeTextColor: Color {
+        (match.isLive || isHalftime) ? .white : .secondary
+    }
+
     var body: some View {
         ZStack {
             ContainerRelativeShape()
                 .fill(Color("WidgetBackground", bundle: .main).opacity(0.95))
 
-            VStack(alignment: .leading, spacing: 12) {
-                Header(status: match.statusLabel, updated: match.updatedText(reference: date))
+            VStack(spacing: 12) {
+                // Header matching MatchCard
+                HStack {
+                    HStack(spacing: 4) {
+                        if match.isLive {
+                            Image(systemName: "clock")
+                                .font(.caption2)
+                        } else if isHalftime {
+                            Image(systemName: "pause.circle.fill")
+                                .font(.caption2)
+                        }
+                        Text(match.statusLabel)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(statusBadgeColor)
+                    .foregroundColor(statusBadgeTextColor)
+                    .cornerRadius(12)
 
-                Text(match.competition.uppercased())
-                    .font(.caption2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.secondary)
+                    Spacer()
 
-                HStack(spacing: 12) {
-                    TeamColumn(
-                        name: match.homeTeam,
-                        score: match.homeScore,
-                        logoPath: match.homeLogoPath,
-                        isHome: true
-                    )
-
-                    Divider()
-                        .frame(height: 44)
-                        .overlay(Color.primary.opacity(0.15))
-
-                    TeamColumn(
-                        name: match.awayTeam,
-                        score: match.awayScore,
-                        logoPath: match.awayLogoPath,
-                        isHome: false
-                    )
+                    Text(match.competition)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
 
+                // Teams and Scores matching MatchCard layout
+                HStack {
+                    // Home Team
+                    HStack(spacing: 8) {
+                        LogoImageView(path: match.homeLogoPath, size: CGSize(width: 40, height: 40), useCircle: true)
+
+                        Text(localizedTeamName(match.homeTeam))
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .lineLimit(1)
+                    }
+
+                    Spacer()
+
+                    // Score
+                    HStack(spacing: 12) {
+                        Text("\(match.homeScore)")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color("moroccoRed"))
+
+                        Text("-")
+                            .foregroundColor(.secondary)
+
+                        Text("\(match.awayScore)")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color("moroccoGreen"))
+                    }
+
+                    Spacer()
+
+                    // Away Team
+                    HStack(spacing: 8) {
+                        Text(localizedTeamName(match.awayTeam))
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .lineLimit(1)
+
+                        LogoImageView(path: match.awayLogoPath, size: CGSize(width: 40, height: 40), useCircle: true)
+                    }
+                }
+
+                // Timer/Status
                 if match.isLive {
                     Text(match.timerText(reference: date))
                         .font(.caption)
                         .fontWeight(.semibold)
                         .foregroundColor(.green)
                         .monospacedDigit()
-                } else {
-                    Text(match.statusLabel)
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.secondary)
                 }
             }
             .padding()
@@ -122,102 +179,118 @@ private struct LargeLiveScoreView: View {
     let match: LiveMatchWidgetSnapshot
     let date: Date
 
+    private var isHalftime: Bool {
+        match.status.uppercased() == "HT"
+    }
+
+    private var statusBadgeColor: Color {
+        if isHalftime {
+            return .orange
+        } else if match.isLive {
+            return Color("moroccoRed")
+        } else {
+            return Color(.systemGray5)
+        }
+    }
+
+    private var statusBadgeTextColor: Color {
+        (match.isLive || isHalftime) ? .white : .secondary
+    }
+
     var body: some View {
         ZStack {
             ContainerRelativeShape()
                 .fill(Color("WidgetBackground", bundle: .main).opacity(0.95))
 
-            VStack(alignment: .leading, spacing: 16) {
-                Header(status: match.statusLabel, updated: match.updatedText(reference: date))
-
-                HStack(spacing: 16) {
-                    TeamColumn(
-                        name: match.homeTeam,
-                        score: match.homeScore,
-                        logoPath: match.homeLogoPath,
-                        isHome: true
-                    )
-
-                    Spacer(minLength: 12)
-
-                    VStack(spacing: 4) {
-                        Text(match.isLive ? match.timerText(reference: date) : match.statusLabel)
-                            .font(.headline)
-                            .fontWeight(.bold)
-                            .foregroundColor(match.isLive ? .green : .secondary)
-                            .monospacedDigit()
-                        Text(match.competition.uppercased())
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+            VStack(spacing: 12) {
+                // Header matching MatchCard
+                HStack {
+                    HStack(spacing: 4) {
+                        if match.isLive {
+                            Image(systemName: "clock")
+                                .font(.caption2)
+                        } else if isHalftime {
+                            Image(systemName: "pause.circle.fill")
+                                .font(.caption2)
+                        }
+                        Text(match.statusLabel)
+                            .font(.caption)
+                            .fontWeight(.medium)
                     }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(statusBadgeColor)
+                    .foregroundColor(statusBadgeTextColor)
+                    .cornerRadius(12)
 
-                    Spacer(minLength: 12)
+                    Spacer()
 
-                    TeamColumn(
-                        name: match.awayTeam,
-                        score: match.awayScore,
-                        logoPath: match.awayLogoPath,
-                        isHome: false
-                    )
+                    Text(match.competition)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
 
-                GoalListView(home: match.homeGoalEvents, away: match.awayGoalEvents)
+                // Teams and Scores matching MatchCard layout
+                HStack {
+                    // Home Team
+                    HStack(spacing: 12) {
+                        LogoImageView(path: match.homeLogoPath, size: CGSize(width: 50, height: 50), useCircle: true)
+
+                        Text(localizedTeamName(match.homeTeam))
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .lineLimit(2)
+                    }
+
+                    Spacer()
+
+                    // Score
+                    HStack(spacing: 16) {
+                        Text("\(match.homeScore)")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color("moroccoRed"))
+
+                        Text("-")
+                            .font(.title)
+                            .foregroundColor(.secondary)
+
+                        Text("\(match.awayScore)")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color("moroccoGreen"))
+                    }
+
+                    Spacer()
+
+                    // Away Team
+                    HStack(spacing: 12) {
+                        Text(localizedTeamName(match.awayTeam))
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .lineLimit(2)
+
+                        LogoImageView(path: match.awayLogoPath, size: CGSize(width: 50, height: 50), useCircle: true)
+                    }
+                }
+
+                // Timer
+                if match.isLive {
+                    Text(match.timerText(reference: date))
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.green)
+                        .monospacedDigit()
+                }
+
+                // Goals Section
+                if !match.homeGoalEvents.isEmpty || !match.awayGoalEvents.isEmpty {
+                    Divider()
+
+                    GoalListView(home: match.homeGoalEvents, away: match.awayGoalEvents)
+                }
             }
             .padding()
-        }
-    }
-}
-
-private struct Header: View {
-    let status: String
-    let updated: String
-
-    var body: some View {
-        HStack {
-            Label(status, systemImage: "bolt.circle.fill")
-                .font(.caption)
-                .foregroundColor(.green)
-            Spacer()
-            Text(updated)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-        }
-    }
-}
-
-private struct TeamColumn: View {
-    let name: String
-    let score: Int
-    let logoPath: String?
-    let isHome: Bool
-    @Environment(\.colorScheme) private var colorScheme
-
-    private var textColor: Color {
-        colorScheme == .dark ? .white : .primary
-    }
-
-    var body: some View {
-        HStack(spacing: 8) {
-            if isHome {
-                LogoImageView(path: logoPath, size: CGSize(width: 32, height: 32))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-            }
-
-            VStack(alignment: isHome ? .leading : .trailing, spacing: 2) {
-                Text(name)
-                    .font(.headline)
-                    .foregroundColor(textColor)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                Text("\(score)")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(textColor)
-            }
-
-            if !isHome {
-                LogoImageView(path: logoPath, size: CGSize(width: 32, height: 32))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-            }
         }
     }
 }
@@ -227,45 +300,40 @@ private struct GoalListView: View {
     let away: [String]
     @Environment(\.colorScheme) private var colorScheme
 
-    private var goalTextColor: Color {
-        colorScheme == .dark ? Color.white.opacity(0.9) : Color.primary
-    }
-
     var body: some View {
-        let maxCount = max(home.count, away.count)
-        if maxCount == 0 {
+        VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Image(systemName: "minus.circle")
-                    .foregroundColor(.secondary)
-                Text("No goals yet")
+                Text("Goals")
                     .font(.caption)
+                    .fontWeight(.semibold)
                     .foregroundColor(.secondary)
+
                 Spacer()
+
+                Text("\(home.count + away.count) goal\(home.count + away.count == 1 ? "" : "s")")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
             }
-        } else {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text("Goals")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+
+            ForEach(home, id: \.self) { goal in
+                HStack(spacing: 6) {
+                    Text(sanitized(goal))
+                        .font(.caption2)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+
                     Spacer()
                 }
-                ForEach(0..<maxCount, id: \.self) { index in
-                    HStack(alignment: .top) {
-                        Text(home.count > index ? sanitized(home[index]) : "")
-                            .font(.caption2)
-                            .foregroundColor(goalTextColor)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
-                        Text(away.count > index ? sanitized(away[index]) : "")
-                            .font(.caption2)
-                            .foregroundColor(goalTextColor)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                    }
+            ForEach(away, id: \.self) { goal in
+                HStack(spacing: 6) {
+                    Spacer()
+
+                    Text(sanitized(goal))
+                        .font(.caption2)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
                 }
             }
         }

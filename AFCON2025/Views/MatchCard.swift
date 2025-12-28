@@ -15,12 +15,20 @@ struct MatchCard: View {
 
         switch match.status {
         case .live:
-            return match.minute
+            return stripExtraTime(match.minute)
         case .upcoming:
             return formatMatchTime(match.date)
         case .finished:
             return NSLocalizedString("match.status.finished", value: "FINISHED", comment: "Finished status")
         }
+    }
+
+    private func stripExtraTime(_ minute: String) -> String {
+        // Remove extra time (e.g., "45'+3" -> "45'", "90'+2" -> "90'")
+        if let plusIndex = minute.firstIndex(of: "+") {
+            return String(minute[..<plusIndex]) + "'"
+        }
+        return minute
     }
 
     private func formatMatchTime(_ date: Date) -> String {
@@ -96,9 +104,9 @@ struct MatchCard: View {
                         }
                     }
 
-                    Text(match.homeTeam)
+                    Text(localizedTeamName(match.homeTeam))
                         .fontWeight(.medium)
-                        .lineLimit(1)
+                        .lineLimit(2)
                 }
                 
                 Spacer()
@@ -130,9 +138,9 @@ struct MatchCard: View {
                 
                 // Away Team
                 HStack(spacing: 12) {
-                    Text(match.awayTeam)
+                    Text(localizedTeamName(match.awayTeam))
                         .fontWeight(.medium)
-                        .lineLimit(1)
+                        .lineLimit(2)
 
                     if let flagAsset = match.awayTeamFlagAsset {
                         Image(flagAsset)
@@ -216,28 +224,38 @@ struct MatchCard: View {
         
         var body: some View {
             HStack(spacing: 0) {
-                if !isHomeEvent {
-                    Spacer(minLength: 0)
-                }
-                
-                eventBubble
-                
                 if isHomeEvent {
+                    eventBubble
                     Spacer(minLength: 0)
+                } else {
+                    Spacer(minLength: 0)
+                    eventBubble
                 }
             }
+            .frame(maxWidth: .infinity, alignment: isHomeEvent ? .leading : .trailing)
         }
         
         private var eventBubble: some View {
             HStack(spacing: 8) {
-                timeBadge
-                
-                Image(systemName: eventIconForType(event.type, detail: event.detail))
-                    .font(.caption)
-                    .foregroundColor(eventColorForType(event.type, detail: event.detail))
-                    .frame(width: 20)
-                
-                descriptionStack
+                if isHomeEvent {
+                    timeBadge
+
+                    Image(systemName: eventIconForType(event.type, detail: event.detail))
+                        .font(.caption)
+                        .foregroundColor(eventColorForType(event.type, detail: event.detail))
+                        .frame(width: 20)
+
+                    descriptionStack
+                } else {
+                    descriptionStack
+
+                    Image(systemName: eventIconForType(event.type, detail: event.detail))
+                        .font(.caption)
+                        .foregroundColor(eventColorForType(event.type, detail: event.detail))
+                        .frame(width: 20)
+
+                    timeBadge
+                }
             }
             .padding(.vertical, 4)
             .padding(.horizontal, 8)

@@ -14,6 +14,7 @@ struct AFCONHomeView: View {
     @State private var selectedTab = 0
     @State private var isInitializingFixtures = false
     @State private var hasCheckedFixtures = false
+    @State private var liveScoresViewModel: LiveScoresViewModel?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -21,7 +22,11 @@ struct AFCONHomeView: View {
 
             TabView(selection: $selectedTab) {
                 Tab(value: 0) {
-                    LiveScoresView()
+                    if let viewModel = liveScoresViewModel {
+                        LiveScoresView(viewModel: viewModel)
+                    } else {
+                        ProgressView("Initializing...")
+                    }
                 } label: {
                     Label(LocalizedStringKey("Live"), systemImage: "bolt.fill")
                 }
@@ -50,7 +55,7 @@ struct AFCONHomeView: View {
                     Label(LocalizedStringKey("Venues"), systemImage: "map.fill")
                 }
 
-                Tab(value: 5) {
+                /*Tab(value: 5) {
                     SocialView()
                 } label: {
                     Label(LocalizedStringKey("Social"), systemImage: "person.2.fill")
@@ -60,10 +65,10 @@ struct AFCONHomeView: View {
                     SettingsView()
                 } label: {
                     Label(LocalizedStringKey("Settings"), systemImage: "gearshape.fill")
-                }
+                }*/
             }
             .tabViewStyle(.sidebarAdaptable)
-            .modifier(TabViewBottomAccessoryCompat())
+            .modifier(TabViewBottomAccessoryCompat(viewModel: liveScoresViewModel))
             .modifier(TabBarMinimizeBehaviorCompat())
             .tint(Color("moroccoRed"))
             .background(Color(.systemGroupedBackground))
@@ -74,12 +79,19 @@ struct AFCONHomeView: View {
                 EmptyView()
             } else {
                 // Fallback for iOS < 26: show as bottom overlay
-                QuickStatsBarLive()
+                if let viewModel = liveScoresViewModel {
+                    QuickStatsBarLive(liveScoresViewModel: viewModel)
+                }
             }
         }
         .overlay {
             if isInitializingFixtures {
                 InitializingOverlay()
+            }
+        }
+        .onAppear {
+            if liveScoresViewModel == nil {
+                liveScoresViewModel = LiveScoresViewModel(modelContext: modelContext)
             }
         }
         .task {
@@ -179,11 +191,15 @@ struct InitializingOverlay: View {
 }
 
 private struct TabViewBottomAccessoryCompat: ViewModifier {
+    let viewModel: LiveScoresViewModel?
+
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
             content
                 .tabViewBottomAccessory {
-                    QuickStatsBarLive()
+                    if let viewModel = viewModel {
+                        QuickStatsBarLive(liveScoresViewModel: viewModel)
+                    }
                 }
         } else {
             content

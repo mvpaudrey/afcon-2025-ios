@@ -7,7 +7,8 @@ extension Afcon_FixtureEvent {
     var displayDescription: String {
         let eventType = self.type.lowercased()
         let elapsed = self.time.elapsed
-        let minute = elapsed > 0 ? "\(elapsed)'" : ""
+        let extra = self.time.extra
+        let minute = elapsed > 0 ? (extra > 0 ? "\(elapsed)'+\(extra)" : "\(elapsed)'") : ""
 
         switch eventType {
         case "goal":
@@ -106,7 +107,8 @@ extension Afcon_FixtureEvent {
 
     /// Format the event for a compact display (e.g., in a list)
     var compactDisplay: String {
-        "\(eventIcon) \(time.elapsed)' - \(mainPlayer)"
+        let minute = time.extra > 0 ? "\(time.elapsed)'+\(time.extra)" : "\(time.elapsed)'"
+        return "\(eventIcon) \(minute) - \(mainPlayer)"
     }
 
     /// Format the event for a detailed display
@@ -140,10 +142,12 @@ struct SubstitutionInfo {
     let playerOut: String  // Player leaving the field
     let playerIn: String   // Player entering the field
     let minute: Int
+    let extra: Int
     let team: String
 
     var display: String {
-        "\(minute)' 🔄 \(playerIn) ▶️ \(playerOut)"
+        let timeStr = extra > 0 ? "\(minute)'+\(extra)" : "\(minute)'"
+        return "\(timeStr) 🔄 \(playerIn) ▶️ \(playerOut)"
     }
 }
 
@@ -156,6 +160,7 @@ extension Afcon_FixtureEvent {
             playerOut: self.player.name,
             playerIn: self.assist.name,
             minute: Int(self.time.elapsed),
+            extra: Int(self.time.extra),
             team: self.team.name
         )
     }
@@ -166,11 +171,13 @@ struct GoalInfo {
     let scorer: String
     let assist: String?
     let minute: Int
+    let extra: Int
     let team: String
     let detail: String  // "Normal Goal", "Penalty", "Own Goal", etc.
 
     var display: String {
-        var text = "\(minute)' ⚽️ \(scorer)"
+        let timeStr = extra > 0 ? "\(minute)'+\(extra)" : "\(minute)'"
+        var text = "\(timeStr) ⚽️ \(scorer)"
         if let assist = assist,
            !detail.lowercased().contains("penalty"),
            !detail.lowercased().contains("own") {
@@ -194,6 +201,7 @@ extension Afcon_FixtureEvent {
             scorer: self.player.name,
             assist: self.hasAssist && !self.assist.name.isEmpty ? self.assist.name : nil,
             minute: Int(self.time.elapsed),
+            extra: Int(self.time.extra),
             team: self.team.name,
             detail: self.detail
         )
