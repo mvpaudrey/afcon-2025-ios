@@ -81,6 +81,7 @@ struct AFCONHomeView: View {
                 // Fallback for iOS < 26: show as bottom overlay
                 if let viewModel = liveScoresViewModel {
                     QuickStatsBarLive(liveScoresViewModel: viewModel)
+                        .ignoresSafeArea(edges: .horizontal)
                 }
             }
         }
@@ -199,6 +200,7 @@ private struct TabViewBottomAccessoryCompat: ViewModifier {
                 .tabViewBottomAccessory {
                     if let viewModel = viewModel {
                         QuickStatsBarLive(liveScoresViewModel: viewModel)
+                            .ignoresSafeArea(edges: .horizontal)
                     }
                 }
         } else {

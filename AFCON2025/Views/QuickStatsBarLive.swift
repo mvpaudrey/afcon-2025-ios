@@ -23,63 +23,64 @@ struct QuickStatsBarLive: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                HStack(spacing: isMinimized ? 8 : 12) {
-                    // Current live match or latest result
-                    if let liveMatch = liveMatch {
-                        liveMatchView(liveMatch, isMinimized: isMinimized)
-                    } else if isLoading {
-                        HStack(spacing: 4) {
-                            ProgressView()
-                                .scaleEffect(0.7)
-                            if !isMinimized {
-                                Text(LocalizedStringKey("Loading..."))
+        ZStack {
+            // Background gradient that extends edge-to-edge
+            LinearGradient(
+                gradient: Gradient(colors: [Color("moroccoRed"), Color("moroccoGreen")]),
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            .ignoresSafeArea(edges: .horizontal)
+
+            // Content
+            HStack(spacing: isMinimized ? 8 : 12) {
+                // Current live match or latest result
+                if let liveMatch = liveMatch {
+                    liveMatchView(liveMatch, isMinimized: isMinimized)
+                } else if isLoading {
+                    HStack(spacing: 4) {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                        if !isMinimized {
+                            Text(LocalizedStringKey("Loading..."))
+                                .font(.caption)
+                                .opacity(0.7)
+                        }
+                    }
+                } else {
+                    // Show next match if no live match
+                    if let nextMatch = nextMatch {
+                        upcomingMatchView(nextMatch, isMinimized: isMinimized)
+                    } else {
+                        if !isMinimized {
+                            HStack(spacing: 4) {
+                                Text(LocalizedStringKey("No matches scheduled"))
                                     .font(.caption)
                                     .opacity(0.7)
                             }
                         }
-                    } else {
-                        // Show next match if no live match
-                        if let nextMatch = nextMatch {
-                            upcomingMatchView(nextMatch, isMinimized: isMinimized)
-                        } else {
-                            if !isMinimized {
-                                HStack(spacing: 4) {
-                                    Text(LocalizedStringKey("No matches scheduled"))
-                                        .font(.caption)
-                                        .opacity(0.7)
-                                }
-                            }
-                        }
                     }
+                }
 
-                    Spacer()
+                Spacer()
 
-                    if !isMinimized {
-                        let statusText = liveMatch != nil ?
-                            (liveMatch?.statusShort.uppercased() == "HT" ? "match.status.halftime" : "quickstats.live") :
-                            nil
-                        if let statusText = statusText {
-                            Text(LocalizedStringKey(statusText))
-                                .font(.caption2)
-                                .fontWeight(.medium)
-                                .opacity(0.8)
-                        }
+                if !isMinimized {
+                    let statusText = liveMatch != nil ?
+                        (liveMatch?.statusShort.uppercased() == "HT" ? "match.status.halftime" : "quickstats.live") :
+                        nil
+                    if let statusText = statusText {
+                        Text(LocalizedStringKey(statusText))
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .opacity(0.8)
                     }
                 }
             }
             .foregroundColor(.white)
             .padding(.horizontal, 16)
             .padding(.vertical, isMinimized ? 8 : 12)
-            .background(
-                LinearGradient(
-                    gradient: Gradient(colors: [Color("moroccoRed"), Color("moroccoGreen")]),
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
         }
+        .frame(maxWidth: .infinity)
     }
 
     @ViewBuilder
