@@ -135,7 +135,7 @@ struct VenuesView: View {
                 .padding(.horizontal)
 
                 // Interactive Map Placeholder
-                MapPlaceholder()
+                // MapPlaceholder()
 
                 // Venue Cards
                 LazyVStack(spacing: 16) {
@@ -323,7 +323,7 @@ struct VenueCard: View {
             .foregroundColor(.secondary)
 
             // Action Buttons
-            HStack(spacing: 8) {
+            /*HStack(spacing: 8) {
                 Button(action: {
                     // Directions action
                 }) {
@@ -348,7 +348,7 @@ struct VenueCard: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(Color("moroccoRed"))
-            }
+            } */
         }
         .padding()
         .background(Color(.systemBackground))

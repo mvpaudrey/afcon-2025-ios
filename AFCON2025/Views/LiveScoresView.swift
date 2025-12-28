@@ -117,7 +117,7 @@ struct LiveScoresView: View {
                                 ForEach(viewModel.finishedMatches) { match in
                                     MatchCard(
                                         match: match,
-                                        events: viewModel.fixtureEvents[match.id] ?? []
+                                        events: []
                                     )
                                     .padding(.horizontal)
                                 }

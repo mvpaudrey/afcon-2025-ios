@@ -4,53 +4,49 @@ import Foundation
 import UIKit
 #endif
 
+// Type-erased shape wrapper
+struct AnyShape: Shape {
+    private let base: any Shape
+
+    init<S: Shape>(_ shape: S) {
+        self.base = shape
+    }
+
+    func path(in rect: CGRect) -> Path {
+        base.path(in: rect)
+    }
+}
+
 struct LogoImageView: View {
     let path: String?
     var size: CGSize = CGSize(width: 32, height: 32)
+    var useCircle: Bool = true
 
     var body: some View {
         Group {
-            if let image = loadImage() {
-                Image(uiImage: image)
+            if let path, !path.isEmpty, imageExists(path) {
+                Image(path)
                     .resizable()
-                    .scaledToFit()
+                    .scaledToFill()
             } else {
                 placeholder
             }
         }
         .frame(width: size.width, height: size.height)
-        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .clipShape(useCircle ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: 6)))
+        .overlay(
+            useCircle ?
+                AnyShape(Circle()).stroke(Color.gray.opacity(0.2), lineWidth: 0.5) :
+                AnyShape(RoundedRectangle(cornerRadius: 6)).stroke(Color.gray.opacity(0.2), lineWidth: 0.5)
+        )
     }
 
-#if canImport(UIKit)
-    private func loadImage() -> UIImage? {
-        guard let resolvedPath = resolvePath() else { return nil }
-        return UIImage(contentsOfFile: resolvedPath)
-    }
-#else
-    private func loadImage() -> NSImage? {
-        guard let resolvedPath = resolvePath() else { return nil }
-        return NSImage(contentsOfFile: resolvedPath)
-    }
-#endif
-
-    private func resolvePath() -> String? {
-        guard let path, !path.isEmpty else { return nil }
-        if path.hasPrefix("/") {
-            return path
-        }
-
-        // Must match the identifier declared in AppGroup.swift
-        let identifier = AppGroup.identifier
-        if let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: identifier) {
-            return container.appendingPathComponent(path).path
-        }
-
-        if let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first {
-            return caches.appendingPathComponent(path).path
-        }
-
-        return nil
+    private func imageExists(_ name: String) -> Bool {
+        #if canImport(UIKit)
+        return UIImage(named: name) != nil
+        #else
+        return NSImage(named: name) != nil
+        #endif
     }
 
     private var placeholder: some View {
@@ -64,3 +60,4 @@ struct LogoImageView: View {
         }
     }
 }
+

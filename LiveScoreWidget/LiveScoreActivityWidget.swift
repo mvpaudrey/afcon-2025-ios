@@ -16,7 +16,11 @@ struct LiveScoreActivityWidget: Widget {
                 // Expanded view
                 DynamicIslandExpandedRegion(.leading) {
                     HStack(spacing: 6) {
-                        circularTeamBadge(path: context.state.homeTeamLogoPath, diameter: 28)
+                        LogoImageView(path: context.state.homeTeamLogoPath, size: CGSize(width: 28, height: 28), useCircle: true)
+                        Text(localizedTeamName(context.attributes.homeTeam))
+                            .font(.system(size: 12, weight: .semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
                         Text("\(context.state.homeScore)")
                             .font(.system(size: 20, weight: .bold))
                             .foregroundColor(.primary)
@@ -29,7 +33,11 @@ struct LiveScoreActivityWidget: Widget {
                         Text("\(context.state.awayScore)")
                             .font(.system(size: 20, weight: .bold))
                             .foregroundColor(.primary)
-                        circularTeamBadge(path: context.state.awayTeamLogoPath, diameter: 28)
+                        Text(localizedTeamName(context.attributes.awayTeam))
+                            .font(.system(size: 12, weight: .semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                        LogoImageView(path: context.state.awayTeamLogoPath, size: CGSize(width: 28, height: 28), useCircle: true)
                     }
                     .padding(.trailing, 6)
                 }
@@ -75,7 +83,7 @@ struct LiveScoreActivityWidget: Widget {
             } compactLeading: {
                 // Compact leading (left side of Dynamic Island)
                 HStack(spacing: 4) {
-                    circularTeamBadge(path: context.state.homeTeamLogoPath, diameter: 22)
+                    LogoImageView(path: context.state.homeTeamLogoPath, size: CGSize(width: 22, height: 22), useCircle: true)
                     Text("\(context.state.homeScore)")
                         .font(.caption)
                         .fontWeight(.bold)
@@ -89,7 +97,7 @@ struct LiveScoreActivityWidget: Widget {
                         .font(.caption)
                         .fontWeight(.bold)
                         .foregroundColor(.primary)
-                    circularTeamBadge(path: context.state.awayTeamLogoPath, diameter: 22)
+                    LogoImageView(path: context.state.awayTeamLogoPath, size: CGSize(width: 22, height: 22), useCircle: true)
                 }
                 .padding(.trailing, 6)
             } minimal: {
@@ -131,50 +139,66 @@ struct LockScreenLiveScoreView: View {
                 }
             }
 
-            // Score display
-            HStack(alignment: .center, spacing: 16) {
-                // Home team
+            // Score display - redesigned layout
+            HStack(alignment: .center, spacing: 6) {
+                // Home team: Flag, Name, Score
+                HStack(spacing: 6) {
+                    LogoImageView(path: context.state.homeTeamLogoPath, size: CGSize(width: 32, height: 32), useCircle: true)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(localizedTeamName(context.attributes.homeTeam))
+                            .font(.system(size: 14, weight: .semibold))
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.7)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: 70, alignment: .leading)
+                }
+
+                Spacer()
+
+                // Center: Scores with dash
                 HStack(spacing: 8) {
-                    LogoImageView(path: context.state.homeTeamLogoPath, size: CGSize(width: 30, height: 30))
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(context.attributes.homeTeam)
-                            .font(.system(size: 16, weight: .semibold))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                        Text("\(state.homeScore)")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.primary)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                    Text("\(state.homeScore)")
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(.primary)
+                        .monospacedDigit()
 
-                // VS separator + Timer
-                VStack(spacing: 2) {
+                    Text("-")
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundColor(.secondary)
 
-                    if isFinishedStatus(state.status) {
-                        Text("Full Time")
-                            .font(.caption2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.green)
-                    } else {
-                        matchTimerView(for: state, font: .caption2)
-                    }
+                    Text("\(state.awayScore)")
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(.primary)
+                        .monospacedDigit()
                 }
 
-                // Away team
-                HStack(spacing: 8) {
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text(context.attributes.awayTeam)
-                            .font(.system(size: 16, weight: .semibold))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                        Text("\(state.awayScore)")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.primary)
+                Spacer()
+
+                // Away team: Name, Flag
+                HStack(spacing: 6) {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(localizedTeamName(context.attributes.awayTeam))
+                            .font(.system(size: 14, weight: .semibold))
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.7)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                    LogoImageView(path: context.state.awayTeamLogoPath, size: CGSize(width: 30, height: 30))
+                    .frame(maxWidth: 70, alignment: .trailing)
+
+                    LogoImageView(path: context.state.awayTeamLogoPath, size: CGSize(width: 32, height: 32), useCircle: true)
                 }
-                .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+
+            // Timer below scores
+            if isFinishedStatus(state.status) {
+                Text("FT")
+                    .font(.caption2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.secondary)
+            } else {
+                matchTimerView(for: state, font: .caption2)
             }
 
             goalSummaryExpandedView(
@@ -352,20 +376,6 @@ private func goalSummaryExpandedView(
             }
         }
     }
-}
-
-@ViewBuilder
-private func circularTeamBadge(path: String?, diameter: CGFloat) -> some View {
-    Circle()
-        .fill(Color(.systemBackground).opacity(0.9))
-        .overlay(
-            LogoImageView(
-                path: path,
-                size: CGSize(width: max(diameter - 8, 0), height: max(diameter - 8, 0))
-            )
-            .clipShape(Circle())
-        )
-        .frame(width: diameter, height: diameter)
 }
 
 private func teamAbbreviation(_ name: String) -> String {

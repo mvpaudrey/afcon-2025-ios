@@ -20,7 +20,7 @@ struct HeaderView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
                     
-                    Text("Live Sports & Tourism")
+                    Text("Live Competition")
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.8))
                 }
@@ -28,7 +28,7 @@ struct HeaderView: View {
             
             Spacer()
             
-            HStack(spacing: 8) {
+            /*HStack(spacing: 8) {
                 Button(action: {}) {
                     Image(systemName: "bell")
                         .font(.title3)
@@ -46,7 +46,7 @@ struct HeaderView: View {
                         .background(Color.white.opacity(0.2))
                         .clipShape(Circle())
                 }
-            }
+            }*/
         }
         .padding(.horizontal)
         .padding(.vertical, 12)

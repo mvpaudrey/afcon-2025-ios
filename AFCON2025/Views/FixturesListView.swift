@@ -122,7 +122,7 @@ struct SwiftDataFixtureCard: View {
                         .font(.subheadline)
                         .fontWeight(fixture.homeTeamWinner ? .bold : .regular)
                         .foregroundColor(fixture.homeTeamWinner ? Color("moroccoRed") : .primary)
-                        .lineLimit(1)
+                        .lineLimit(2)
                         .minimumScaleFactor(0.8)
                 }
                 .frame(maxWidth: .infinity)
@@ -152,7 +152,7 @@ struct SwiftDataFixtureCard: View {
                         .font(.subheadline)
                         .fontWeight(fixture.awayTeamWinner ? .bold : .regular)
                         .foregroundColor(fixture.awayTeamWinner ? Color("moroccoGreen") : .primary)
-                        .lineLimit(1)
+                        .lineLimit(2)
                         .minimumScaleFactor(0.8)
                 }
                 .frame(maxWidth: .infinity)

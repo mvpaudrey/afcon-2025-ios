@@ -66,7 +66,7 @@ class LiveScoresViewModel {
 
     // Determine if we should show today's upcoming matches
     var shouldShowUpcomingToday: Bool {
-        liveMatches.isEmpty && !upcomingTodayMatches.isEmpty && finishedMatches.isEmpty
+        !upcomingTodayMatches.isEmpty
     }
 
     // Check if we have any games today (live, finished, or upcoming)
@@ -99,10 +99,13 @@ class LiveScoresViewModel {
             let today = calendar.startOfDay(for: now)
 
             // Separate into categories
+            // Live matches sorted by kickoff time (earliest first)
             liveMatches = allGames.filter { $0.status == .live }
+                .sorted { $0.date < $1.date }
+
             upcomingMatches = allGames.filter { $0.status == .upcoming && $0.date > now }
 
-            // Filter finished matches from today only
+            // Filter finished matches from today only, sorted by most recent first
             finishedMatches = allGames.filter { game in
                 guard game.status == .finished else { return false }
                 let gameDay = calendar.startOfDay(for: game.date)
@@ -131,6 +134,21 @@ class LiveScoresViewModel {
                     )
                 }
             }
+
+            // Save upcoming matches for today to widget store
+            for match in upcomingTodayMatches {
+                let snapshot = createWidgetSnapshot(from: match, events: fixtureEvents[match.id] ?? [])
+                HomeWidgetSnapshotStore.shared.save(snapshot)
+            }
+
+            // Save finished matches for today to widget store
+            for match in finishedMatches {
+                let snapshot = createWidgetSnapshot(from: match, events: fixtureEvents[match.id] ?? [])
+                HomeWidgetSnapshotStore.shared.save(snapshot)
+            }
+
+            // Reload all widgets after saving snapshots
+            WidgetCenter.shared.reloadAllTimelines()
         } catch {
             errorMessage = "Failed to load matches: \(error.localizedDescription)"
             print("Error fetching matches: \(error)")
@@ -232,7 +250,13 @@ class LiveScoresViewModel {
                         } else if updatedGame.status == .live {
                             // New live match started - remove from upcoming if present
                             self?.upcomingMatches.removeAll { $0.id == fixtureId }
-                            self?.liveMatches.insert(updatedGame, at: 0)
+
+                            // Only add if not already in live matches
+                            if let self = self, !self.liveMatches.contains(where: { $0.id == fixtureId }) {
+                                self.liveMatches.append(updatedGame)
+                                // Re-sort live matches by kickoff time
+                                self.liveMatches.sort { $0.date < $1.date }
+                            }
 
                             // Fetch events for newly live match
                             Task {
@@ -255,18 +279,35 @@ class LiveScoresViewModel {
                             // Update in upcoming list
                             if let index = self?.upcomingMatches.firstIndex(where: { $0.id == fixtureId }) {
                                 self?.upcomingMatches[index] = updatedGame
+
+                                // Update widget store for upcoming match changes (e.g., kickoff time)
+                                if let self = self {
+                                    let snapshot = self.createWidgetSnapshot(from: updatedGame, events: self.fixtureEvents[fixtureId] ?? [])
+                                    HomeWidgetSnapshotStore.shared.save(snapshot)
+                                    WidgetCenter.shared.reloadAllTimelines()
+                                }
                             }
                         } else if updatedGame.status == .finished {
                             // Match finished - remove from live, add to finished
                             self?.liveMatches.removeAll { $0.id == fixtureId }
 
-                            // Add to finished if it's from today
+                            // Add to finished if it's from today and not already there
                             let calendar = Calendar.current
                             let today = calendar.startOfDay(for: Date())
                             let gameDay = calendar.startOfDay(for: updatedGame.date)
 
                             if calendar.isDate(gameDay, inSameDayAs: today) {
-                                self?.finishedMatches.insert(updatedGame, at: 0)
+                                // Only add if not already in finished matches
+                                if let self = self, !self.finishedMatches.contains(where: { $0.id == fixtureId }) {
+                                    self.finishedMatches.append(updatedGame)
+                                    // Re-sort finished matches by most recent first
+                                    self.finishedMatches.sort { $0.date > $1.date }
+                                } else {
+                                    // Update existing finished match
+                                    if let index = self?.finishedMatches.firstIndex(where: { $0.id == fixtureId }) {
+                                        self?.finishedMatches[index] = updatedGame
+                                    }
+                                }
 
                                 // Fetch final events
                                 Task {

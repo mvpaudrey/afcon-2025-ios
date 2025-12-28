@@ -149,15 +149,18 @@ struct FixtureCard: View {
                 Spacer()
 
                 // Status indicator
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(fixture.isUpcoming ? Color("moroccoGreen") : Color.gray)
-                        .frame(width: 8, height: 8)
-                    Text(fixture.isUpcoming ? LocalizedStringKey("Available") : LocalizedStringKey(fixture.statusShort))
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(fixture.isUpcoming ? Color("moroccoGreen") : .gray)
-                }
+                /*if !fixture.isUpcoming {
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(fixture.isUpcoming ? Color("moroccoGreen") : Color.gray)
+                            .frame(width: 8, height: 8)
+                        
+                        Text(fixture.isUpcoming ? LocalizedStringKey("") : LocalizedStringKey(fixture.statusShort))
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(fixture.isUpcoming ? Color("moroccoGreen") : .gray)
+                    }
+                }*/
             }
 
             // Teams
@@ -189,7 +192,7 @@ struct FixtureCard: View {
                             )
                     }
 
-                    Text(fixture.homeTeamName)
+                    Text(localizedTeamName(fixture.homeTeamName))
                         .font(.subheadline)
                         .fontWeight(.medium)
                         .multilineTextAlignment(.center)
@@ -234,7 +237,7 @@ struct FixtureCard: View {
                             )
                     }
 
-                    Text(fixture.awayTeamName)
+                    Text(localizedTeamName(fixture.awayTeamName))
                         .font(.subheadline)
                         .fontWeight(.medium)
                         .multilineTextAlignment(.center)

@@ -186,11 +186,11 @@ struct TeamRow: View {
                     }
 
                     VStack(alignment: .leading, spacing: 1) {
-                        Text(team.name)
+                        Text(localizedTeamName(team.name))
                             .font(.footnote)
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
-                            .lineLimit(1)
+                            .lineLimit(2)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
