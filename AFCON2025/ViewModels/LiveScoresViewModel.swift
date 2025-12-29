@@ -52,7 +52,7 @@ class LiveScoresViewModel {
     }
 
     // Check if a game involves a favorite team
-    private func isFavoriteTeamMatch(_ game: Game) -> Bool {
+    func isFavoriteTeamMatch(_ game: Game) -> Bool {
         favoriteTeamIds.contains(game.homeTeamId) || favoriteTeamIds.contains(game.awayTeamId)
     }
 
