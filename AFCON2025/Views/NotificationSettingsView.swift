@@ -16,6 +16,52 @@ struct NotificationSettingsView: View {
 
     var body: some View {
         List {
+            // Alert Banner when notifications are disabled
+            if notificationService.authorizationStatus == .denied {
+                Section {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "bell.slash.fill")
+                                .font(.title2)
+                                .foregroundColor(.red)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Notifications Disabled")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+
+                                Text("You won't receive match updates or alerts")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+
+                        Button {
+                            openSettings()
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Label("Open iOS Settings", systemImage: "gear")
+                                    .fontWeight(.semibold)
+                                Spacer()
+                            }
+                            .padding(.vertical, 12)
+                            .background(Color("moroccoRed"))
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                        }
+                        .buttonStyle(.plain)
+
+                        Text("Go to Settings → Notifications → AFCON 2025 and enable \"Allow Notifications\"")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .padding(.vertical, 8)
+                }
+            }
+
             // Status Section
             Section {
                 HStack {
@@ -27,13 +73,7 @@ struct NotificationSettingsView: View {
                         .foregroundColor(.secondary)
                 }
 
-                if notificationService.authorizationStatus == .denied {
-                    Button {
-                        openSettings()
-                    } label: {
-                        Label("Open Settings", systemImage: "gear")
-                    }
-                } else if notificationService.authorizationStatus == .notDetermined {
+                if notificationService.authorizationStatus == .notDetermined {
                     Button {
                         showPermissionSheet = true
                     } label: {
@@ -113,6 +153,11 @@ struct NotificationSettingsView: View {
         .navigationTitle("Notifications")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            refreshAuthorizationStatus()
+            loadPendingNotifications()
+        }
+        .refreshable {
+            await refreshAuthorizationStatusAsync()
             loadPendingNotifications()
         }
         .sheet(isPresented: $showPermissionSheet) {
@@ -181,6 +226,16 @@ struct NotificationSettingsView: View {
     private func clearAllNotifications() {
         notificationService.clearAllNotifications()
         loadPendingNotifications()
+    }
+
+    private func refreshAuthorizationStatus() {
+        Task {
+            await notificationService.checkAuthorizationStatus()
+        }
+    }
+
+    private func refreshAuthorizationStatusAsync() async {
+        await notificationService.checkAuthorizationStatus()
     }
 
     private func openSettings() {
