@@ -110,6 +110,19 @@ struct SettingsView: View {
                     }
                 }
 
+                // Favorite Teams Section
+                Section("Favorite Teams") {
+                    NavigationLink {
+                        FavoriteTeamManagementView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "star.fill")
+                                .foregroundColor(Color("moroccoRed"))
+                            Text("Manage Favorite Teams")
+                        }
+                    }
+                }
+
                 // About Section
                 Section("About") {
                     HStack {
@@ -254,6 +267,127 @@ struct SettingsView: View {
     private func resetOnboarding() {
         AppSettings.shared.resetOnboarding()
         // Note: App needs to be restarted to see onboarding again
+    }
+}
+
+// MARK: - FavoriteTeamManagementView
+
+struct FavoriteTeamManagementView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    @Query private var favoriteTeams: [FavoriteTeam]
+    @State private var selectedTeams = Set<NationalTeam>()
+
+    private let columns = [GridItem(.adaptive(minimum: 100), spacing: 16)]
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            Text("Select teams to receive automatic Live Activities and notifications when they play")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding()
+                .background(Color(.systemGroupedBackground))
+
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(NationalTeam.sampleTeams.sorted {
+                        $0.localizedName.localizedStandardCompare($1.localizedName) == .orderedAscending
+                    }) { team in
+                        TeamCardView(team: team, isSelected: selectedTeams.contains(team))
+                            .onTapGesture {
+                                toggleSelection(team)
+                            }
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 20)
+            }
+        }
+        .navigationTitle("Favorite Teams")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") {
+                    saveSelectedTeams()
+                    dismiss()
+                }
+                .fontWeight(.semibold)
+            }
+        }
+        .onAppear {
+            loadCurrentFavorites()
+        }
+    }
+
+    private func loadCurrentFavorites() {
+        selectedTeams = Set(
+            favoriteTeams.compactMap { favorite in
+                NationalTeam.team(for: favorite.teamId)
+            }
+        )
+    }
+
+    private func toggleSelection(_ team: NationalTeam) {
+        if selectedTeams.contains(team) {
+            selectedTeams.remove(team)
+        } else {
+            selectedTeams.insert(team)
+        }
+    }
+
+    private func saveSelectedTeams() {
+        // Remove all existing favorites
+        for favorite in favoriteTeams {
+            modelContext.delete(favorite)
+        }
+
+        // Add newly selected teams
+        for team in selectedTeams {
+            let favorite = FavoriteTeam(teamId: team.id)
+            modelContext.insert(favorite)
+        }
+
+        do {
+            try modelContext.save()
+            print("✅ Saved \(selectedTeams.count) favorite teams")
+        } catch {
+            print("❌ Failed to save favorite teams: \(error)")
+        }
+    }
+}
+
+// MARK: - TeamCardView (reusable)
+
+private struct TeamCardView: View {
+    let team: NationalTeam
+    let isSelected: Bool
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(team.assetName)
+                .resizable()
+                .scaledToFit()
+                .frame(height: 60)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isSelected ? Color("moroccoRed") : Color.clear, lineWidth: 3)
+                )
+                .shadow(color: isSelected ? Color("moroccoRed").opacity(0.4) : .clear, radius: 6)
+
+            Text(team.localizedName)
+                .font(.footnote)
+                .foregroundColor(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isSelected ? Color("moroccoRed").opacity(0.15) : Color(UIColor.secondarySystemBackground))
+        )
     }
 }
 
