@@ -7,9 +7,11 @@ import ActivityKit
 struct LiveScoresView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel: LiveScoresViewModel?
+    private let onOpenSchedule: (() -> Void)?
 
-    init(viewModel: LiveScoresViewModel? = nil) {
+    init(viewModel: LiveScoresViewModel? = nil, onOpenSchedule: (() -> Void)? = nil) {
         _viewModel = State(initialValue: viewModel)
+        self.onOpenSchedule = onOpenSchedule
     }
 
     var body: some View {
@@ -29,7 +31,7 @@ struct LiveScoresView: View {
 
     @ViewBuilder
     private func contentView(viewModel: LiveScoresViewModel) -> some View {
-        VStack(spacing: 0) {
+        GeometryReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 16) {
                     // Header
@@ -43,15 +45,22 @@ struct LiveScoresView: View {
 
                         if viewModel.isLoading {
                             ProgressView()
-                        } else {
-                            Button {
-                                Task {
-                                    await viewModel.fetchLiveMatches()
-                                }
-                            } label: {
-                                Image(systemName: "arrow.clockwise")
-                                    .foregroundColor(Color("moroccoRed"))
+                        } else if !viewModel.liveMatches.isEmpty {
+                            // Show countdown for next update
+                            HStack(spacing: 4) {
+                                Image(systemName: "clock.arrow.circlepath")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("\(viewModel.secondsUntilNextUpdate)s")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.secondary)
+                                    .monospacedDigit()
                             }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.secondary.opacity(0.1))
+                            .cornerRadius(8)
                         }
                     }
                     .padding(.horizontal)
@@ -148,26 +157,23 @@ struct LiveScoresView: View {
 
                         // Empty State (only if no games today)
                         if !viewModel.hasGamesToday && !viewModel.isLoading {
-                            VStack(spacing: 8) {
-                                Image(systemName: "sportscourt")
-                                    .font(.largeTitle)
-                                    .foregroundColor(.gray)
-                                Text(LocalizedStringKey("No matches today"))
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding()
+                            EmptyStateView(
+                                minHeight: max(200, proxy.size.height * 0.6),
+                                showScheduleButton: onOpenSchedule != nil,
+                                onOpenSchedule: onOpenSchedule
+                            )
+                            .equatable()
                         }
                     }
                 }
             }
         }
+        .refreshable {
+            await viewModel.fetchLiveMatches()
+        }
         .task {
             await viewModel.fetchLiveMatches()
             viewModel.startLiveUpdates()
-        }
-        .onDisappear {
-            viewModel.stopLiveUpdates()
         }
     }
 
@@ -199,6 +205,41 @@ private class MockLiveScoresViewModel: LiveScoresViewModel {
 
     override func startLiveUpdates() {
         // Do nothing in preview
+    }
+}
+
+private struct EmptyStateView: View, Equatable {
+    let minHeight: CGFloat
+    let showScheduleButton: Bool
+    let onOpenSchedule: (() -> Void)?
+
+    static func == (lhs: EmptyStateView, rhs: EmptyStateView) -> Bool {
+        lhs.minHeight == rhs.minHeight && lhs.showScheduleButton == rhs.showScheduleButton
+    }
+
+    var body: some View {
+        VStack {
+            Spacer(minLength: 0)
+            VStack(spacing: 8) {
+                Image(systemName: "sportscourt")
+                    .font(.largeTitle)
+                    .foregroundColor(.gray)
+                Text(LocalizedStringKey("No matches today"))
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                if showScheduleButton, let onOpenSchedule {
+                    Button(LocalizedStringKey("View Schedule")) {
+                        onOpenSchedule()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color("moroccoRed"))
+                }
+            }
+            .padding()
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(minHeight: minHeight)
     }
 }
 
@@ -267,5 +308,5 @@ private extension Game {
 
 #Preview("Empty State") {
     let viewModel = MockLiveScoresViewModel()
-    LiveScoresView(viewModel: viewModel)
+    LiveScoresView(viewModel: viewModel, onOpenSchedule: {})
 }

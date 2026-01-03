@@ -8,15 +8,19 @@ struct LiveScoreScheduleEntry: TimelineEntry {
 
 struct LiveScoreScheduleProvider: TimelineProvider {
     func placeholder(in context: Context) -> LiveScoreScheduleEntry {
-        LiveScoreScheduleEntry(date: Date(), matches: [.sample, .finishedSample, .upcomingSample])
+        print("📅 Schedule Widget placeholder() called")
+        return LiveScoreScheduleEntry(date: Date(), matches: [.sample, .finishedSample, .upcomingSample])
     }
 
     func getSnapshot(in context: Context, completion: @escaping (LiveScoreScheduleEntry) -> Void) {
+        print("📅 Schedule Widget getSnapshot() called")
         completion(placeholder(in: context))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<LiveScoreScheduleEntry>) -> Void) {
+        print("📅📅📅 SCHEDULE WIDGET TIMELINE CALLED 📅📅📅")
         let matches = prioritizedMatches()
+        print("📅 Schedule Widget - Total matches to display: \(matches.count)")
         let entry = LiveScoreScheduleEntry(date: Date(), matches: matches)
         let refresh = Calendar.current.date(byAdding: .minute, value: 5, to: Date()) ?? Date().addingTimeInterval(300)
         completion(Timeline(entries: [entry], policy: .after(refresh)))
@@ -24,6 +28,8 @@ struct LiveScoreScheduleProvider: TimelineProvider {
 
     private func prioritizedMatches() -> [LiveMatchWidgetSnapshot] {
         let allMatches = AppGroupMatchStore.shared.snapshots()
+        print("📅 Schedule Widget - Found \(allMatches.count) total snapshots")
+
         let calendar = Calendar(identifier: .gregorian)
         let today = Date()
 
@@ -33,12 +39,15 @@ struct LiveScoreScheduleProvider: TimelineProvider {
             }
             return calendar.isDate(snapshot.lastUpdated, inSameDayAs: today)
         }
+        print("📅 Schedule Widget - \(todaysMatches.count) matches today")
 
         let live = todaysMatches.filter { $0.isLive }
         let upcoming = todaysMatches.filter { !$0.isLive && !$0.isFinished }
             .sorted { ($0.kickoffDate ?? .distantFuture) < ($1.kickoffDate ?? .distantFuture) }
         let finished = todaysMatches.filter { $0.isFinished }
             .sorted { $0.lastUpdated > $1.lastUpdated }
+
+        print("📅 Schedule Widget - Live: \(live.count), Upcoming: \(upcoming.count), Finished: \(finished.count)")
 
         return Array((live + upcoming + finished).prefix(6))
     }

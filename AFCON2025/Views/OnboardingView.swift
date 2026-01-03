@@ -239,8 +239,7 @@ struct NotificationsIntroPage: View {
                 isAuthorized = granted
             }
             if granted {
-                // Delay a bit then call finished
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                // Call finished immediately to avoid blocking the user
                 onFinished()
             }
         } catch {

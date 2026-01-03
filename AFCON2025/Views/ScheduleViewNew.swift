@@ -95,6 +95,22 @@ struct ScheduleViewNew: View {
                 ForEach(viewModel.upcomingFixtures) { fixture in
                     FixtureCard(fixture: fixture)
                 }
+
+                if !viewModel.finishedFixtures.isEmpty {
+                    HStack {
+                        Image(systemName: "flag.checkered")
+                            .foregroundColor(Color("moroccoRed"))
+                        Text(LocalizedStringKey("Finished Matches"))
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+
+                    ForEach(viewModel.finishedFixtures.sorted { $0.date > $1.date }) { fixture in
+                        FixtureCard(fixture: fixture)
+                    }
+                }
             }
             .padding()
         }
@@ -118,6 +134,19 @@ struct ScheduleViewNew: View {
 
 struct FixtureCard: View {
     let fixture: FixtureModel
+    private var showsScore: Bool {
+        fixture.isFinished || fixture.isLive
+    }
+    private var homeScoreColor: Color {
+        if fixture.homeTeamWinner { return Color("moroccoGreen") }
+        if fixture.awayTeamWinner { return Color("moroccoRed") }
+        return .secondary
+    }
+    private var awayScoreColor: Color {
+        if fixture.awayTeamWinner { return Color("moroccoGreen") }
+        if fixture.homeTeamWinner { return Color("moroccoRed") }
+        return .secondary
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -149,18 +178,16 @@ struct FixtureCard: View {
                 Spacer()
 
                 // Status indicator
-                /*if !fixture.isUpcoming {
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(fixture.isUpcoming ? Color("moroccoGreen") : Color.gray)
-                            .frame(width: 8, height: 8)
-                        
-                        Text(fixture.isUpcoming ? LocalizedStringKey("") : LocalizedStringKey(fixture.statusShort))
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .foregroundColor(fixture.isUpcoming ? Color("moroccoGreen") : .gray)
-                    }
-                }*/
+                if fixture.isLive {
+                    Text(LocalizedStringKey(fixture.statusShort))
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.gray.opacity(0.1))
+                        .foregroundColor(.secondary)
+                        .cornerRadius(6)
+                }
             }
 
             // Teams
@@ -201,14 +228,34 @@ struct FixtureCard: View {
                 }
                 .frame(maxWidth: .infinity)
 
-                Text(LocalizedStringKey("VS"))
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(.secondary)
+                if showsScore {
+                    HStack(spacing: 6) {
+                        Text("\(fixture.homeGoals)")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(homeScoreColor)
+                        Text("-")
+                            .font(.title)
+                            .foregroundColor(.secondary)
+                        Text("\(fixture.awayGoals)")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(awayScoreColor)
+                    }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(8)
+                } else {
+                    Text(LocalizedStringKey("VS"))
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
+                }
 
                 // Away team
                 VStack(spacing: 8) {

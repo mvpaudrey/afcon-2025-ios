@@ -1,14 +1,17 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import AFCONClient
 
 @Observable
 class GroupsViewModel {
     var groups: [Group] = []
+    var thirdPlaceRanking: Group?
     var isLoading = false
     var errorMessage: String?
 
     private var modelContext: ModelContext?
+    private let service = AFCONServiceWrapper.shared
 
     // Group compositions for AFCON 2025
     private let groupCompositions: [String: [Int]] = [
@@ -32,13 +35,53 @@ class GroupsViewModel {
         errorMessage = nil
 
         do {
-            let descriptor = FetchDescriptor<FixtureModel>()
-            let allFixtures = try modelContext.fetch(descriptor)
+            // Try to fetch from API first for official standings including third-place ranking
+            do {
+                let apiResponse = try await service.getStandings(leagueId: 6, season: 2025)
 
-            // Calculate standings for each group
-            var calculatedGroups: [Group] = []
+                var calculatedGroups: [Group] = []
 
-            for (groupName, teamIds) in groupCompositions.sorted(by: { $0.key < $1.key }) {
+                for standingGroup in apiResponse.groups {
+                    let teams = standingGroup.standings.map { standing in
+                        Team(
+                            name: standing.team.name,
+                            teamId: Int(standing.team.id),
+                            played: Int(standing.all.played),
+                            won: Int(standing.all.win),
+                            drawn: Int(standing.all.draw),
+                            lost: Int(standing.all.lose),
+                            gf: Int(standing.all.goals.for),
+                            ga: Int(standing.all.goals.against),
+                            points: Int(standing.points),
+                            position: Int(standing.rank),
+                            groupName: standing.group
+                        )
+                    }
+
+                    let group = Group(name: standingGroup.groupName, teams: teams)
+
+                    // Check if this is the third-place ranking
+                    if standingGroup.groupName.lowercased().contains("third") ||
+                       standingGroup.groupName.lowercased().contains("troisième") ||
+                       standingGroup.groupName.lowercased().contains("3rd") {
+                        thirdPlaceRanking = group
+                    } else {
+                        calculatedGroups.append(group)
+                    }
+                }
+
+                groups = sortGroups(calculatedGroups)
+            } catch {
+                print("⚠️ API fetch failed, falling back to local calculation: \(error)")
+
+                // Fallback to local calculation
+                let descriptor = FetchDescriptor<FixtureModel>()
+                let allFixtures = try modelContext.fetch(descriptor)
+
+                // Calculate standings for each group
+                var calculatedGroups: [Group] = []
+
+                for (groupName, teamIds) in groupCompositions.sorted(by: { $0.key < $1.key }) {
                 // Filter fixtures for this group (both teams must be in the group)
                 // Also check round if available to exclude knockout stage rematches
                 let groupFixtures = allFixtures.filter { fixture in
@@ -58,20 +101,47 @@ class GroupsViewModel {
 
                 let teams = calculateGroupStandings(teamIds: teamIds, fixtures: groupFixtures)
 
-                let group = Group(
-                    name: "Group \(groupName) - AFCON 2025",
-                    teams: teams
-                )
-                calculatedGroups.append(group)
-            }
+                    let group = Group(
+                        name: "Group \(groupName) - AFCON 2025",
+                        teams: teams.map { team in
+                            Team(
+                                name: team.name,
+                                teamId: team.teamId,
+                                played: team.played,
+                                won: team.won,
+                                drawn: team.drawn,
+                                lost: team.lost,
+                                gf: team.gf,
+                                ga: team.ga,
+                                points: team.points,
+                                position: team.position,
+                                groupName: "Group \(groupName)"
+                            )
+                        }
+                    )
+                    calculatedGroups.append(group)
+                }
 
-            groups = calculatedGroups
+                groups = sortGroups(calculatedGroups)
+            }
         } catch {
             errorMessage = "Failed to load standings: \(error.localizedDescription)"
             print("❌ Error loading standings: \(error)")
         }
 
         isLoading = false
+    }
+
+    /// Get the best third-placed teams from the ranking
+    func getBestThirds(count: Int = 4) -> [Team] {
+        guard let ranking = thirdPlaceRanking else { return [] }
+        return Array(ranking.teams.prefix(count))
+    }
+
+    /// Get third-placed team by their rank (1-indexed)
+    func getThirdByRank(_ rank: Int) -> Team? {
+        guard let ranking = thirdPlaceRanking, rank >= 1, rank <= ranking.teams.count else { return nil }
+        return ranking.teams[rank - 1]
     }
 
     private func calculateGroupStandings(teamIds: [Int], fixtures: [FixtureModel]) -> [Team] {
@@ -156,9 +226,52 @@ class GroupsViewModel {
                 gf: stats.gf,
                 ga: stats.ga,
                 points: stats.points,
-                position: index + 1
+                position: index + 1,
+                groupName: nil
             )
         }
+    }
+
+    private func sortGroups(_ groups: [Group]) -> [Group] {
+        let order = ["A", "B", "C", "D", "E", "F"]
+        return groups.sorted { left, right in
+            let leftKey = groupSortKey(for: left.name, order: order)
+            let rightKey = groupSortKey(for: right.name, order: order)
+            if leftKey != rightKey {
+                return leftKey < rightKey
+            }
+            return left.name < right.name
+        }
+    }
+
+    private func groupSortKey(for name: String, order: [String]) -> Int {
+        let lowercased = name.lowercased()
+        if lowercased.contains("third") || lowercased.contains("troisième") || lowercased.contains("3rd") {
+            return 999
+        }
+
+        if let letter = extractGroupLetter(from: name),
+           let index = order.firstIndex(of: letter) {
+            return index
+        }
+
+        return 998
+    }
+
+    private func extractGroupLetter(from name: String) -> String? {
+        let pattern = "(?:group|groupe)\\s*([A-F])"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
+            return nil
+        }
+
+        let range = NSRange(name.startIndex..<name.endIndex, in: name)
+        guard let match = regex.firstMatch(in: name, options: [], range: range),
+              match.numberOfRanges > 1,
+              let letterRange = Range(match.range(at: 1), in: name) else {
+            return nil
+        }
+
+        return String(name[letterRange]).uppercased()
     }
 }
 
@@ -192,4 +305,5 @@ struct Team {
     let ga: Int
     let points: Int
     let position: Int
+    let groupName: String?
 }

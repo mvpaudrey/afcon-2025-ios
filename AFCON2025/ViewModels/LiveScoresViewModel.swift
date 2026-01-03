@@ -6,6 +6,7 @@ import WidgetKit
 import ActivityKit
 
 @Observable
+@MainActor
 class LiveScoresViewModel {
     private let service = AFCONServiceWrapper.shared
     private var dataManager: FixtureDataManager?
@@ -18,13 +19,17 @@ class LiveScoresViewModel {
     var isLoading = false
     var errorMessage: String?
 
-    // Track streaming task to prevent connection leaks
-    private var streamingTask: Task<Void, Never>?
+    // Use global stream service
+    private let streamService = LiveMatchStreamService.shared
 
     // Track if streaming is active
     var isStreaming: Bool {
-        streamingTask != nil && !(streamingTask?.isCancelled ?? true)
+        streamService.isStreaming
     }
+
+    // Countdown timer for next update
+    var secondsUntilNextUpdate: Int = 0
+    private var updateTimer: Timer?
 
     // Favorite team IDs loaded from SwiftData
     private var favoriteTeamIds: Set<Int> = []
@@ -35,6 +40,70 @@ class LiveScoresViewModel {
             self.dataManager = FixtureDataManager(modelContext: context)
             loadFavoriteTeams()
         }
+
+        // Setup stream callback to receive updates
+        setupStreamCallback()
+    }
+
+    // MARK: - Setup Stream Callback
+    private func setupStreamCallback() {
+        streamService.onMatchUpdate = { [weak self] update in
+            Task { @MainActor in
+                await self?.handleLiveUpdate(update)
+            }
+        }
+
+        // Setup callback to check for live matches
+        streamService.onMatchStatusCheck = { [weak self] in
+            guard let self = self, let dataManager = self.dataManager else {
+                return false
+            }
+
+            do {
+                // Check SwiftData for live matches
+                let allFixtures = try dataManager.getAllFixtures()
+                let liveCount = allFixtures.filter { $0.statusShort == "LIVE" || $0.statusShort == "1H" || $0.statusShort == "2H" || $0.statusShort == "HT" || $0.statusShort == "ET" || $0.statusShort == "P" }.count
+
+                print("🔔 Checking for live matches: \(liveCount) found")
+                return liveCount > 0
+            } catch {
+                print("❌ Failed to check for live matches: \(error)")
+                return false
+            }
+        }
+    }
+
+    // MARK: - Update Timer
+    @MainActor
+    func startUpdateTimer() {
+        stopUpdateTimer()
+
+        // Start countdown from 15 seconds
+        secondsUntilNextUpdate = 15
+
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self = self else { return }
+
+                if self.secondsUntilNextUpdate > 0 {
+                    self.secondsUntilNextUpdate -= 1
+                } else {
+                    // Timer reached 0 - refresh data
+                    await self.fetchLiveMatches()
+                }
+            }
+        }
+    }
+
+    @MainActor
+    func stopUpdateTimer() {
+        updateTimer?.invalidate()
+        updateTimer = nil
+    }
+
+    deinit {
+        // Avoid capturing self in a Task; deinit runs on a specific thread and we only need to invalidate the timer.
+        MainActor.assumeIsolated { stopUpdateTimer() }
     }
 
     // MARK: - Load Favorite Teams
@@ -81,20 +150,40 @@ class LiveScoresViewModel {
         errorMessage = nil
 
         do {
-            // First, sync latest fixtures from API to SwiftData
-            if let dataManager = dataManager {
-                await dataManager.syncLiveFixtures()
-            }
-
-            // Now fetch from SwiftData
             guard let dataManager = dataManager else {
                 throw NSError(domain: "LiveScoresViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "No SwiftData context available"])
             }
 
-            let allFixtures = try dataManager.getAllFixtures()
-            let allGames = allFixtures.map { $0.toGame() }
-
+            // Fetch fixtures from SwiftData
+            // Note: AFCONHomeView handles initial fixture loading, so we just read from SwiftData here
+            var allFixtures = try dataManager.getAllFixtures()
             let now = Date()
+
+            let allGamesSnapshot = allFixtures.map { $0.toGame() }
+            let hasLiveSnapshot = allGamesSnapshot.contains { $0.status == .live }
+            let nextUpcoming = allGamesSnapshot
+                .filter { $0.status == .upcoming && $0.date > now }
+                .sorted { $0.date < $1.date }
+                .first
+
+            if !hasLiveSnapshot,
+               let nextUpcoming,
+               nextUpcoming.date.timeIntervalSince(now) > 120 {
+                streamService.updateLiveMatchesStatus(hasLiveMatches: false)
+                stopUpdateTimer()
+                secondsUntilNextUpdate = 0
+                isLoading = false
+                return
+            }
+
+            // If there are fixtures, sync live fixtures to get latest updates
+            if !allFixtures.isEmpty {
+                await dataManager.syncLiveFixtures()
+                // Refresh fixtures after live sync
+                allFixtures = try dataManager.getAllFixtures()
+            }
+
+            let allGames = allFixtures.map { $0.toGame() }
             let calendar = Calendar.current
             let today = calendar.startOfDay(for: now)
 
@@ -149,6 +238,16 @@ class LiveScoresViewModel {
 
             // Reload all widgets after saving snapshots
             WidgetCenter.shared.reloadAllTimelines()
+
+            // Start or update streaming based on live matches
+            streamService.updateLiveMatchesStatus(hasLiveMatches: !liveMatches.isEmpty)
+
+            if liveMatches.isEmpty {
+                stopUpdateTimer()
+                secondsUntilNextUpdate = 0
+            } else {
+                startUpdateTimer()
+            }
         } catch {
             errorMessage = "Failed to load matches: \(error.localizedDescription)"
             print("Error fetching matches: \(error)")
@@ -161,10 +260,9 @@ class LiveScoresViewModel {
     private func loadEventsFromSwiftData() async {
         guard let dataManager = dataManager else { return }
 
-        // Load events for all matches (live, finished, upcoming)
-        let allMatches = liveMatches + finishedMatches + upcomingMatches
+        let matchesNeedingEvents = liveMatches.isEmpty ? [] : (liveMatches + finishedMatches + upcomingMatches)
 
-        for match in allMatches {
+        for match in matchesNeedingEvents {
             do {
                 let events = try dataManager.getAfconEvents(for: match.id)
                 if !events.isEmpty {
@@ -175,8 +273,10 @@ class LiveScoresViewModel {
             }
         }
 
-        // Fetch and store events from API for live and finished matches
-        await syncEventsForActiveMatches()
+        // Fetch and store events from API only for live sessions
+        if !liveMatches.isEmpty {
+            await syncEventsForActiveMatches()
+        }
     }
 
     // MARK: - Sync Events for Active Matches
@@ -204,134 +304,113 @@ class LiveScoresViewModel {
 
     // MARK: - Start Live Updates Stream
     func startLiveUpdates() {
-        // Prevent multiple streams
-        guard !isStreaming else {
-            print("⏭️ Streaming already active, skipping...")
-            return
-        }
-
-        print("🚀 Starting live updates stream...")
-
-        streamingTask = Task {
-            do {
-                try await service.streamLiveMatches { [weak self] update in
-                    Task { @MainActor in
-                        // Handle live update
-                        print("Live update for fixture \(update.fixtureID): \(update.eventType)")
-
-                        let updatedGame = update.fixture.toGame()
-                        let fixtureId = Int(update.fixtureID)
-
-                        // Update fixture in SwiftData
-                        if let dataManager = self?.dataManager {
-                            Task {
-                                // Update the fixture itself without accessing private modelContext
-                                do {
-                                    let fixtures = try dataManager.getAllFixtures()
-                                    if let existingFixture = fixtures.first(where: { $0.id == fixtureId }) {
-                                        dataManager.updateFixtureModel(existingFixture, with: update.fixture)
-                                        // If FixtureDataManager handles saving internally, nothing else to do.
-                                        // Otherwise, consider adding a public save method on the data manager.
-                                    }
-                                } catch {
-                                    print("❌ Failed to update fixture \(fixtureId) in SwiftData: \(error)")
-                                }
-                            }
-                        }
-
-                        // Check if it's in live matches
-                        if let index = self?.liveMatches.firstIndex(where: { $0.id == fixtureId }) {
-                            self?.liveMatches[index] = updatedGame
-
-                            // Update events for this live match
-                            Task {
-                                await self?.fetchEventsForSingleMatch(fixtureId: fixtureId)
-                            }
-                        } else if updatedGame.status == .live {
-                            // New live match started - remove from upcoming if present
-                            self?.upcomingMatches.removeAll { $0.id == fixtureId }
-
-                            // Only add if not already in live matches
-                            if let self = self, !self.liveMatches.contains(where: { $0.id == fixtureId }) {
-                                self.liveMatches.append(updatedGame)
-                                // Re-sort live matches by kickoff time
-                                self.liveMatches.sort { $0.date < $1.date }
-                            }
-
-                            // Fetch events for newly live match
-                            Task {
-                                await self?.fetchEventsForSingleMatch(fixtureId: fixtureId)
-                            }
-
-                            // Auto-start Live Activity for favorite team matches
-                            if let self = self, self.isFavoriteTeamMatch(updatedGame) && !LiveActivityManager.shared.isActivityActive(for: Int32(fixtureId)) {
-                                print("🌟 Auto-starting Live Activity for favorite team match going live: \(updatedGame.homeTeam) vs \(updatedGame.awayTeam)")
-                                let state = self.createLiveActivityState(from: updatedGame, events: self.fixtureEvents[fixtureId] ?? [])
-                                _ = LiveActivityManager.shared.startActivity(
-                                    fixtureID: Int32(fixtureId),
-                                    homeTeam: updatedGame.homeTeam,
-                                    awayTeam: updatedGame.awayTeam,
-                                    competition: updatedGame.competition,
-                                    initialState: state
-                                )
-                            }
-                        } else if updatedGame.status == .upcoming {
-                            // Update in upcoming list
-                            if let index = self?.upcomingMatches.firstIndex(where: { $0.id == fixtureId }) {
-                                self?.upcomingMatches[index] = updatedGame
-
-                                // Update widget store for upcoming match changes (e.g., kickoff time)
-                                if let self = self {
-                                    let snapshot = self.createWidgetSnapshot(from: updatedGame, events: self.fixtureEvents[fixtureId] ?? [])
-                                    HomeWidgetSnapshotStore.shared.save(snapshot)
-                                    WidgetCenter.shared.reloadAllTimelines()
-                                }
-                            }
-                        } else if updatedGame.status == .finished {
-                            // Match finished - remove from live, add to finished
-                            self?.liveMatches.removeAll { $0.id == fixtureId }
-
-                            // Add to finished if it's from today and not already there
-                            let calendar = Calendar.current
-                            let today = calendar.startOfDay(for: Date())
-                            let gameDay = calendar.startOfDay(for: updatedGame.date)
-
-                            if calendar.isDate(gameDay, inSameDayAs: today) {
-                                // Only add if not already in finished matches
-                                if let self = self, !self.finishedMatches.contains(where: { $0.id == fixtureId }) {
-                                    self.finishedMatches.append(updatedGame)
-                                    // Re-sort finished matches by most recent first
-                                    self.finishedMatches.sort { $0.date > $1.date }
-                                } else {
-                                    // Update existing finished match
-                                    if let index = self?.finishedMatches.firstIndex(where: { $0.id == fixtureId }) {
-                                        self?.finishedMatches[index] = updatedGame
-                                    }
-                                }
-
-                                // Fetch final events
-                                Task {
-                                    await self?.fetchEventsForSingleMatch(fixtureId: fixtureId)
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch {
-                await MainActor.run {
-                    self.errorMessage = "Live updates stream error: \(error.localizedDescription)"
-                    self.streamingTask = nil
-                }
-                print("❌ Stream ended with error: \(error)")
-            }
-        }
+        // Delegate to global stream service
+        streamService.startStreaming(hasLiveMatches: !liveMatches.isEmpty)
     }
 
     // MARK: - Stop Live Updates Stream
     func stopLiveUpdates() {
-        print("🛑 Stopping live updates stream...")
-        streamingTask?.cancel()
-        streamingTask = nil
+        // Don't stop the global stream when view disappears
+        // It will stop automatically when there are no more live matches
+        print("ℹ️ View disappeared but keeping stream active for other views")
+    }
+
+    // MARK: - Handle Live Update
+    @MainActor
+    private func handleLiveUpdate(_ update: Afcon_LiveMatchUpdate) async {
+        print("📡 Live update for fixture \(update.fixtureID): \(update.eventType)")
+
+        let updatedGame = update.fixture.toGame()
+        let fixtureId = Int(update.fixtureID)
+
+        // Update fixture in SwiftData
+        if let dataManager = dataManager {
+            Task {
+                do {
+                    let fixtures = try dataManager.getAllFixtures()
+                    if let existingFixture = fixtures.first(where: { $0.id == fixtureId }) {
+                        dataManager.updateFixtureModel(existingFixture, with: update.fixture)
+                    }
+                } catch {
+                    print("❌ Failed to update fixture \(fixtureId) in SwiftData: \(error)")
+                }
+            }
+        }
+
+        // Check if it's in live matches
+        if let index = liveMatches.firstIndex(where: { $0.id == fixtureId }) {
+            liveMatches[index] = updatedGame
+
+            // Update events for this live match
+            await fetchEventsForSingleMatch(fixtureId: fixtureId)
+        } else if updatedGame.status == .live {
+            // New live match started - remove from upcoming if present
+            upcomingMatches.removeAll { $0.id == fixtureId }
+
+            // Only add if not already in live matches
+            if !liveMatches.contains(where: { $0.id == fixtureId }) {
+                liveMatches.append(updatedGame)
+                // Re-sort live matches by kickoff time
+                liveMatches.sort { $0.date < $1.date }
+
+                // Update stream status
+                streamService.updateLiveMatchesStatus(hasLiveMatches: !liveMatches.isEmpty)
+            }
+
+            // Fetch events for newly live match
+            await fetchEventsForSingleMatch(fixtureId: fixtureId)
+
+            // Auto-start Live Activity for favorite team matches
+            if isFavoriteTeamMatch(updatedGame) && !LiveActivityManager.shared.isActivityActive(for: Int32(fixtureId)) {
+                print("🌟 Auto-starting Live Activity for favorite team match going live: \(updatedGame.homeTeam) vs \(updatedGame.awayTeam)")
+                let state = createLiveActivityState(from: updatedGame, events: fixtureEvents[fixtureId] ?? [])
+                _ = LiveActivityManager.shared.startActivity(
+                    fixtureID: Int32(fixtureId),
+                    homeTeam: updatedGame.homeTeam,
+                    awayTeam: updatedGame.awayTeam,
+                    competition: updatedGame.competition,
+                    initialState: state
+                )
+            }
+        } else if updatedGame.status == .upcoming {
+            // Update in upcoming list
+            if let index = upcomingMatches.firstIndex(where: { $0.id == fixtureId }) {
+                upcomingMatches[index] = updatedGame
+
+                // Update widget store for upcoming match changes (e.g., kickoff time)
+                let snapshot = createWidgetSnapshot(from: updatedGame, events: fixtureEvents[fixtureId] ?? [])
+                HomeWidgetSnapshotStore.shared.save(snapshot)
+                WidgetCenter.shared.reloadAllTimelines()
+            }
+        } else if updatedGame.status == .finished {
+            // Match finished - remove from live, add to finished
+            liveMatches.removeAll { $0.id == fixtureId }
+
+            // Update stream status
+            streamService.updateLiveMatchesStatus(hasLiveMatches: !liveMatches.isEmpty)
+
+            // Add to finished if it's from today and not already there
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: Date())
+            let gameDay = calendar.startOfDay(for: updatedGame.date)
+
+            if calendar.isDate(gameDay, inSameDayAs: today) {
+                // Only add if not already in finished matches
+                if !finishedMatches.contains(where: { $0.id == fixtureId }) {
+                    finishedMatches.append(updatedGame)
+                    // Re-sort finished matches by most recent first
+                    finishedMatches.sort { $0.date > $1.date }
+                } else {
+                    // Update existing finished match
+                    if let index = finishedMatches.firstIndex(where: { $0.id == fixtureId }) {
+                        finishedMatches[index] = updatedGame
+                    }
+                }
+
+                // Fetch final events
+                await fetchEventsForSingleMatch(fixtureId: fixtureId)
+            }
+        }
     }
 
     // MARK: - Fetch Events for Single Match
@@ -388,8 +467,8 @@ class LiveScoresViewModel {
     /// Create widget snapshot from game data
     private func createWidgetSnapshot(from game: Game, events: [Afcon_FixtureEvent]) -> LiveMatchWidgetSnapshot {
         let goalEvents = events.filter { $0.isGoal }
-        let homeGoals = goalEvents.filter { $0.team.id ?? 0 == Int32(game.homeTeamId) }.map { formatGoalEvent($0) }
-        let awayGoals = goalEvents.filter { $0.team.id ?? 0 == Int32(game.awayTeamId) }.map { formatGoalEvent($0) }
+        let homeGoals = goalEvents.filter { $0.team.id == Int32(game.homeTeamId) }.map { formatGoalEvent($0) }
+        let awayGoals = goalEvents.filter { $0.team.id == Int32(game.awayTeamId) }.map { formatGoalEvent($0) }
 
         // Calculate elapsed seconds
         let elapsedSeconds: Int
@@ -420,8 +499,8 @@ class LiveScoresViewModel {
     /// Create Live Activity state from game data
     private func createLiveActivityState(from game: Game, events: [Afcon_FixtureEvent]) -> LiveScoreActivityAttributes.ContentState {
         let goalEvents = events.filter { $0.isGoal }
-        let homeGoals = goalEvents.filter { $0.team.id ?? 0 == Int32(game.homeTeamId) }.map { formatGoalEvent($0) }
-        let awayGoals = goalEvents.filter { $0.team.id ?? 0 == Int32(game.awayTeamId) }.map { formatGoalEvent($0) }
+        let homeGoals = goalEvents.filter { $0.team.id == Int32(game.homeTeamId) }.map { formatGoalEvent($0) }
+        let awayGoals = goalEvents.filter { $0.team.id == Int32(game.awayTeamId) }.map { formatGoalEvent($0) }
 
         // Parse elapsed minutes
         let elapsed: Int32

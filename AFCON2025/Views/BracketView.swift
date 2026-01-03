@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 // MARK: - Match Card View
 struct MatchCardView: View {
@@ -16,25 +17,17 @@ struct MatchCardView: View {
             VStack(spacing: 0) {
                 // Team 1
                 HStack {
-                    Circle()
-                        .fill(LinearGradient(
-                            gradient: Gradient(colors: [Color("moroccoRed"), Color("moroccoRedDark")]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ))
-                        .frame(width: 20, height: 20)
-                        .overlay(
-                            Text(String(match.team1.prefix(1)))
-                                .font(.caption2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                        )
+                    teamBadge(
+                        teamName: match.team1,
+                        teamId: match.team1Id,
+                        gradient: [Color("moroccoRed"), Color("moroccoRedDark")]
+                    )
 
                     Text(match.team1)
                         .font(.caption)
                         .fontWeight(.medium)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.8)
+                        .truncationMode(.tail)
 
                     Spacer()
 
@@ -59,25 +52,17 @@ struct MatchCardView: View {
 
                 // Team 2
                 HStack {
-                    Circle()
-                        .fill(LinearGradient(
-                            gradient: Gradient(colors: [Color("moroccoGreen"), Color("moroccoGreenDark")]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ))
-                        .frame(width: 20, height: 20)
-                        .overlay(
-                            Text(String(match.team2.prefix(1)))
-                                .font(.caption2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                        )
+                    teamBadge(
+                        teamName: match.team2,
+                        teamId: match.team2Id,
+                        gradient: [Color("moroccoGreen"), Color("moroccoGreenDark")]
+                    )
 
                     Text(match.team2)
                         .font(.caption)
                         .fontWeight(.medium)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.8)
+                        .truncationMode(.tail)
 
                     Spacer()
 
@@ -124,6 +109,32 @@ struct MatchCardView: View {
         displayFormatter.dateFormat = "MMM d"
         return displayFormatter.string(from: date)
     }
+
+    @ViewBuilder
+    private func teamBadge(teamName: String, teamId: Int?, gradient: [Color]) -> some View {
+        if let teamId, let flagAsset = TeamFlagMapper.flagAssetName(for: teamId) {
+            Image(flagAsset)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 20, height: 20)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(Color.gray.opacity(0.2), lineWidth: 0.5))
+        } else {
+            Circle()
+                .fill(LinearGradient(
+                    gradient: Gradient(colors: gradient),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ))
+                .frame(width: 20, height: 20)
+                .overlay(
+                    Text(String(teamName.prefix(1)))
+                        .font(.caption2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                )
+        }
+    }
 }
 
 // MARK: - Stage Label
@@ -153,9 +164,11 @@ enum BracketRound: String, CaseIterable {
 
 // MARK: - Main Bracket View
 struct BracketView: View {
-    let bracketMatches = BracketData.allMatches
+    @Environment(\.modelContext) private var modelContext
+    @State private var viewModel = BracketViewModel()
     @State private var selectedRound: BracketRound = .roundOf16
     @State private var scrollOffset: CGFloat = 0
+    @Query private var fixtures: [FixtureModel]
 
     init() {
         _selectedRound = State(initialValue: determineCurrentRound())
@@ -169,16 +182,16 @@ struct BracketView: View {
         let r16Start = calendar.date(from: DateComponents(year: 2026, month: 1, day: 3))!
         let r16End = calendar.date(from: DateComponents(year: 2026, month: 1, day: 6))!
 
-        // Quarter Finals dates: January 11-12, 2026
-        let qfStart = calendar.date(from: DateComponents(year: 2026, month: 1, day: 11))!
-        let qfEnd = calendar.date(from: DateComponents(year: 2026, month: 1, day: 12))!
+        // Quarter Finals dates: January 9-10, 2026
+        let qfStart = calendar.date(from: DateComponents(year: 2026, month: 1, day: 9))!
+        let qfEnd = calendar.date(from: DateComponents(year: 2026, month: 1, day: 10))!
 
-        // Semi Finals dates: January 15-16, 2026
-        let sfStart = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15))!
-        let sfEnd = calendar.date(from: DateComponents(year: 2026, month: 1, day: 16))!
+        // Semi Finals date: January 14, 2026
+        let sfStart = calendar.date(from: DateComponents(year: 2026, month: 1, day: 14))!
+        let sfEnd = calendar.date(from: DateComponents(year: 2026, month: 1, day: 14))!
 
-        // Final date: January 19, 2026
-        let finalDate = calendar.date(from: DateComponents(year: 2026, month: 1, day: 19))!
+        // Final date: January 18, 2026
+        let finalDate = calendar.date(from: DateComponents(year: 2026, month: 1, day: 18))!
 
         if today >= r16Start && today <= r16End {
             return .roundOf16
@@ -228,6 +241,42 @@ struct BracketView: View {
     var finalYCenter: CGFloat {
         400 + cardHeight / 2
     }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            if viewModel.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let bracketMatches = viewModel.bracketMatches {
+                BracketContentView(
+                    bracketMatches: bracketMatches,
+                    selectedRound: $selectedRound,
+                    determineCurrentRound: determineCurrentRound
+                )
+            } else {
+                // Fallback to static data if API fails
+                BracketContentView(
+                    bracketMatches: BracketData.allMatches,
+                    selectedRound: $selectedRound,
+                    determineCurrentRound: determineCurrentRound
+                )
+            }
+        }
+        .task {
+            viewModel.configure(modelContext: modelContext)
+            await viewModel.loadBracketData()
+        }
+        .onChange(of: fixtures.map(\.lastUpdated)) { _ in
+            viewModel.refreshBracketFromFixtures()
+        }
+    }
+}
+
+// MARK: - Bracket Content View
+private struct BracketContentView: View {
+    let bracketMatches: BracketMatches
+    @Binding var selectedRound: BracketRound
+    let determineCurrentRound: () -> BracketRound
 
     var body: some View {
         VStack(spacing: 0) {
@@ -426,11 +475,11 @@ struct BracketView: View {
                             // Date, Time and Venue above card
                             VStack(spacing: 2) {
                                 HStack(spacing: 4) {
-                                    Text(formatMatchDate(match.date))
+                                    Text(formatMatchDate(match))
                                         .font(.caption2)
                                         .fontWeight(.medium)
                                         .foregroundColor(Color("moroccoRed"))
-                                    Text(match.time)
+                                    Text(formatMatchTime(match))
                                         .font(.caption2)
                                         .fontWeight(.medium)
                                         .foregroundColor(.secondary)
@@ -454,11 +503,11 @@ struct BracketView: View {
                             // Date, Time and Venue above card
                             VStack(spacing: 2) {
                                 HStack(spacing: 4) {
-                                    Text(formatMatchDate(match.date))
+                                    Text(formatMatchDate(match))
                                         .font(.caption2)
                                         .fontWeight(.medium)
                                         .foregroundColor(Color("moroccoRed"))
-                                    Text(match.time)
+                                    Text(formatMatchTime(match))
                                         .font(.caption2)
                                         .fontWeight(.medium)
                                         .foregroundColor(.secondary)
@@ -482,11 +531,11 @@ struct BracketView: View {
                             // Date, Time and Venue above card
                             VStack(spacing: 2) {
                                 HStack(spacing: 4) {
-                                    Text(formatMatchDate(match.date))
+                                    Text(formatMatchDate(match))
                                         .font(.caption2)
                                         .fontWeight(.medium)
                                         .foregroundColor(Color("moroccoRed"))
-                                    Text(match.time)
+                                    Text(formatMatchTime(match))
                                         .font(.caption2)
                                         .fontWeight(.medium)
                                         .foregroundColor(.secondary)
@@ -509,11 +558,11 @@ struct BracketView: View {
                         // Date, Time and Venue above card
                         VStack(spacing: 2) {
                             HStack(spacing: 4) {
-                                Text(formatMatchDate(bracketMatches.final.date))
+                                Text(formatMatchDate(bracketMatches.final))
                                     .font(.caption2)
                                     .fontWeight(.medium)
                                     .foregroundColor(Color("moroccoRed"))
-                                Text(bracketMatches.final.time)
+                                Text(formatMatchTime(bracketMatches.final))
                                     .font(.caption2)
                                     .fontWeight(.medium)
                                     .foregroundColor(.secondary)
@@ -535,11 +584,11 @@ struct BracketView: View {
                         // Date, Time and Venue above card
                         VStack(spacing: 2) {
                             HStack(spacing: 4) {
-                                Text(formatMatchDate(bracketMatches.thirdPlace.date))
+                                Text(formatMatchDate(bracketMatches.thirdPlace))
                                     .font(.caption2)
                                     .fontWeight(.medium)
                                     .foregroundColor(Color("moroccoRed"))
-                                Text(bracketMatches.thirdPlace.time)
+                                Text(formatMatchTime(bracketMatches.thirdPlace))
                                     .font(.caption2)
                                     .fontWeight(.medium)
                                     .foregroundColor(.secondary)
@@ -587,13 +636,74 @@ struct BracketView: View {
         }
     }
 
-    private func formatMatchDate(_ dateString: String) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        guard let date = formatter.date(from: dateString) else { return dateString }
+    // Shared constants for positioning
+    let cardWidth: CGFloat = 160
+    let cardHeight: CGFloat = 70
+    let r16Left: CGFloat = 20
+    let qfLeft: CGFloat = 300
+    let sfLeft: CGFloat = 620
+    let finalLeft: CGFloat = 920
 
+    // Calculate all Y positions
+    var r16YCenters: [CGFloat] {
+        [60, 190, 320, 450, 580, 710, 840, 970].map { $0 + cardHeight / 2 }
+    }
+
+    var qfYCenters: [CGFloat] {
+        [
+            (r16YCenters[0] + r16YCenters[1]) / 2,
+            (r16YCenters[2] + r16YCenters[3]) / 2,
+            (r16YCenters[4] + r16YCenters[5]) / 2,
+            (r16YCenters[6] + r16YCenters[7]) / 2
+        ]
+    }
+
+    var sfYCenters: [CGFloat] {
+        [300, 500].map { $0 + cardHeight / 2 }
+    }
+
+    var finalYCenter: CGFloat {
+        400 + cardHeight / 2
+    }
+
+    private let tournamentTimeZone = TimeZone(secondsFromGMT: 3600) ?? .current
+
+    private func matchDateTime(_ match: BracketMatch) -> Date? {
+        let dateParts = match.date.split(separator: "-").map { String($0) }
+        let timeParts = match.time.split(separator: ":").map { String($0) }
+        guard dateParts.count == 3, timeParts.count == 2,
+              let year = Int(dateParts[0]),
+              let month = Int(dateParts[1]),
+              let day = Int(dateParts[2]),
+              let hour = Int(timeParts[0]),
+              let minute = Int(timeParts[1]) else {
+            return nil
+        }
+
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = day
+        components.hour = hour
+        components.minute = minute
+        components.timeZone = tournamentTimeZone
+
+        return Calendar(identifier: .gregorian).date(from: components)
+    }
+
+    private func formatMatchDate(_ match: BracketMatch) -> String {
+        guard let date = matchDateTime(match) else { return match.date }
         let displayFormatter = DateFormatter()
         displayFormatter.dateFormat = "MMM d"
+        displayFormatter.timeZone = .current
+        return displayFormatter.string(from: date)
+    }
+
+    private func formatMatchTime(_ match: BracketMatch) -> String {
+        guard let date = matchDateTime(match) else { return match.time }
+        let displayFormatter = DateFormatter()
+        displayFormatter.dateFormat = "HH:mm"
+        displayFormatter.timeZone = .current
         return displayFormatter.string(from: date)
     }
 
@@ -601,7 +711,6 @@ struct BracketView: View {
         let components = venue.components(separatedBy: ", ")
         return components.last ?? venue
     }
-
 }
 
 // MARK: - Data Models (keeping existing ones)
@@ -611,6 +720,8 @@ struct BracketMatch {
     let time: String
     let team1: String
     let team2: String
+    let team1Id: Int?
+    let team2Id: Int?
     let venue: String
     let score1: Int?
     let score2: Int?
@@ -619,43 +730,43 @@ struct BracketMatch {
 struct BracketData {
     static let allMatches = BracketMatches(
         roundOf16: [
-            // R1: 3 January - Tangier, 18:00
-            BracketMatch(id: 1, date: "2026-01-03", time: "18:00", team1: "Winner Group D", team2: "3rd Group B/E/F", venue: "Ibn Batouta Stadium, Tangier", score1: nil, score2: nil),
-            // R2: 3 January - Casablanca, 20:30
-            BracketMatch(id: 2, date: "2026-01-03", time: "20:30", team1: "Runner-up Group A", team2: "Runner-up Group C", venue: "Mohammed V Stadium, Casablanca", score1: nil, score2: nil),
-            // R3: 4 January - Rabat, 18:00
-            BracketMatch(id: 3, date: "2026-01-04", time: "18:00", team1: "Winner Group A", team2: "3rd Group C/D/E", venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil),
-            // R4: 4 January - Rabat, 20:30
-            BracketMatch(id: 4, date: "2026-01-04", time: "20:30", team1: "Runner-up Group B", team2: "Runner-up Group F", venue: "Al Barid Stadium, Rabat", score1: nil, score2: nil),
-            // R5: 5 January - Agadir, 18:00
-            BracketMatch(id: 5, date: "2026-01-05", time: "18:00", team1: "Winner Group B", team2: "3rd Group A/C/D", venue: "Adrar Stadium, Agadir", score1: nil, score2: nil),
-            // R6: 5 January - Fez, 20:30
-            BracketMatch(id: 6, date: "2026-01-05", time: "20:30", team1: "Winner Group C", team2: "3rd Group A/B/F", venue: "Fez Stadium, Fez", score1: nil, score2: nil),
-            // R7: 6 January - Rabat, 18:00
-            BracketMatch(id: 7, date: "2026-01-06", time: "18:00", team1: "Winner Group E", team2: "Runner-up Group D", venue: "Moulay Hassan Stadium, Rabat", score1: nil, score2: nil),
-            // R8: 6 January - Marrakesh, 20:30
-            BracketMatch(id: 8, date: "2026-01-06", time: "20:30", team1: "Winner Group F", team2: "Runner-up Group E", venue: "Marrakesh Stadium, Marrakesh", score1: nil, score2: nil)
+            // 37: 3 January - Tangier, 17:00
+            BracketMatch(id: 37, date: "2026-01-03", time: "17:00", team1: "1D", team2: "3B/E/F", team1Id: nil, team2Id: nil, venue: "Ibn Batouta Stadium, Tangier", score1: nil, score2: nil),
+            // 38: 3 January - Casablanca, 20:00
+            BracketMatch(id: 38, date: "2026-01-03", time: "20:00", team1: "2A", team2: "2C", team1Id: nil, team2Id: nil, venue: "Mohammed V Stadium, Casablanca", score1: nil, score2: nil),
+            // 39: 4 January - Rabat, 17:00
+            BracketMatch(id: 39, date: "2026-01-04", time: "17:00", team1: "1A", team2: "3C/D/E", team1Id: nil, team2Id: nil, venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil),
+            // 40: 4 January - Rabat, 20:00
+            BracketMatch(id: 40, date: "2026-01-04", time: "20:00", team1: "2B", team2: "2F", team1Id: nil, team2Id: nil, venue: "Al Barid Stadium, Rabat", score1: nil, score2: nil),
+            // 42: 5 January - Fez, 20:00
+            BracketMatch(id: 42, date: "2026-01-05", time: "20:00", team1: "1C", team2: "3A/B/F", team1Id: nil, team2Id: nil, venue: "Fez Stadium, Fez", score1: nil, score2: nil),
+            // 43: 6 January - Rabat, 17:00
+            BracketMatch(id: 43, date: "2026-01-06", time: "17:00", team1: "1E", team2: "2D", team1Id: nil, team2Id: nil, venue: "Moulay Hassan Stadium, Rabat", score1: nil, score2: nil),
+            // 41: 5 January - Agadir, 17:00
+            BracketMatch(id: 41, date: "2026-01-05", time: "17:00", team1: "1B", team2: "3A/C/D", team1Id: nil, team2Id: nil, venue: "Adrar Stadium, Agadir", score1: nil, score2: nil),
+            // 44: 6 January - Marrakesh, 20:00
+            BracketMatch(id: 44, date: "2026-01-06", time: "20:00", team1: "1F", team2: "2E", team1Id: nil, team2Id: nil, venue: "Marrakesh Stadium, Marrakesh", score1: nil, score2: nil)
         ],
         quarterFinals: [
-            // QF1: 9 January - Tangier, 18:00
-            BracketMatch(id: 9, date: "2026-01-09", time: "18:00", team1: "Winner R2", team2: "Winner R1", venue: "Ibn Batouta Stadium, Tangier", score1: nil, score2: nil),
-            // QF2: 9 January - Rabat, 20:30
-            BracketMatch(id: 10, date: "2026-01-09", time: "20:30", team1: "Winner R4", team2: "Winner R3", venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil),
-            // QF3: 10 January - Marrakesh, 18:00
-            BracketMatch(id: 11, date: "2026-01-10", time: "18:00", team1: "Winner R7", team2: "Winner R6", venue: "Marrakesh Stadium, Marrakesh", score1: nil, score2: nil),
-            // QF4: 10 January - Agadir, 20:30
-            BracketMatch(id: 12, date: "2026-01-10", time: "20:30", team1: "Winner R5", team2: "Winner R8", venue: "Adrar Stadium, Agadir", score1: nil, score2: nil)
+            // 45: 9 January - Tangier, 17:00
+            BracketMatch(id: 45, date: "2026-01-09", time: "17:00", team1: "W38", team2: "W37", team1Id: nil, team2Id: nil, venue: "Ibn Batouta Stadium, Tangier", score1: nil, score2: nil),
+            // 46: 9 January - Rabat, 20:00
+            BracketMatch(id: 46, date: "2026-01-09", time: "20:00", team1: "W40", team2: "W39", team1Id: nil, team2Id: nil, venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil),
+            // 47: 10 January - Marrakesh, 17:00
+            BracketMatch(id: 47, date: "2026-01-10", time: "17:00", team1: "W43", team2: "W42", team1Id: nil, team2Id: nil, venue: "Marrakesh Stadium, Marrakesh", score1: nil, score2: nil),
+            // 48: 10 January - Agadir, 20:00
+            BracketMatch(id: 48, date: "2026-01-10", time: "20:00", team1: "W41", team2: "W44", team1Id: nil, team2Id: nil, venue: "Adrar Stadium, Agadir", score1: nil, score2: nil)
         ],
         semiFinals: [
-            // SF1: 14 January - Tangier, 18:00
-            BracketMatch(id: 13, date: "2026-01-14", time: "18:00", team1: "Winner QF1", team2: "Winner QF4", venue: "Ibn Batouta Stadium, Tangier", score1: nil, score2: nil),
-            // SF2: 14 January - Rabat, 20:30
-            BracketMatch(id: 14, date: "2026-01-14", time: "20:30", team1: "Winner QF3", team2: "Winner QF2", venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil)
+            // 49: 14 January - Tangier, 18:00
+            BracketMatch(id: 49, date: "2026-01-14", time: "18:00", team1: "W45", team2: "W48", team1Id: nil, team2Id: nil, venue: "Ibn Batouta Stadium, Tangier", score1: nil, score2: nil),
+            // 50: 14 January - Rabat, 21:00
+            BracketMatch(id: 50, date: "2026-01-14", time: "21:00", team1: "W47", team2: "W46", team1Id: nil, team2Id: nil, venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil)
         ],
         // Final: 18 January - Rabat, 20:00
-        final: BracketMatch(id: 15, date: "2026-01-18", time: "20:00", team1: "Winner SF1", team2: "Winner SF2", venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil),
-        // Third Place: 17 January - Casablanca, 20:00
-        thirdPlace: BracketMatch(id: 16, date: "2026-01-17", time: "20:00", team1: "Loser SF1", team2: "Loser SF2", venue: "Mohammed V Stadium, Casablanca", score1: nil, score2: nil)
+        final: BracketMatch(id: 52, date: "2026-01-18", time: "20:00", team1: "W49", team2: "W50", team1Id: nil, team2Id: nil, venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil),
+        // Third Place: 17 January - Casablanca, 17:00
+        thirdPlace: BracketMatch(id: 51, date: "2026-01-17", time: "17:00", team1: "L49", team2: "L50", team1Id: nil, team2Id: nil, venue: "Mohammed V Stadium, Casablanca", score1: nil, score2: nil)
     )
 }
 

@@ -50,10 +50,13 @@ final class HomeWidgetSnapshotStore: Sendable {
     }
 
     func save(_ snapshot: LiveMatchWidgetSnapshot) {
+        print("🟢 HomeWidgetSnapshotStore - Saving snapshot for fixture \(snapshot.fixtureID): \(snapshot.homeTeam) vs \(snapshot.awayTeam)")
+        print("🟢 HomeWidgetSnapshotStore - Container URL: \(containerURL?.path ?? "nil")")
         var snapshots = loadSnapshots()
         snapshots.removeAll { $0.fixtureID == snapshot.fixtureID }
         snapshots.append(snapshot)
         storeSnapshots(snapshots)
+        print("🟢 HomeWidgetSnapshotStore - Total snapshots after save: \(snapshots.count)")
     }
 
     func snapshots() -> [LiveMatchWidgetSnapshot] {
@@ -93,7 +96,10 @@ final class HomeWidgetSnapshotStore: Sendable {
     }
 
     private func storeSnapshots(_ snapshots: [LiveMatchWidgetSnapshot]) {
-        guard let url = snapshotsURL else { return }
+        guard let url = snapshotsURL else {
+            print("❌ HomeWidgetSnapshotStore - No snapshots URL available")
+            return
+        }
 
         var ordered = snapshots.sorted { $0.lastUpdated > $1.lastUpdated }
         if ordered.count > 20 {
@@ -101,6 +107,7 @@ final class HomeWidgetSnapshotStore: Sendable {
         }
 
         if ordered.isEmpty {
+            print("🟢 HomeWidgetSnapshotStore - No snapshots to store, removing file")
             try? FileManager.default.removeItem(at: url)
             if let legacyURL {
                 try? FileManager.default.removeItem(at: legacyURL)
@@ -110,12 +117,19 @@ final class HomeWidgetSnapshotStore: Sendable {
 
         do {
             let data = try encoder.encode(ordered)
+            print("🟢 HomeWidgetSnapshotStore - Encoded \(ordered.count) snapshots (\(data.count) bytes)")
             try data.write(to: url, options: [.atomic])
+            print("🟢 HomeWidgetSnapshotStore - Successfully wrote to: \(url.path)")
+
+            // Verify file was written
+            let fileExists = FileManager.default.fileExists(atPath: url.path)
+            print("🟢 HomeWidgetSnapshotStore - File exists after write: \(fileExists)")
+
             if let legacyURL {
                 try? FileManager.default.removeItem(at: legacyURL)
             }
         } catch {
-            print("HomeWidgetSnapshotStore: failed to persist snapshot – \(error)")
+            print("❌ HomeWidgetSnapshotStore: failed to persist snapshot – \(error)")
         }
     }
 }

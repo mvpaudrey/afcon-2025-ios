@@ -26,11 +26,11 @@ struct NotificationSettingsView: View {
                                 .foregroundColor(.red)
 
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Notifications Disabled")
+                                Text(LocalizedStringKey("Notifications Disabled"))
                                     .font(.headline)
                                     .foregroundColor(.primary)
 
-                                Text("You won't receive match updates or alerts")
+                                Text(LocalizedStringKey("You won't receive match updates or alerts"))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -41,7 +41,7 @@ struct NotificationSettingsView: View {
                         } label: {
                             HStack {
                                 Spacer()
-                                Label("Open iOS Settings", systemImage: "gear")
+                                Label(LocalizedStringKey("Open iOS Settings"), systemImage: "gear")
                                     .fontWeight(.semibold)
                                 Spacer()
                             }
@@ -52,7 +52,7 @@ struct NotificationSettingsView: View {
                         }
                         .buttonStyle(.plain)
 
-                        Text("Go to Settings → Notifications → AFCON 2025 and enable \"Allow Notifications\"")
+                        Text(LocalizedStringKey("Go to Settings → Notifications → AFCON 2025 and enable \"Allow Notifications\""))
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -67,7 +67,7 @@ struct NotificationSettingsView: View {
                 HStack {
                     Image(systemName: statusIcon)
                         .foregroundColor(statusColor)
-                    Text("Notification Status")
+                    Text(LocalizedStringKey("Notification Status"))
                     Spacer()
                     Text(statusText)
                         .foregroundColor(.secondary)
@@ -77,18 +77,18 @@ struct NotificationSettingsView: View {
                     Button {
                         showPermissionSheet = true
                     } label: {
-                        Label("Enable Notifications", systemImage: "bell.badge")
+                        Label(LocalizedStringKey("Enable Notifications"), systemImage: "bell.badge")
                     }
                 }
             } header: {
-                Text("Status")
+                Text(LocalizedStringKey("Status"))
             }
 
             // Device Token Section (for debugging)
             if let token = notificationService.deviceToken {
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Device Token")
+                        Text(LocalizedStringKey("Device Token"))
                             .font(.caption)
                             .foregroundColor(.secondary)
 
@@ -100,10 +100,10 @@ struct NotificationSettingsView: View {
                     Button {
                         UIPasteboard.general.string = token
                     } label: {
-                        Label("Copy Token", systemImage: "doc.on.doc")
+                        Label(LocalizedStringKey("Copy Token"), systemImage: "doc.on.doc")
                     }
                 } header: {
-                    Text("Push Notifications")
+                    Text(LocalizedStringKey("Push Notifications"))
                 }
             }
 
@@ -116,7 +116,7 @@ struct NotificationSettingsView: View {
                         Spacer()
                     }
                 } else if pendingNotifications.isEmpty {
-                    Text("No scheduled notifications")
+                    Text(LocalizedStringKey("No scheduled notifications"))
                         .foregroundColor(.secondary)
                 } else {
                     ForEach(pendingNotifications, id: \.identifier) { notification in
@@ -125,7 +125,7 @@ struct NotificationSettingsView: View {
                 }
             } header: {
                 HStack {
-                    Text("Scheduled Notifications")
+                    Text(LocalizedStringKey("Scheduled Notifications"))
                     Spacer()
                     Text("\(pendingNotifications.count)")
                         .foregroundColor(.secondary)
@@ -137,20 +137,20 @@ struct NotificationSettingsView: View {
                 Button(role: .destructive) {
                     clearAllNotifications()
                 } label: {
-                    Label("Clear All Notifications", systemImage: "trash")
+                    Label(LocalizedStringKey("Clear All Notifications"), systemImage: "trash")
                 }
                 .disabled(pendingNotifications.isEmpty)
 
                 Button {
                     loadPendingNotifications()
                 } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
+                    Label(LocalizedStringKey("Refresh"), systemImage: "arrow.clockwise")
                 }
             } header: {
-                Text("Actions")
+                Text(LocalizedStringKey("Actions"))
             }
         }
-        .navigationTitle("Notifications")
+        .navigationTitle(LocalizedStringKey("Notifications"))
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             refreshAuthorizationStatus()
@@ -196,17 +196,17 @@ struct NotificationSettingsView: View {
     private var statusText: String {
         switch notificationService.authorizationStatus {
         case .authorized:
-            return "Enabled"
+            return String(localized: "Enabled")
         case .denied:
-            return "Denied"
+            return String(localized: "Denied")
         case .notDetermined:
-            return "Not Set"
+            return String(localized: "Not Set")
         case .provisional:
-            return "Provisional"
+            return String(localized: "Provisional")
         case .ephemeral:
-            return "Ephemeral"
+            return String(localized: "Ephemeral")
         @unknown default:
-            return "Unknown"
+            return String(localized: "Unknown")
         }
     }
 

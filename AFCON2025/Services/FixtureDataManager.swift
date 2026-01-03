@@ -189,7 +189,7 @@ class FixtureDataManager {
     // MARK: - Localization Helper
 
     private func localizedTeamName(_ name: String) -> String {
-        let language = Locale.current.language.languageCode?.identifier ?? Locale.current.languageCode ?? "en"
+        let language = Locale.current.language.languageCode?.identifier ?? "fr"
 
         switch language {
         case "fr":
