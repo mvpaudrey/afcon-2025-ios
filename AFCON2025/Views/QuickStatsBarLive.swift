@@ -240,6 +240,7 @@ struct QuickStatsBarLive: View {
             .padding(.vertical, isMinimized ? 8 : 12)
         }
         .frame(maxWidth: .infinity)
+        .frame(height: 44)
     }
 
     @ViewBuilder
