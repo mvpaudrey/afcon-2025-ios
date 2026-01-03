@@ -125,11 +125,19 @@ class LiveScoresViewModel {
         favoriteTeamIds.contains(game.homeTeamId) || favoriteTeamIds.contains(game.awayTeamId)
     }
 
+    private var tournamentCalendar: Calendar {
+        var calendar = Calendar.current
+        calendar.timeZone = TimeZone(secondsFromGMT: 3600) ?? .current
+        return calendar
+    }
+
     // Computed property: today's upcoming matches (not yet started)
     var upcomingTodayMatches: [Game] {
-        let calendar = Calendar.current
+        let calendar = tournamentCalendar
+        let startOfToday = calendar.startOfDay(for: Date())
+        let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday) ?? startOfToday
         return upcomingMatches.filter { game in
-            calendar.isDateInToday(game.date)
+            game.date >= startOfToday && game.date < endOfToday
         }.sorted { $0.date < $1.date }
     }
 
@@ -161,12 +169,19 @@ class LiveScoresViewModel {
 
             let allGamesSnapshot = allFixtures.map { $0.toGame() }
             let hasLiveSnapshot = allGamesSnapshot.contains { $0.status == .live }
+            let startOfToday = tournamentCalendar.startOfDay(for: now)
+            let endOfToday = tournamentCalendar.date(byAdding: .day, value: 1, to: startOfToday) ?? startOfToday
+            let hasUpcomingTodaySnapshot = allGamesSnapshot.contains { game in
+                game.status == .upcoming && game.date >= startOfToday && game.date < endOfToday
+            }
+
             let nextUpcoming = allGamesSnapshot
                 .filter { $0.status == .upcoming && $0.date > now }
                 .sorted { $0.date < $1.date }
                 .first
 
             if !hasLiveSnapshot,
+               !hasUpcomingTodaySnapshot,
                let nextUpcoming,
                nextUpcoming.date.timeIntervalSince(now) > 120 {
                 streamService.updateLiveMatchesStatus(hasLiveMatches: false)
@@ -184,15 +199,21 @@ class LiveScoresViewModel {
             }
 
             let allGames = allFixtures.map { $0.toGame() }
-            let calendar = Calendar.current
-            let today = calendar.startOfDay(for: now)
+            let calendar = tournamentCalendar
+            let today = startOfToday
 
             // Separate into categories
             // Live matches sorted by kickoff time (earliest first)
             liveMatches = allGames.filter { $0.status == .live }
                 .sorted { $0.date < $1.date }
 
-            upcomingMatches = allGames.filter { $0.status == .upcoming && $0.date > now }
+            upcomingMatches = allGames.filter { game in
+                guard game.status == .upcoming else { return false }
+                if game.date > now {
+                    return true
+                }
+                return game.date >= today && game.date < endOfToday
+            }
 
             // Filter finished matches from today only, sorted by most recent first
             finishedMatches = allGames.filter { game in
@@ -255,6 +276,7 @@ class LiveScoresViewModel {
 
         isLoading = false
     }
+
 
     // MARK: - Load Events from SwiftData
     private func loadEventsFromSwiftData() async {
