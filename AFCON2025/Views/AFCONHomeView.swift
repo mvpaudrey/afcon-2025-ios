@@ -20,71 +20,79 @@ struct AFCONHomeView: View {
         VStack(spacing: 0) {
             HeaderView()
 
-            TabView(selection: $selectedTab) {
-                Tab(value: 0) {
+            if #available(iOS 26.0, *) {
+                TabView(selection: $selectedTab) {
                     if let viewModel = liveScoresViewModel {
                         LiveScoresView(viewModel: viewModel, onOpenSchedule: {
                             selectedTab = 2
                         })
+                        .tabItem { Label(LocalizedStringKey("Live"), systemImage: "bolt.fill") }
+                        .tag(0)
                     } else {
                         ProgressView("Initializing...")
+                            .tabItem { Label(LocalizedStringKey("Live"), systemImage: "bolt.fill") }
+                            .tag(0)
                     }
-                } label: {
-                    Label(LocalizedStringKey("Live"), systemImage: "bolt.fill")
-                }
 
-                Tab(value: 1) {
                     GroupsView()
-                } label: {
-                    Label(LocalizedStringKey("Groups"), systemImage: "trophy.fill")
-                }
+                        .tabItem { Label(LocalizedStringKey("Groups"), systemImage: "trophy.fill") }
+                        .tag(1)
 
-                Tab(value: 2) {
                     ScheduleViewNew()
-                } label: {
-                    Label(LocalizedStringKey("Schedule"), systemImage: "calendar")
-                }
+                        .tabItem { Label(LocalizedStringKey("Schedule"), systemImage: "calendar") }
+                        .tag(2)
 
-                Tab(value: 3) {
                     BracketView()
-                } label: {
-                    Label(LocalizedStringKey("Bracket"), systemImage: "chart.bar.doc.horizontal")
-                }
+                        .tabItem { Label(LocalizedStringKey("Bracket"), systemImage: "chart.bar.doc.horizontal") }
+                        .tag(3)
 
-                Tab(value: 4) {
                     VenuesView()
-                } label: {
-                    Label(LocalizedStringKey("Venues"), systemImage: "map.fill")
+                        .tabItem { Label(LocalizedStringKey("Venues"), systemImage: "map.fill") }
+                        .tag(4)
                 }
-
-                /*Tab(value: 5) {
-                    SocialView()
-                } label: {
-                    Label(LocalizedStringKey("Social"), systemImage: "person.2.fill")
-                }
-
-                Tab(value: 6) {
-                    SettingsView()
-                } label: {
-                    Label(LocalizedStringKey("Settings"), systemImage: "gearshape.fill")
-                }*/
-            }
-            .tabViewStyle(.sidebarAdaptable)
-            .modifier(TabViewBottomAccessoryCompat(viewModel: liveScoresViewModel))
-            .modifier(TabBarMinimizeBehaviorCompat())
-            .tint(Color("moroccoRed"))
-            .background(Color(.systemGroupedBackground))
-        }
-        .overlay(alignment: .bottom) {
-            if #available(iOS 26.0, *) {
-                // iOS 26+ uses native tabViewBottomAccessory, no overlay needed
-                EmptyView()
+                .tabViewStyle(.sidebarAdaptable)
+                .tint(Color("moroccoRed"))
+                .modifier(TabViewBottomAccessoryCompat(viewModel: liveScoresViewModel))
+                .modifier(TabBarMinimizeBehaviorCompat())
+                .background(Color(.systemGroupedBackground))
             } else {
-                // Fallback for iOS < 26: show as bottom overlay
-                if let viewModel = liveScoresViewModel {
-                    QuickStatsBarLive(liveScoresViewModel: viewModel)
-                        .ignoresSafeArea(edges: .horizontal)
+                TabView(selection: $selectedTab) {
+                    if let viewModel = liveScoresViewModel {
+                        LiveScoresView(viewModel: viewModel, onOpenSchedule: {
+                            selectedTab = 2
+                        })
+                        .tabItem { Label(LocalizedStringKey("Live"), systemImage: "bolt.fill") }
+                        .tag(0)
+                    } else {
+                        ProgressView("Initializing...")
+                            .tabItem { Label(LocalizedStringKey("Live"), systemImage: "bolt.fill") }
+                            .tag(0)
+                    }
+
+                    GroupsView()
+                        .tabItem { Label(LocalizedStringKey("Groups"), systemImage: "trophy.fill") }
+                        .tag(1)
+
+                    ScheduleViewNew()
+                        .tabItem { Label(LocalizedStringKey("Schedule"), systemImage: "calendar") }
+                        .tag(2)
+
+                    BracketView()
+                        .tabItem { Label(LocalizedStringKey("Bracket"), systemImage: "chart.bar.doc.horizontal") }
+                        .tag(3)
+
+                    VenuesView()
+                        .tabItem { Label(LocalizedStringKey("Venues"), systemImage: "map.fill") }
+                        .tag(4)
                 }
+                .overlay(alignment: .bottom) {
+                    if let viewModel = liveScoresViewModel {
+                        QuickStatsBarLive(liveScoresViewModel: viewModel)
+                            .padding(.bottom, 49)
+                    }
+                }
+                .tint(Color("moroccoRed"))
+                .background(Color(.systemGroupedBackground))
             }
         }
         .overlay {
