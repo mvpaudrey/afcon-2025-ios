@@ -266,7 +266,7 @@ struct BracketView: View {
             viewModel.configure(modelContext: modelContext)
             await viewModel.loadBracketData()
         }
-        .onChange(of: fixtures.map(\.lastUpdated)) { _ in
+        .onChange(of: fixtures.map(\.lastUpdated)) { _, _ in
             viewModel.refreshBracketFromFixtures()
         }
     }
