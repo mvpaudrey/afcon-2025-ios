@@ -114,17 +114,21 @@ struct QuickStatsBarLive: View {
                 } else if showTwoUpcomingMatches {
                     // Show two upcoming matches side by side when no live matches
                     if let match1 = nextMatch, let match2 = secondUpcomingMatch {
+                        let flagSize: CGFloat = isMinimized ? 16 : 20
+                        let fontSize: Font = isMinimized ? .caption : .subheadline
+                        let bulletPadding: CGFloat = isMinimized ? 2 : 4
+
                         // Home team 1
                         if let homeFlag1 = TeamFlagMapper.flagAssetName(for: match1.homeTeamId) {
                             Image(homeFlag1)
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 20, height: 20)
+                                .frame(width: flagSize, height: flagSize)
                                 .clipShape(Circle())
                         }
 
                         Text(LocalizedStringKey("vs"))
-                            .font(.subheadline)
+                            .font(fontSize)
                             .fontWeight(.medium)
                             .opacity(0.8)
 
@@ -133,26 +137,26 @@ struct QuickStatsBarLive: View {
                             Image(awayFlag1)
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 20, height: 20)
+                                .frame(width: flagSize, height: flagSize)
                                 .clipShape(Circle())
                         }
 
                         Text("•")
-                            .font(.subheadline)
+                            .font(fontSize)
                             .opacity(0.5)
-                            .padding(.horizontal, 4)
+                            .padding(.horizontal, bulletPadding)
 
                         // Home team 2
                         if let homeFlag2 = TeamFlagMapper.flagAssetName(for: match2.homeTeamId) {
                             Image(homeFlag2)
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 20, height: 20)
+                                .frame(width: flagSize, height: flagSize)
                                 .clipShape(Circle())
                         }
 
                         Text(LocalizedStringKey("vs"))
-                            .font(.subheadline)
+                            .font(fontSize)
                             .fontWeight(.medium)
                             .opacity(0.8)
 
@@ -161,7 +165,7 @@ struct QuickStatsBarLive: View {
                             Image(awayFlag2)
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 20, height: 20)
+                                .frame(width: flagSize, height: flagSize)
                                 .clipShape(Circle())
                         }
                     }
@@ -169,19 +173,19 @@ struct QuickStatsBarLive: View {
                     Spacer()
 
                     // Show kickoff time on the right
-                    if !isMinimized, let kickoffTime = nextMatch?.date {
+                    if let kickoffTime = nextMatch?.date {
                         let timeUntilMatch = kickoffTime.timeIntervalSince(Date())
                         let showCountdown = timeUntilMatch > 0 && timeUntilMatch < 3600 && Calendar.current.isDateInToday(kickoffTime)
 
                         if showCountdown {
                             Text(kickoffTime, style: .timer)
-                                .font(.subheadline)
+                                .font(isMinimized ? .caption : .subheadline)
                                 .fontWeight(.medium)
                                 .opacity(0.9)
                                 .monospacedDigit()
                         } else {
                             Text(formatMatchDate(kickoffTime))
-                                .font(.subheadline)
+                                .font(isMinimized ? .caption : .subheadline)
                                 .fontWeight(.medium)
                                 .opacity(0.9)
                         }
@@ -313,7 +317,7 @@ struct QuickStatsBarLive: View {
                     .clipShape(Circle())
             }
 
-            if !isMinimized && !compact {
+            if !compact {
                 Text("•")
                     .opacity(0.5)
 

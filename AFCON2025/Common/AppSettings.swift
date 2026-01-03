@@ -6,6 +6,33 @@
 //
 
 import Foundation
+import SwiftUI
+
+// MARK: - App Language
+
+enum AppLanguage: String, CaseIterable, Identifiable {
+    case english = "en"
+    case french = "fr"
+    case arabic = "ar"
+
+    var id: String { rawValue }
+
+    var displayName: LocalizedStringKey {
+        switch self {
+        case .english: return "English"
+        case .french: return "Français"
+        case .arabic: return "العربية"
+        }
+    }
+
+    var localizedName: String {
+        switch self {
+        case .english: return "English"
+        case .french: return "Français"
+        case .arabic: return "العربية"
+        }
+    }
+}
 
 final class AppSettings {
     static let shared = AppSettings()
@@ -20,6 +47,7 @@ final class AppSettings {
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
         static let selectedFavoriteTeams = "selectedFavoriteTeams"
         static let lastLaunchVersion = "lastLaunchVersion"
+        static let appLanguage = "appLanguage"
     }
 
     // MARK: - Onboarding
@@ -75,5 +103,33 @@ final class AppSettings {
     var wasAppUpdated: Bool {
         guard let lastVersion = lastLaunchVersion else { return false }
         return lastVersion != currentAppVersion
+    }
+
+    // MARK: - Language Settings
+
+    /// Get the selected app language
+    var appLanguage: AppLanguage {
+        get {
+            guard let languageCode = userDefaults.string(forKey: Keys.appLanguage),
+                  let language = AppLanguage(rawValue: languageCode) else {
+                return .english // Default to English
+            }
+            return language
+        }
+        set {
+            userDefaults.set(newValue.rawValue, forKey: Keys.appLanguage)
+            applyLanguage(newValue)
+        }
+    }
+
+    /// Apply the selected language to the app
+    private func applyLanguage(_ language: AppLanguage) {
+        UserDefaults.standard.set([language.rawValue], forKey: "AppleLanguages")
+        UserDefaults.standard.synchronize()
+    }
+
+    /// Check if a custom language is set (not system default)
+    var hasCustomLanguage: Bool {
+        userDefaults.string(forKey: Keys.appLanguage) != nil
     }
 }

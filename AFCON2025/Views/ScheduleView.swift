@@ -553,21 +553,70 @@ struct ScheduleView: View {
         )
     ]
 
+    private var now: Date {
+        Date()
+    }
+
+    private var sortedMatches: (upcoming: [ScheduledMatch], past: [ScheduledMatch]) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+
+        var upcoming: [ScheduledMatch] = []
+        var past: [ScheduledMatch] = []
+
+        for match in upcomingMatches {
+            let dateTimeString = "\(match.date) \(match.time)"
+            if let matchDate = formatter.date(from: dateTimeString) {
+                if matchDate > now {
+                    upcoming.append(match)
+                } else {
+                    past.append(match)
+                }
+            } else {
+                // Fallback if parsing fails
+                upcoming.append(match)
+            }
+        }
+
+        return (upcoming, past)
+    }
+
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 16) {
-                HStack {
-                    Image(systemName: "calendar")
-                        .foregroundColor(Color("moroccoRed"))
-                    Text("Upcoming Matches")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    Spacer()
-                }
-                .padding(.horizontal)
+                // Upcoming Matches Section
+                if !sortedMatches.upcoming.isEmpty {
+                    HStack {
+                        Image(systemName: "calendar")
+                            .foregroundColor(Color("moroccoRed"))
+                        Text(LocalizedStringKey("Upcoming Matches"))
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                        Spacer()
+                    }
+                    .padding(.horizontal)
 
-                ForEach(upcomingMatches, id: \.id) { match in
-                    ScheduledMatchCard(match: match)
+                    ForEach(sortedMatches.upcoming, id: \.id) { match in
+                        ScheduledMatchCard(match: match, isPast: false)
+                    }
+                }
+
+                // Past Matches Section
+                if !sortedMatches.past.isEmpty {
+                    HStack {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .foregroundColor(.secondary)
+                        Text(LocalizedStringKey("Past Matches"))
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, sortedMatches.upcoming.isEmpty ? 0 : 24)
+
+                    ForEach(sortedMatches.past.reversed(), id: \.id) { match in
+                        ScheduledMatchCard(match: match, isPast: true)
+                    }
                 }
             }
             .padding()
@@ -577,6 +626,7 @@ struct ScheduleView: View {
 
 struct ScheduledMatchCard: View {
     let match: ScheduledMatch
+    let isPast: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -588,12 +638,12 @@ struct ScheduledMatchCard: View {
                         .fontWeight(.medium)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(Color("moroccoRed").opacity(0.1))
-                        .foregroundColor(Color("moroccoRed"))
+                        .background(isPast ? Color.secondary.opacity(0.1) : Color("moroccoRed").opacity(0.1))
+                        .foregroundColor(isPast ? .secondary : Color("moroccoRed"))
                         .cornerRadius(4)
                         .overlay(
                             RoundedRectangle(cornerRadius: 4)
-                                .stroke(Color("moroccoRed"), lineWidth: 1)
+                                .stroke(isPast ? Color.secondary : Color("moroccoRed"), lineWidth: 1)
                         )
 
                     HStack(spacing: 4) {

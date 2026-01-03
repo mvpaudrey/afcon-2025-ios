@@ -7,11 +7,22 @@ struct LiveScoreHomeEntry: TimelineEntry {
 }
 
 struct LiveScoreHomeProvider: AppIntentTimelineProvider {
+    init() {
+        print("🔵🔵🔵 WIDGET PROVIDER INIT 🔵🔵🔵")
+        if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.cheulah.afcon") {
+            print("🔵 Widget Init - App Group Container: \(containerURL.path)")
+        } else {
+            print("❌❌❌ Widget Init - NO APP GROUP ACCESS ❌❌❌")
+        }
+    }
+
     func placeholder(in context: Context) -> LiveScoreHomeEntry {
-        LiveScoreHomeEntry(date: Date(), match: .sample)
+        print("🔵 Widget placeholder() called")
+        return LiveScoreHomeEntry(date: Date(), match: .sample)
     }
 
     func snapshot(for configuration: SelectMatchIntent, in context: Context) async -> LiveScoreHomeEntry {
+        print("🔵 Widget snapshot() called - isPreview: \(context.isPreview)")
         if context.isPreview {
             return LiveScoreHomeEntry(date: Date(), match: .sample)
         }
@@ -19,16 +30,27 @@ struct LiveScoreHomeProvider: AppIntentTimelineProvider {
     }
 
     func timeline(for configuration: SelectMatchIntent, in context: Context) async -> Timeline<LiveScoreHomeEntry> {
-        let entry = LiveScoreHomeEntry(date: Date(), match: match(for: configuration))
+        print("🔵🔵🔵 WIDGET TIMELINE CALLED 🔵🔵🔵")
+        let matchData = match(for: configuration)
+        print("🔵 Widget Timeline - Match data: \(matchData != nil ? "Found" : "nil")")
+        let entry = LiveScoreHomeEntry(date: Date(), match: matchData)
         let refresh = Calendar.current.date(byAdding: .minute, value: 1, to: Date()) ?? Date().addingTimeInterval(60)
         return Timeline(entries: [entry], policy: .after(refresh))
     }
 
     private func match(for configuration: SelectMatchIntent) -> LiveMatchWidgetSnapshot? {
+        let snapshots = AppGroupMatchStore.shared.snapshots()
+        print("🔵 Widget - Found \(snapshots.count) snapshots")
+
         if let selected = configuration.match {
-            return AppGroupMatchStore.shared.snapshot(for: selected.fixtureID)
+            let match = AppGroupMatchStore.shared.snapshot(for: selected.fixtureID)
+            print("🔵 Widget - Selected match \(selected.fixtureID): \(match != nil ? "Found" : "nil")")
+            return match
         }
-        return AppGroupMatchStore.shared.snapshots().first
+
+        let firstMatch = snapshots.first
+        print("🔵 Widget - First match: \(firstMatch?.homeTeam ?? "nil") vs \(firstMatch?.awayTeam ?? "nil")")
+        return firstMatch
     }
 }
 
@@ -119,7 +141,7 @@ private struct MediumLiveScoreView: View {
                 }
 
                 // Teams and Scores matching MatchCard layout
-                HStack {
+                HStack(alignment: .center, spacing: 8) {
                     // Home Team
                     HStack(spacing: 8) {
                         LogoImageView(path: match.homeLogoPath, size: CGSize(width: 40, height: 40), useCircle: true)
@@ -127,10 +149,11 @@ private struct MediumLiveScoreView: View {
                         Text(localizedTeamName(match.homeTeam))
                             .font(.subheadline)
                             .fontWeight(.medium)
-                            .lineLimit(1)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
-
-                    Spacer()
+                    .frame(maxWidth: .infinity)
 
                     // Score
                     HStack(spacing: 12) {
@@ -147,18 +170,20 @@ private struct MediumLiveScoreView: View {
                             .fontWeight(.bold)
                             .foregroundColor(Color("moroccoGreen"))
                     }
-
-                    Spacer()
+                    .fixedSize()
 
                     // Away Team
                     HStack(spacing: 8) {
                         Text(localizedTeamName(match.awayTeam))
                             .font(.subheadline)
                             .fontWeight(.medium)
-                            .lineLimit(1)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
 
                         LogoImageView(path: match.awayLogoPath, size: CGSize(width: 40, height: 40), useCircle: true)
                     }
+                    .frame(maxWidth: .infinity)
                 }
 
                 // Timer/Status
@@ -231,7 +256,7 @@ private struct LargeLiveScoreView: View {
                 }
 
                 // Teams and Scores matching MatchCard layout
-                HStack {
+                HStack(alignment: .center, spacing: 8) {
                     // Home Team
                     HStack(spacing: 12) {
                         LogoImageView(path: match.homeLogoPath, size: CGSize(width: 50, height: 50), useCircle: true)
@@ -240,9 +265,10 @@ private struct LargeLiveScoreView: View {
                             .font(.body)
                             .fontWeight(.medium)
                             .lineLimit(2)
+                            .minimumScaleFactor(0.8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
-
-                    Spacer()
+                    .frame(maxWidth: .infinity)
 
                     // Score
                     HStack(spacing: 16) {
@@ -260,8 +286,7 @@ private struct LargeLiveScoreView: View {
                             .fontWeight(.bold)
                             .foregroundColor(Color("moroccoGreen"))
                     }
-
-                    Spacer()
+                    .fixedSize()
 
                     // Away Team
                     HStack(spacing: 12) {
@@ -269,9 +294,12 @@ private struct LargeLiveScoreView: View {
                             .font(.body)
                             .fontWeight(.medium)
                             .lineLimit(2)
+                            .minimumScaleFactor(0.8)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
 
                         LogoImageView(path: match.awayLogoPath, size: CGSize(width: 50, height: 50), useCircle: true)
                     }
+                    .frame(maxWidth: .infinity)
                 }
 
                 // Timer
@@ -462,19 +490,38 @@ final class AppGroupMatchStore: Sendable {
     }
 
     func snapshots() -> [LiveMatchWidgetSnapshot] {
-        if let url = snapshotsURL,
-           let data = try? Data(contentsOf: url),
-           let decoded = try? decoder.decode([LiveMatchWidgetSnapshot].self, from: data) {
-            let sorted = decoded.sorted { $0.lastUpdated > $1.lastUpdated }
-            return Array(sorted.prefix(20))
+        print("🔵 AppGroupMatchStore - Container URL: \(containerURL?.path ?? "nil")")
+        print("🔵 AppGroupMatchStore - Snapshots URL: \(snapshotsURL?.path ?? "nil")")
+
+        if let url = snapshotsURL {
+            let fileExists = FileManager.default.fileExists(atPath: url.path)
+            print("🔵 AppGroupMatchStore - File exists: \(fileExists)")
+
+            if let data = try? Data(contentsOf: url) {
+                print("🔵 AppGroupMatchStore - Data loaded: \(data.count) bytes")
+
+                if let decoded = try? decoder.decode([LiveMatchWidgetSnapshot].self, from: data) {
+                    print("🔵 AppGroupMatchStore - Decoded \(decoded.count) snapshots")
+                    let sorted = decoded.sorted { $0.lastUpdated > $1.lastUpdated }
+                    return Array(sorted.prefix(20))
+                } else {
+                    print("❌ AppGroupMatchStore - Failed to decode data")
+                }
+            } else {
+                print("❌ AppGroupMatchStore - Failed to load data from \(url.path)")
+            }
         }
 
-        if let legacyURL,
-           let data = try? Data(contentsOf: legacyURL),
-           let snapshot = try? decoder.decode(LiveMatchWidgetSnapshot.self, from: data) {
-            return [snapshot]
+        if let legacyURL {
+            print("🔵 AppGroupMatchStore - Checking legacy URL: \(legacyURL.path)")
+            if let data = try? Data(contentsOf: legacyURL),
+               let snapshot = try? decoder.decode(LiveMatchWidgetSnapshot.self, from: data) {
+                print("🔵 AppGroupMatchStore - Found legacy snapshot")
+                return [snapshot]
+            }
         }
 
+        print("❌ AppGroupMatchStore - No snapshots found, returning empty array")
         return []
     }
 

@@ -23,7 +23,9 @@ struct AFCONHomeView: View {
             TabView(selection: $selectedTab) {
                 Tab(value: 0) {
                     if let viewModel = liveScoresViewModel {
-                        LiveScoresView(viewModel: viewModel)
+                        LiveScoresView(viewModel: viewModel, onOpenSchedule: {
+                            selectedTab = 2
+                        })
                     } else {
                         ProgressView("Initializing...")
                     }
@@ -94,9 +96,11 @@ struct AFCONHomeView: View {
             if liveScoresViewModel == nil {
                 liveScoresViewModel = LiveScoresViewModel(modelContext: modelContext)
             }
-        }
-        .task {
-            await checkAndInitializeFixtures()
+
+            // Start initialization in background without blocking the view
+            Task {
+                await checkAndInitializeFixtures()
+            }
         }
     }
 

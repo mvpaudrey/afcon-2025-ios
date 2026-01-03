@@ -10,7 +10,7 @@ import Foundation
 // MARK: - Localization helpers
 
 func localizedTeamName(_ name: String) -> String {
-    let language = Locale.current.language.languageCode?.identifier ?? Locale.current.languageCode ?? "fr"
+    let language = Locale.current.language.languageCode?.identifier ?? "fr"
 
     switch language {
     case "fr":

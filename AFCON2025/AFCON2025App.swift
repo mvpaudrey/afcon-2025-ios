@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import BackgroundTasks
 
 @main
 struct AFCON2025App: App {
@@ -93,12 +94,24 @@ struct AFCON2025App: App {
 // MARK: - AppDelegate
 
 class AppDelegate: NSObject, UIApplicationDelegate {
+    // Background task identifier
+    private let backgroundRefreshTaskIdentifier = "com.afcon2025.refresh"
+
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         // Setup notification categories
         AppNotificationService.shared.setupNotificationCategories()
+
+        // Register background task for live match updates
+        BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: backgroundRefreshTaskIdentifier,
+            using: nil
+        ) { task in
+            self.handleBackgroundRefresh(task: task as! BGAppRefreshTask)
+        }
+
         return true
     }
 
@@ -114,5 +127,52 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
         AppNotificationService.shared.handleRegistrationError(error)
+    }
+
+    // MARK: - Background Tasks
+
+    /// Handle background refresh task for live match updates
+    private func handleBackgroundRefresh(task: BGAppRefreshTask) {
+        print("📲 Background refresh task triggered")
+
+        // Schedule the next background refresh
+        scheduleBackgroundRefresh()
+
+        // Create a task to handle the refresh
+        let refreshTask = Task {
+            // Check if there are live matches
+            guard LiveMatchStreamService.shared.hasLiveMatches else {
+                print("ℹ️ No live matches, skipping background refresh")
+                task.setTaskCompleted(success: true)
+                return
+            }
+
+            // Keep the stream alive in background
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+            task.setTaskCompleted(success: true)
+        }
+
+        // Handle task expiration
+        task.expirationHandler = {
+            print("⚠️ Background refresh task expired")
+            refreshTask.cancel()
+            task.setTaskCompleted(success: false)
+        }
+    }
+
+    /// Schedule a background refresh task
+    func scheduleBackgroundRefresh() {
+        let request = BGAppRefreshTaskRequest(identifier: backgroundRefreshTaskIdentifier)
+
+        // Schedule to run as soon as possible when live matches are active
+        // The system will determine the best time to run
+        request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60) // 15 minutes from now
+
+        do {
+            try BGTaskScheduler.shared.submit(request)
+            print("✅ Scheduled background refresh task")
+        } catch {
+            print("❌ Failed to schedule background refresh: \(error)")
+        }
     }
 }

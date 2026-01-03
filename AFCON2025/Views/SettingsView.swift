@@ -6,6 +6,8 @@ struct SettingsView: View {
     @State private var dataManager: FixtureDataManager?
     @State private var showingClearConfirmation = false
     @State private var fixtureCount: Int = 0
+    @State private var selectedLanguage: AppLanguage = AppSettings.shared.appLanguage
+    @State private var showRestartAlert = false
 
     var body: some View {
         NavigationView {
@@ -14,16 +16,16 @@ struct SettingsView: View {
                 Section {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Fixtures in Database")
+                            Text(LocalizedStringKey("Fixtures in Database"))
                                 .font(.subheadline)
-                            Text("\(fixtureCount) fixtures")
+                            Text(LocalizedStringKey("\(fixtureCount) fixtures"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                         Spacer()
                         if let lastSync = dataManager?.lastSyncDate {
                             VStack(alignment: .trailing, spacing: 4) {
-                                Text("Last Sync")
+                                Text(LocalizedStringKey("Last Sync"))
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                                 Text(lastSync, style: .relative)
@@ -47,9 +49,9 @@ struct SettingsView: View {
                                     .foregroundColor(Color("moroccoRed"))
                             }
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Initialize Fixtures")
+                                Text(LocalizedStringKey("Initialize Fixtures"))
                                     .foregroundColor(.primary)
-                                Text("Fetch all tournament fixtures from server")
+                                Text(LocalizedStringKey("Fetch all tournament fixtures from server"))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -66,9 +68,9 @@ struct SettingsView: View {
                             Image(systemName: "arrow.clockwise.circle.fill")
                                 .foregroundColor(Color("moroccoGreen"))
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Sync Live Matches")
+                                Text(LocalizedStringKey("Sync Live Matches"))
                                     .foregroundColor(.primary)
-                                Text("Update live and recent matches")
+                                Text(LocalizedStringKey("Update live and recent matches"))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -81,69 +83,87 @@ struct SettingsView: View {
                     } label: {
                         HStack {
                             Image(systemName: "trash.circle.fill")
-                            Text("Clear All Fixtures")
+                            Text(LocalizedStringKey("Clear All Fixtures"))
                         }
                     }
                     .disabled(dataManager?.isInitializing == true)
 
                 } header: {
-                    Text("Data Management")
+                    Text(LocalizedStringKey("Data Management"))
                 } footer: {
                     if let error = dataManager?.initializationError {
                         Text(error)
                             .foregroundColor(.red)
                     } else {
-                        Text("Initialize fixtures before the tournament starts to have offline access to the schedule.")
+                        Text(LocalizedStringKey("Initialize fixtures before the tournament starts to have offline access to the schedule."))
                     }
                 }
 
                 // Notifications Section
-                Section("Notifications") {
+                Section(LocalizedStringKey("Notifications")) {
                     NavigationLink {
                         NotificationSettingsView()
                     } label: {
                         HStack {
                             Image(systemName: "bell.badge.fill")
                                 .foregroundColor(.blue)
-                            Text("Notification Settings")
+                            Text(LocalizedStringKey("Notification Settings"))
                         }
                     }
                 }
 
                 // Favorite Teams Section
-                Section("Favorite Teams") {
+                Section(LocalizedStringKey("Favorite Teams")) {
                     NavigationLink {
                         FavoriteTeamManagementView()
                     } label: {
                         HStack {
                             Image(systemName: "star.fill")
                                 .foregroundColor(Color("moroccoRed"))
-                            Text("Manage Favorite Teams")
+                            Text(LocalizedStringKey("Manage Favorite Teams"))
                         }
                     }
                 }
 
+                // Language Section
+                Section {
+                    Picker(LocalizedStringKey("App Language"), selection: $selectedLanguage) {
+                        ForEach(AppLanguage.allCases) { language in
+                            Text(language.localizedName)
+                                .tag(language)
+                        }
+                    }
+                    .onChange(of: selectedLanguage) { oldValue, newValue in
+                        AppSettings.shared.appLanguage = newValue
+                        showRestartAlert = true
+                    }
+                } header: {
+                    Text(LocalizedStringKey("Language"))
+                } footer: {
+                    Text(LocalizedStringKey("Restart the app to apply language changes."))
+                }
+
                 // About Section
-                Section("About") {
+                Section(LocalizedStringKey("About")) {
                     HStack {
-                        Text("Version")
+                        Text(LocalizedStringKey("Version"))
                         Spacer()
                         Text(AppSettings.shared.currentAppVersion)
                             .foregroundColor(.secondary)
                     }
 
                     HStack {
-                        Text("Tournament")
+                        Text(LocalizedStringKey("Tournament"))
                         Spacer()
-                        Text("AFCON 2025")
+                        Text(LocalizedStringKey("AFCON 2025"))
                             .foregroundColor(.secondary)
                     }
 
                     if AppSettings.shared.hasCompletedOnboarding {
                         HStack {
-                            Text("Onboarding Status")
+                            Text(LocalizedStringKey("Onboarding Status"))
                             Spacer()
-                            Text("Completed")
+                            Text(LocalizedStringKey("Completed"))
                                 .foregroundColor(.secondary)
                         }
                     }
@@ -151,14 +171,14 @@ struct SettingsView: View {
 
                 // Developer Section (for testing)
                 #if DEBUG
-                Section("Developer") {
+                Section(LocalizedStringKey("Developer")) {
                     Button {
                         resetOnboarding()
                     } label: {
                         HStack {
                             Image(systemName: "arrow.counterclockwise")
                                 .foregroundColor(.orange)
-                            Text("Reset Onboarding")
+                            Text(LocalizedStringKey("Reset Onboarding"))
                         }
                     }
 
@@ -168,7 +188,7 @@ struct SettingsView: View {
                         HStack {
                             Image(systemName: "bell.slash")
                                 .foregroundColor(.orange)
-                            Text("Clear All Notifications")
+                            Text(LocalizedStringKey("Clear All Notifications"))
                         }
                     }
 
@@ -178,7 +198,7 @@ struct SettingsView: View {
                         HStack {
                             Image(systemName: "livephoto.badge.automatic")
                                 .foregroundColor(.purple)
-                            Text("Live Activity Diagnostics")
+                            Text(LocalizedStringKey("Live Activity Diagnostics"))
                         }
                     }
 
@@ -190,13 +210,13 @@ struct SettingsView: View {
                         HStack {
                             Image(systemName: "livephoto.slash")
                                 .foregroundColor(.red)
-                            Text("Stop All Live Activities")
+                            Text(LocalizedStringKey("Stop All Live Activities"))
                         }
                     }
                 }
                 #endif
             }
-            .navigationTitle("Settings")
+            .navigationTitle(LocalizedStringKey("Settings"))
             .navigationBarTitleDisplayMode(.large)
         }
         .onAppear {
@@ -204,16 +224,21 @@ struct SettingsView: View {
             updateFixtureCount()
         }
         .confirmationDialog(
-            "Clear All Fixtures",
+            LocalizedStringKey("Clear All Fixtures"),
             isPresented: $showingClearConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Clear All Data", role: .destructive) {
+            Button(LocalizedStringKey("Clear All Data"), role: .destructive) {
                 clearAllFixtures()
             }
-            Button("Cancel", role: .cancel) {}
+            Button(LocalizedStringKey("Cancel"), role: .cancel) {}
         } message: {
-            Text("This will remove all \(fixtureCount) fixtures from local storage. You can re-download them anytime.")
+            Text(LocalizedStringKey("This will remove all \(fixtureCount) fixtures from local storage. You can re-download them anytime."))
+        }
+        .alert(LocalizedStringKey("Language Changed"), isPresented: $showRestartAlert) {
+            Button(LocalizedStringKey("OK"), role: .cancel) {}
+        } message: {
+            Text(LocalizedStringKey("Please restart the app to see the changes."))
         }
     }
 
@@ -283,7 +308,7 @@ struct FavoriteTeamManagementView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            Text("Select teams to receive automatic Live Activities and notifications when they play")
+            Text(LocalizedStringKey("Select teams to receive automatic Live Activities and notifications when they play"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -305,11 +330,11 @@ struct FavoriteTeamManagementView: View {
                 .padding(.vertical, 20)
             }
         }
-        .navigationTitle("Favorite Teams")
+        .navigationTitle(LocalizedStringKey("Favorite Teams"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
+                Button(LocalizedStringKey("Save")) {
                     saveSelectedTeams()
                     dismiss()
                 }

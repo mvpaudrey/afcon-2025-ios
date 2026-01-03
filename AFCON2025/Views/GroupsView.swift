@@ -40,6 +40,12 @@ struct GroupsView: View {
                     ForEach(viewModel.groups, id: \.name) { group in
                         GroupCard(group: group)
                     }
+
+                    // Display third-place ranking if available
+                    if let thirdPlaceRanking = viewModel.thirdPlaceRanking {
+                        GroupCard(group: thirdPlaceRanking)
+                            .padding(.top, 12)
+                    }
                 }
             }
             .padding(.horizontal, 16)
@@ -79,27 +85,27 @@ struct GroupCard: View {
                 // Table Header with better spacing
                 HStack(spacing: 4) {
                     Text(LocalizedStringKey("#"))
-                        .frame(minWidth: Metrics.positionWidth, maxWidth: Metrics.positionWidth, alignment: .center)
+                        .frame(minWidth: Metrics.positionWidth, maxWidth: Metrics.positionWidth, alignment: .trailing)
                         .monospacedDigit()
                     Text(LocalizedStringKey("Team"))
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Text(LocalizedStringKey("P"))
-                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .center)
+                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .trailing)
                         .monospacedDigit()
                     Text(LocalizedStringKey("W"))
-                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .center)
+                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .trailing)
                         .monospacedDigit()
                     Text(LocalizedStringKey("D"))
-                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .center)
+                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .trailing)
                         .monospacedDigit()
                     Text(LocalizedStringKey("L"))
-                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .center)
+                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .trailing)
                         .monospacedDigit()
                     Text(LocalizedStringKey("GD"))
-                        .frame(minWidth: Metrics.gdWidth, maxWidth: Metrics.gdWidth, alignment: .center)
+                        .frame(minWidth: Metrics.gdWidth, maxWidth: Metrics.gdWidth, alignment: .trailing)
                         .monospacedDigit()
                     Text(LocalizedStringKey("Pts"))
-                        .frame(minWidth: Metrics.pointsWidth, maxWidth: Metrics.pointsWidth, alignment: .center)
+                        .frame(minWidth: Metrics.pointsWidth, maxWidth: Metrics.pointsWidth, alignment: .trailing)
                         .fontWeight(.bold)
                         .monospacedDigit()
                 }

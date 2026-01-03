@@ -10,10 +10,14 @@
 	</array>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.afcon2025.refresh</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
-		<string>fetch</string>
+		<string>processing</string>
 	</array>
 </dict>
 </plist>
