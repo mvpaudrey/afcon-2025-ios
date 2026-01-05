@@ -194,14 +194,15 @@ struct MatchCard: View {
                             .foregroundColor(.secondary)
                     }
 
-                    ForEach(0..<min(events.count, 5), id: \.self) { index in
+                    let maxEvents = match.status == .live ? events.count : min(events.count, 5)
+                    ForEach(0..<maxEvents, id: \.self) { index in
                         MatchEventRow(
                             event: events[index],
                             isHomeEvent: events[index].team.name == match.homeTeam
                         )
                     }
 
-                    if events.count > 5 {
+                    if match.status != .live && events.count > 5 {
                         Text("+\(events.count - 5) more events")
                             .font(.caption2)
                             .foregroundColor(.secondary)
