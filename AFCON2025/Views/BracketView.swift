@@ -761,7 +761,7 @@ struct BracketData {
             // 49: 14 January - Tangier, 18:00
             BracketMatch(id: 49, date: "2026-01-14", time: "18:00", team1: "W45", team2: "W48", team1Id: nil, team2Id: nil, venue: "Ibn Batouta Stadium, Tangier", score1: nil, score2: nil),
             // 50: 14 January - Rabat, 21:00
-            BracketMatch(id: 50, date: "2026-01-14", time: "21:00", team1: "W47", team2: "W46", team1Id: nil, team2Id: nil, venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil)
+            BracketMatch(id: 50, date: "2026-01-14", time: "21:00", team1: "W46", team2: "W47", team1Id: nil, team2Id: nil, venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil)
         ],
         // Final: 18 January - Rabat, 20:00
         final: BracketMatch(id: 52, date: "2026-01-18", time: "20:00", team1: "W49", team2: "W50", team1Id: nil, team2Id: nil, venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil),

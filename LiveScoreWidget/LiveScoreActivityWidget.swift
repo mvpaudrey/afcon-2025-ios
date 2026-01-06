@@ -19,11 +19,12 @@ struct LiveScoreActivityWidget: Widget {
                         LogoImageView(path: context.state.homeTeamLogoPath, size: CGSize(width: 28, height: 28), useCircle: true)
                         Text(localizedTeamName(context.attributes.homeTeam))
                             .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white)
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
                         Text("\(context.state.homeScore)")
                             .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.primary)
+                            .foregroundColor(.white)
                     }
                     .padding(.leading, 6)
                 }
@@ -32,9 +33,10 @@ struct LiveScoreActivityWidget: Widget {
                     HStack(spacing: 6) {
                         Text("\(context.state.awayScore)")
                             .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.primary)
+                            .foregroundColor(.white)
                         Text(localizedTeamName(context.attributes.awayTeam))
                             .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white)
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
                         LogoImageView(path: context.state.awayTeamLogoPath, size: CGSize(width: 28, height: 28), useCircle: true)
@@ -50,7 +52,7 @@ struct LiveScoreActivityWidget: Widget {
 
                     Text(context.attributes.competition)
                         .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white.opacity(0.6))
 
                     VStack(spacing: 8) {
                         // Status and Time
@@ -87,7 +89,7 @@ struct LiveScoreActivityWidget: Widget {
                     Text("\(context.state.homeScore)")
                         .font(.caption)
                         .fontWeight(.bold)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
                 }
                 .padding(.leading, 6)
             } compactTrailing: {
@@ -96,7 +98,7 @@ struct LiveScoreActivityWidget: Widget {
                     Text("\(context.state.awayScore)")
                         .font(.caption)
                         .fontWeight(.bold)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
                     LogoImageView(path: context.state.awayTeamLogoPath, size: CGSize(width: 22, height: 22), useCircle: true)
                 }
                 .padding(.trailing, 6)
@@ -270,19 +272,19 @@ private func matchTimerView(for state: LiveScoreActivityAttributes.ContentState,
             Text(formatClock(seconds))
                 .font(font)
                 .monospacedDigit()
-                .foregroundColor(.secondary)
+                .foregroundColor(.white.opacity(0.8))
                 .frame(maxWidth: .infinity, alignment: .center)
         } else if state.elapsed >= 0 {
             Text("\(state.elapsed)'")
                 .font(font)
                 .monospacedDigit()
-                .foregroundColor(.secondary)
+                .foregroundColor(.white.opacity(0.8))
                 .frame(maxWidth: .infinity, alignment: .center)
         } else {
             Text("--:--")
                 .font(font)
                 .monospacedDigit()
-                .foregroundColor(.secondary)
+                .foregroundColor(.white.opacity(0.8))
                 .frame(maxWidth: .infinity, alignment: .center)
         }
     }
@@ -306,7 +308,7 @@ private func goalSummaryCompactView(
                 if let homeLast {
                     Text(homeLast)
                         .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white.opacity(0.7))
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -315,7 +317,7 @@ private func goalSummaryCompactView(
                 if let awayLast {
                     Text(awayLast)
                         .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white.opacity(0.7))
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                         .frame(maxWidth: .infinity, alignment: .trailing)

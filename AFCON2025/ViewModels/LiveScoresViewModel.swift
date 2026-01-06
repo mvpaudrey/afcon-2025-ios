@@ -88,8 +88,8 @@ class LiveScoresViewModel {
                 if self.secondsUntilNextUpdate > 0 {
                     self.secondsUntilNextUpdate -= 1
                 } else {
-                    // Timer reached 0 - refresh data
-                    await self.fetchLiveMatches()
+                    // Timer reached 0 - wait for next gRPC update to reset
+                    self.stopUpdateTimer()
                 }
             }
         }
@@ -432,6 +432,13 @@ class LiveScoresViewModel {
                 // Fetch final events
                 await fetchEventsForSingleMatch(fixtureId: fixtureId)
             }
+        }
+
+        if liveMatches.isEmpty {
+            stopUpdateTimer()
+            secondsUntilNextUpdate = 0
+        } else {
+            startUpdateTimer()
         }
     }
 
