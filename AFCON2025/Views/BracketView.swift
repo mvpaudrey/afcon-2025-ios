@@ -761,6 +761,8 @@ struct BracketMatch {
     let venue: String
     let score1: Int?
     let score2: Int?
+    var penalty1: Int? = nil
+    var penalty2: Int? = nil
 }
 
 struct BracketData {

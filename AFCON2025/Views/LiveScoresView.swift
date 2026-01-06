@@ -285,7 +285,7 @@ private extension Game {
         )
     }
 
-    static func mockPenalties(id: Int, homeTeam: String, homeTeamId: Int, awayTeam: String, awayTeamId: Int, homeScore: Int, awayScore: Int, homePens: Int, awayPens: Int) -> Game {
+    static func mockPenalties(id: Int, homeTeam: String, homeTeamId: Int, awayTeam: String, awayTeamId: Int, homeScore: Int, awayScore: Int, homePens: Int, awayPens: Int, status: MatchStatus) -> Game {
         Game(
             id: id,
             homeTeam: homeTeam,
@@ -296,12 +296,12 @@ private extension Game {
             awayScore: awayScore,
             homePenaltyScore: homePens,
             awayPenaltyScore: awayPens,
-            status: .live,
-            minute: "Penalties",
+            status: status,
+            minute: status == .finished ? "PEN" : "Penalties",
             competition: "AFCON 2025",
             venue: "Stade Prince Moulay Abdallah",
             date: Date(),
-            statusShort: "P"
+            statusShort: status == .finished ? "PEN" : "P"
         )
     }
 }
@@ -333,8 +333,8 @@ private extension Game {
 #Preview("Penalty Shootout") {
     let viewModel = MockLiveScoresViewModel(
         liveMatches: [
-            .mockPenalties(id: 1, homeTeam: "Morocco", homeTeamId: 31, awayTeam: "Egypt", awayTeamId: 32, homeScore: 1, awayScore: 1, homePens: 3, awayPens: 2),
-            .mockPenalties(id: 2, homeTeam: "Senegal", homeTeamId: 13, awayTeam: "Nigeria", awayTeamId: 19, homeScore: 0, awayScore: 0, homePens: 4, awayPens: 5)
+            .mockPenalties(id: 1, homeTeam: "Morocco", homeTeamId: 31, awayTeam: "Egypt", awayTeamId: 32, homeScore: 1, awayScore: 1, homePens: 3, awayPens: 2, status: .live),
+            .mockPenalties(id: 2, homeTeam: "Senegal", homeTeamId: 13, awayTeam: "Nigeria", awayTeamId: 19, homeScore: 0, awayScore: 0, homePens: 4, awayPens: 5, status: .finished)
         ]
     )
 

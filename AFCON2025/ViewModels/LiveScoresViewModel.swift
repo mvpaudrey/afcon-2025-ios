@@ -532,12 +532,9 @@ class LiveScoresViewModel {
         let awayGoals = goalEvents.filter { $0.team.id == Int32(game.awayTeamId) }.map { formatGoalEvent($0) }
 
         // Parse elapsed minutes
-        let elapsed: Int32
-        if let minuteValue = Int(game.minute.filter { $0.isNumber }) {
-            elapsed = Int32(minuteValue)
-        } else {
-            elapsed = 0
-        }
+        let parsedMinute = Int(game.minute.filter { $0.isNumber }) ?? 0
+        let latestEventMinute = events.map { Int($0.time.elapsed) }.max() ?? 0
+        let elapsed = Int32(max(parsedMinute, latestEventMinute))
 
         return LiveScoreActivityAttributes.ContentState(
             homeScore: Int32(game.homeScore),
