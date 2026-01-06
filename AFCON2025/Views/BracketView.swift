@@ -20,7 +20,7 @@ struct MatchCardView: View {
                     teamBadge(
                         teamName: match.team1,
                         teamId: match.team1Id,
-                        gradient: [Color("moroccoRed"), Color("moroccoRedDark")]
+                        gradient: badgeGradient(for: 1)
                     )
 
                     Text(match.team1)
@@ -35,7 +35,7 @@ struct MatchCardView: View {
                         Text("\(score1)")
                             .font(.footnote)
                             .fontWeight(.bold)
-                            .foregroundColor(score1 > (match.score2 ?? 0) ? Color("moroccoGreen") : .secondary)
+                            .foregroundColor(scoreColor(for: score1, opponentScore: match.score2))
                     } else {
                         Text("-")
                             .font(.footnote)
@@ -55,7 +55,7 @@ struct MatchCardView: View {
                     teamBadge(
                         teamName: match.team2,
                         teamId: match.team2Id,
-                        gradient: [Color("moroccoGreen"), Color("moroccoGreenDark")]
+                        gradient: badgeGradient(for: 2)
                     )
 
                     Text(match.team2)
@@ -70,7 +70,7 @@ struct MatchCardView: View {
                         Text("\(score2)")
                             .font(.footnote)
                             .fontWeight(.bold)
-                            .foregroundColor(score2 > (match.score1 ?? 0) ? Color("moroccoGreen") : .secondary)
+                            .foregroundColor(scoreColor(for: score2, opponentScore: match.score1))
                     } else {
                         Text("-")
                             .font(.footnote)
@@ -98,6 +98,40 @@ struct MatchCardView: View {
                     lineWidth: isFinal ? 2 : 1
                 )
         )
+    }
+
+    private func badgeGradient(for teamIndex: Int) -> [Color] {
+        if let winner = winnerIndex {
+            if teamIndex == winner {
+                return [Color("moroccoGreen"), Color("moroccoGreenDark")]
+            }
+            return [Color("moroccoRed"), Color("moroccoRedDark")]
+        }
+
+        if teamIndex == 1 {
+            return [Color("moroccoRed"), Color("moroccoRedDark")]
+        }
+
+        return [Color("moroccoGreen"), Color("moroccoGreenDark")]
+    }
+
+    private func scoreColor(for score: Int, opponentScore: Int?) -> Color {
+        guard let opponentScore else { return .secondary }
+
+        if score > opponentScore {
+            return Color("moroccoGreen")
+        }
+        if score < opponentScore {
+            return Color("moroccoRed")
+        }
+        return .secondary
+    }
+
+    private var winnerIndex: Int? {
+        guard let score1 = match.score1, let score2 = match.score2, score1 != score2 else {
+            return nil
+        }
+        return score1 > score2 ? 1 : 2
     }
 
     private func formatDate(_ dateString: String) -> String {
@@ -168,7 +202,7 @@ struct BracketView: View {
     @State private var viewModel = BracketViewModel()
     @State private var selectedRound: BracketRound = .roundOf16
     @State private var scrollOffset: CGFloat = 0
-    @Query private var fixtures: [FixtureModel]
+    @Query(sort: \FixtureModel.date) private var fixtures: [FixtureModel]
 
     init() {
         _selectedRound = State(initialValue: determineCurrentRound())
@@ -265,8 +299,10 @@ struct BracketView: View {
         .task {
             viewModel.configure(modelContext: modelContext)
             await viewModel.loadBracketData()
+            await viewModel.syncKnockoutFixturesForPastDates()
+            viewModel.refreshBracketFromFixtures()
         }
-        .onChange(of: fixtures.map(\.lastUpdated)) { _, _ in
+        .onChange(of: fixtures) { _, _ in
             viewModel.refreshBracketFromFixtures()
         }
     }

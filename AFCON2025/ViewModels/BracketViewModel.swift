@@ -109,6 +109,33 @@ class BracketViewModel {
     }
 
     @MainActor
+    func syncKnockoutFixturesForPastDates() async {
+        guard let modelContext = modelContext else { return }
+
+        let dataManager = FixtureDataManager(modelContext: modelContext)
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        let bracketDates = Set(
+            BracketData.allMatches.roundOf16.map(\.date)
+                + BracketData.allMatches.quarterFinals.map(\.date)
+                + BracketData.allMatches.semiFinals.map(\.date)
+                + [BracketData.allMatches.thirdPlace.date, BracketData.allMatches.final.date]
+        )
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = TimeZone(secondsFromGMT: 3600)
+
+        for dateString in bracketDates.sorted() {
+            guard let date = formatter.date(from: dateString) else { continue }
+            if date <= today {
+                await dataManager.syncFixturesForDate(date)
+            }
+        }
+    }
+
+    @MainActor
     func refreshBracketFromFixtures() {
         guard let modelContext = modelContext,
               let currentMatches = bracketMatches else {
@@ -418,6 +445,23 @@ class BracketViewModel {
     }
 
     private func matchFromFixture(_ fixture: FixtureModel, fallback: BracketMatch) -> BracketMatch {
+        // For finished games, use fulltime scores; for live games, use current scores
+        let score1: Int?
+        let score2: Int?
+
+        if fixture.isUpcoming {
+            score1 = nil
+            score2 = nil
+        } else if fixture.isFinished {
+            // Use fulltime scores for finished games
+            score1 = fixture.fulltimeHome
+            score2 = fixture.fulltimeAway
+        } else {
+            // Use current scores for live games
+            score1 = fixture.homeGoals
+            score2 = fixture.awayGoals
+        }
+
         return BracketMatch(
             id: fallback.id,
             date: formatFixtureDate(fixture.date),
@@ -427,8 +471,8 @@ class BracketViewModel {
             team1Id: fixture.homeTeamId,
             team2Id: fixture.awayTeamId,
             venue: fixture.fullVenue,
-            score1: fixture.isUpcoming ? nil : fixture.homeGoals,
-            score2: fixture.isUpcoming ? nil : fixture.awayGoals
+            score1: score1,
+            score2: score2
         )
     }
 

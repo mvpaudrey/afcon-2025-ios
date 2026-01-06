@@ -7,28 +7,24 @@ struct MatchCard: View {
     var events: [Afcon_FixtureEvent] = []
 
     private var statusText: String {
-        let isHalftime = match.statusShort.uppercased() == "HT"
+        let statusUpper = match.statusShort.uppercased()
 
-        if isHalftime {
+        if statusUpper == "HT" {
             return NSLocalizedString("match.status.halftime", value: "HALFTIME", comment: "Halftime status")
+        }
+
+        if statusUpper == "BT" {
+            return NSLocalizedString("match.status.breaktime", value: "BREAK TIME", comment: "Break time status")
         }
 
         switch match.status {
         case .live:
-            return stripExtraTime(match.minute)
+            return match.minute
         case .upcoming:
             return formatMatchTime(match.date)
         case .finished:
             return NSLocalizedString("match.status.finished", value: "FINISHED", comment: "Finished status")
         }
-    }
-
-    private func stripExtraTime(_ minute: String) -> String {
-        // Remove extra time (e.g., "45'+3" -> "45'", "90'+2" -> "90'")
-        if let plusIndex = minute.firstIndex(of: "+") {
-            return String(minute[..<plusIndex]) + "'"
-        }
-        return minute
     }
 
     private func formatMatchTime(_ date: Date) -> String {
@@ -37,9 +33,20 @@ struct MatchCard: View {
         return formatter.string(from: date)
     }
 
+    private func scoreColor(for score: Int, opponentScore: Int) -> Color {
+        if score > opponentScore {
+            return Color("moroccoGreen")
+        }
+        if score < opponentScore {
+            return Color("moroccoRed")
+        }
+        return Color(.systemGray)
+    }
+
     var body: some View {
-        let isHalftime = match.statusShort.uppercased() == "HT"
-        let isLive = match.status == .live && !isHalftime
+        let statusUpper = match.statusShort.uppercased()
+        let isBreak = statusUpper == "HT" || statusUpper == "BT"
+        let isLive = match.status == .live && !isBreak
 
         VStack(spacing: 12) {
             HStack {
@@ -47,7 +54,7 @@ struct MatchCard: View {
                     if isLive {
                         Image(systemName: "clock")
                             .font(.caption2)
-                    } else if isHalftime {
+                    } else if isBreak {
                         Image(systemName: "pause.circle.fill")
                             .font(.caption2)
                     } else if match.status == .upcoming {
@@ -61,10 +68,10 @@ struct MatchCard: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(
-                    isHalftime ? Color.orange : (isLive ? Color("moroccoRed") : Color(.systemGray5))
+                    isBreak ? Color.orange : (isLive ? Color("moroccoRed") : Color(.systemGray5))
                 )
                 .foregroundColor(
-                    (isLive || isHalftime) ? .white : .secondary
+                    (isLive || isBreak) ? .white : .secondary
                 )
                 .cornerRadius(12)
                 
@@ -122,7 +129,7 @@ struct MatchCard: View {
                         Text("\(match.homeScore)")
                             .font(.title)
                             .fontWeight(.bold)
-                            .foregroundColor(Color("moroccoRed"))
+                            .foregroundColor(scoreColor(for: match.homeScore, opponentScore: match.awayScore))
                         
                         Text("-")
                             .foregroundColor(.secondary)
@@ -130,7 +137,7 @@ struct MatchCard: View {
                         Text("\(match.awayScore)")
                             .font(.title)
                             .fontWeight(.bold)
-                            .foregroundColor(Color("moroccoGreen"))
+                            .foregroundColor(scoreColor(for: match.awayScore, opponentScore: match.homeScore))
                     }
                 }
                 
@@ -174,6 +181,24 @@ struct MatchCard: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
+
+            // Penalty Shootout Section
+            if let homePens = match.homePenaltyScore, let awayPens = match.awayPenaltyScore {
+                Divider()
+                    .padding(.vertical, 4)
+
+                PenaltyShootoutView(
+                    homeTeam: match.homeTeam,
+                    awayTeam: match.awayTeam,
+                    homeTeamId: match.homeTeamId,
+                    awayTeamId: match.awayTeamId,
+                    homePenaltyScore: homePens,
+                    awayPenaltyScore: awayPens,
+                    homeScore: match.homeScore,
+                    awayScore: match.awayScore,
+                    compact: false
+                )
+            }
 
             // Events Section (goals, cards, etc.)
             if !events.isEmpty {
@@ -403,5 +428,60 @@ struct MatchCard: View {
             }
             return .gray
         }
+    }
+}
+
+// MARK: - Previews
+#Preview("Penalty Shootout Match") {
+    let penaltyMatch = Game(
+        id: 1,
+        homeTeam: "Morocco",
+        awayTeam: "Egypt",
+        homeTeamId: 31,
+        awayTeamId: 32,
+        homeScore: 1,
+        awayScore: 1,
+        homePenaltyScore: 3,
+        awayPenaltyScore: 2,
+        status: .live,
+        minute: "Penalties",
+        competition: "AFCON 2025 - Quarter Final",
+        venue: "Stade Prince Moulay Abdallah, Rabat",
+        date: Date(),
+        statusShort: "P"
+    )
+
+    ScrollView {
+        VStack(spacing: 16) {
+            MatchCard(match: penaltyMatch, events: [])
+        }
+        .padding()
+    }
+}
+
+#Preview("Regular Live Match") {
+    let liveMatch = Game(
+        id: 2,
+        homeTeam: "Senegal",
+        awayTeam: "Nigeria",
+        homeTeamId: 13,
+        awayTeamId: 19,
+        homeScore: 2,
+        awayScore: 1,
+        homePenaltyScore: nil,
+        awayPenaltyScore: nil,
+        status: .live,
+        minute: "67'",
+        competition: "AFCON 2025 - Semi Final",
+        venue: "Stade de Marrakech, Marrakech",
+        date: Date(),
+        statusShort: "2H"
+    )
+
+    ScrollView {
+        VStack(spacing: 16) {
+            MatchCard(match: liveMatch, events: [])
+        }
+        .padding()
     }
 }

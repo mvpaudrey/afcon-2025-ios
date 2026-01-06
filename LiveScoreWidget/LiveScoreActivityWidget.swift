@@ -465,7 +465,8 @@ private func statusLabel(_ status: String) -> String {
     case "HT": return "Half Time"
     case "2H": return "2nd Half"
     case "ET": return "Extra Time"
-    case "P": return "Penalties"
+    case "BT": return "Break Time"
+    case "P": return "Penalty In Progress"
     case "FT": return "Full Time"
     case "AET": return "After Extra Time"
     case "PEN": return "Penalty Shootout"
@@ -485,7 +486,7 @@ private func statusColor(_ status: String) -> Color {
         return .green
     }
     switch upper {
-    case "HT":
+    case "HT", "BT":
         return .orange
     case "NS", "TBD":
         return .secondary
@@ -496,7 +497,7 @@ private func statusColor(_ status: String) -> Color {
 
 private func statusSymbol(_ status: String) -> String? {
     switch status.uppercased() {
-    case "HT":
+    case "HT", "BT":
         return "pause.circle.fill"
     case "FT", "AET", "PEN":
         return "checkmark.circle.fill"
@@ -508,7 +509,7 @@ private func statusSymbol(_ status: String) -> String? {
 }
 
 private func isLiveStatus(_ status: String) -> Bool {
-    let live: Set<String> = ["1H", "2H", "ET", "P", "LIVE", "INP", "IN_PLAY", "INPLAY", "IN PROGRESS"]
+    let live: Set<String> = ["1H", "2H", "ET", "BT", "P", "LIVE", "INP", "IN_PLAY", "INPLAY", "IN PROGRESS"]
     return live.contains(status.uppercased())
 }
 

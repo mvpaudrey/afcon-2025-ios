@@ -254,6 +254,8 @@ private extension Game {
             awayTeamId: awayTeamId,
             homeScore: homeScore,
             awayScore: awayScore,
+            homePenaltyScore: nil,
+            awayPenaltyScore: nil,
             status: .live,
             minute: minute,
             competition: "AFCON 2025",
@@ -272,12 +274,34 @@ private extension Game {
             awayTeamId: awayTeamId,
             homeScore: 0,
             awayScore: 0,
+            homePenaltyScore: nil,
+            awayPenaltyScore: nil,
             status: .upcoming,
             minute: "",
             competition: "AFCON 2025",
             venue: "Stade de Marrakech",
             date: Date().addingTimeInterval(3600 * hoursFromNow),
             statusShort: "NS"
+        )
+    }
+
+    static func mockPenalties(id: Int, homeTeam: String, homeTeamId: Int, awayTeam: String, awayTeamId: Int, homeScore: Int, awayScore: Int, homePens: Int, awayPens: Int) -> Game {
+        Game(
+            id: id,
+            homeTeam: homeTeam,
+            awayTeam: awayTeam,
+            homeTeamId: homeTeamId,
+            awayTeamId: awayTeamId,
+            homeScore: homeScore,
+            awayScore: awayScore,
+            homePenaltyScore: homePens,
+            awayPenaltyScore: awayPens,
+            status: .live,
+            minute: "Penalties",
+            competition: "AFCON 2025",
+            venue: "Stade Prince Moulay Abdallah",
+            date: Date(),
+            statusShort: "P"
         )
     }
 }
@@ -300,6 +324,17 @@ private extension Game {
             .mockUpcoming(id: 1, homeTeam: "Morocco", homeTeamId: 31, awayTeam: "Ivory Coast", awayTeamId: 1501, hoursFromNow: 2),
             .mockUpcoming(id: 2, homeTeam: "Senegal", homeTeamId: 13, awayTeam: "Egypt", awayTeamId: 32, hoursFromNow: 4),
             .mockUpcoming(id: 3, homeTeam: "Nigeria", homeTeamId: 19, awayTeam: "Cameroon", awayTeamId: 1530, hoursFromNow: 6)
+        ]
+    )
+
+    LiveScoresView(viewModel: viewModel)
+}
+
+#Preview("Penalty Shootout") {
+    let viewModel = MockLiveScoresViewModel(
+        liveMatches: [
+            .mockPenalties(id: 1, homeTeam: "Morocco", homeTeamId: 31, awayTeam: "Egypt", awayTeamId: 32, homeScore: 1, awayScore: 1, homePens: 3, awayPens: 2),
+            .mockPenalties(id: 2, homeTeam: "Senegal", homeTeamId: 13, awayTeam: "Nigeria", awayTeamId: 19, homeScore: 0, awayScore: 0, homePens: 4, awayPens: 5)
         ]
     )
 

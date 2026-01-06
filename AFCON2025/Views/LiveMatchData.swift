@@ -53,7 +53,7 @@ struct LiveMatchData: Identifiable {
     }
 
     var isLive: Bool {
-        let liveStatuses: Set<String> = ["LIVE", "1H", "2H", "HT", "ET", "P"]
+        let liveStatuses: Set<String> = ["LIVE", "1H", "2H", "HT", "ET", "BT", "P"]
         let short = statusShort.uppercased()
         if liveStatuses.contains(short) {
             return true
@@ -64,6 +64,7 @@ struct LiveMatchData: Identifiable {
             long.contains("1st half") ||
             long.contains("2nd half") ||
             long.contains("extra time") ||
+            long.contains("break time") ||
             long.contains("penalties") {
             return true
         }

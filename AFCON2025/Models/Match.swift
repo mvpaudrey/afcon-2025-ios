@@ -8,6 +8,8 @@ struct Game: Identifiable {
     let awayTeamId: Int
     let homeScore: Int
     let awayScore: Int
+    let homePenaltyScore: Int?
+    let awayPenaltyScore: Int?
     let status: MatchStatus
     let minute: String
     let competition: String

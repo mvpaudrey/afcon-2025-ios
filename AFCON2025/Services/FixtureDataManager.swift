@@ -181,6 +181,8 @@ class FixtureDataManager {
             halftimeAway: Int(grpcFixture.score.halftime.away),
             fulltimeHome: Int(grpcFixture.score.fulltime.home),
             fulltimeAway: Int(grpcFixture.score.fulltime.away),
+            penaltyHome: Int(grpcFixture.score.penalty.home),
+            penaltyAway: Int(grpcFixture.score.penalty.away),
             competition: "AFCON 2025",
             round: grpcFixture.league.round.isEmpty ? nil : grpcFixture.league.round
         )
@@ -313,6 +315,8 @@ class FixtureDataManager {
         model.halftimeAway = Int(grpcFixture.score.halftime.away)
         model.fulltimeHome = Int(grpcFixture.score.fulltime.home)
         model.fulltimeAway = Int(grpcFixture.score.fulltime.away)
+        model.penaltyHome = Int(grpcFixture.score.penalty.home)
+        model.penaltyAway = Int(grpcFixture.score.penalty.away)
 
         model.homeTeamWinner = grpcFixture.teams.home.winner
         model.awayTeamWinner = grpcFixture.teams.away.winner
