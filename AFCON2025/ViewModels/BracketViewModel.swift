@@ -428,20 +428,25 @@ class BracketViewModel {
             return nil
         }
 
+        let candidates = fixtures
+            .map { (fixture: $0, timeDiff: abs($0.date.timeIntervalSince(scheduled))) }
+            .filter { $0.timeDiff <= 90 * 60 }
+            .sorted { $0.timeDiff < $1.timeDiff }
+
+        guard !candidates.isEmpty else { return nil }
+
         let matchVenue = match.venue.lowercased()
-        return fixtures.first { fixture in
-            let timeDiff = abs(fixture.date.timeIntervalSince(scheduled))
-            guard timeDiff <= 90 * 60 else { return false }
-
-            let fixtureVenue = fixture.venueName.lowercased()
-            if !fixtureVenue.isEmpty && !matchVenue.isEmpty {
-                if !matchVenue.contains(fixtureVenue) {
-                    return false
-                }
+        if !matchVenue.isEmpty {
+            if let venueMatch = candidates.first(where: { candidate in
+                let fixtureVenue = candidate.fixture.venueName.lowercased()
+                guard !fixtureVenue.isEmpty else { return true }
+                return matchVenue.contains(fixtureVenue) || fixtureVenue.contains(matchVenue)
+            }) {
+                return venueMatch.fixture
             }
-
-            return true
         }
+
+        return candidates.first?.fixture
     }
 
     private func matchFromFixture(_ fixture: FixtureModel, fallback: BracketMatch) -> BracketMatch {
@@ -452,12 +457,8 @@ class BracketViewModel {
         if fixture.isUpcoming {
             score1 = nil
             score2 = nil
-        } else if fixture.isFinished {
-            // Use fulltime scores for finished games
-            score1 = fixture.fulltimeHome
-            score2 = fixture.fulltimeAway
         } else {
-            // Use current scores for live games
+            // Use current goals for both live and finished games
             score1 = fixture.homeGoals
             score2 = fixture.awayGoals
         }
@@ -472,7 +473,9 @@ class BracketViewModel {
             team2Id: fixture.awayTeamId,
             venue: fixture.fullVenue,
             score1: score1,
-            score2: score2
+            score2: score2,
+            penalty1: fixture.penaltyHome > 0 ? fixture.penaltyHome : nil,
+            penalty2: fixture.penaltyAway > 0 ? fixture.penaltyAway : nil
         )
     }
 

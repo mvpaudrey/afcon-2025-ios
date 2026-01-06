@@ -88,6 +88,14 @@ class LiveActivityManager {
             return
         }
 
+        let currentState = activity.content.state
+        if shouldIgnoreUpdate(current: currentState, next: newState) {
+            print("⏭️ Skipping stale Live Activity update for fixture \(fixtureID)")
+            print("   Current: \(currentState.status) \(currentState.elapsed)' \(currentState.homeScore)-\(currentState.awayScore)")
+            print("   Incoming: \(newState.status) \(newState.elapsed)' \(newState.homeScore)-\(newState.awayScore)")
+            return
+        }
+
         await activity.update(.init(state: newState, staleDate: nil))
         print("✅ Updated Live Activity for fixture \(fixtureID)")
         print("   Score: \(newState.homeScore) - \(newState.awayScore)")
@@ -153,6 +161,35 @@ class LiveActivityManager {
         }
         return activity.content.state
     }
+
+    private func shouldIgnoreUpdate(
+        current: LiveScoreActivityAttributes.ContentState,
+        next: LiveScoreActivityAttributes.ContentState
+    ) -> Bool {
+        if isFinishedStatus(current.status) && !isFinishedStatus(next.status) {
+            return true
+        }
+
+        if next.homeScore < current.homeScore || next.awayScore < current.awayScore {
+            return true
+        }
+
+        if next.elapsed + 1 < current.elapsed {
+            return true
+        }
+
+        if next.homeGoalEvents.count < current.homeGoalEvents.count ||
+            next.awayGoalEvents.count < current.awayGoalEvents.count {
+            return true
+        }
+
+        return false
+    }
+
+    private func isFinishedStatus(_ status: String) -> Bool {
+        let normalized = status.uppercased()
+        return normalized == "FT" || normalized == "AET" || normalized == "PEN"
+    }
 }
 
 // MARK: - Helper Extensions
@@ -178,4 +215,3 @@ extension LiveActivityManager {
         }
     }
 }
-
