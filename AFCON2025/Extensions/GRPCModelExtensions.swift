@@ -89,6 +89,8 @@ extension Afcon_Fixture {
             awayTeamId: Int(self.teams.away.id),
             homeScore: Int(self.goals.home),
             awayScore: Int(self.goals.away),
+            homePenaltyScore: self.score.penalty.home > 0 ? Int(self.score.penalty.home) : nil,
+            awayPenaltyScore: self.score.penalty.away > 0 ? Int(self.score.penalty.away) : nil,
             status: status,
             minute: minute,
             competition: "African Cup of Nations",

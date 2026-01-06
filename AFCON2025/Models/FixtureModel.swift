@@ -41,6 +41,8 @@ final class FixtureModel {
     var halftimeAway: Int
     var fulltimeHome: Int
     var fulltimeAway: Int
+    var penaltyHome: Int
+    var penaltyAway: Int
 
     // Additional metadata
     var competition: String
@@ -74,6 +76,8 @@ final class FixtureModel {
         halftimeAway: Int,
         fulltimeHome: Int,
         fulltimeAway: Int,
+        penaltyHome: Int = 0,
+        penaltyAway: Int = 0,
         competition: String,
         round: String? = nil,
         lastUpdated: Date = Date()
@@ -104,6 +108,8 @@ final class FixtureModel {
         self.halftimeAway = halftimeAway
         self.fulltimeHome = fulltimeHome
         self.fulltimeAway = fulltimeAway
+        self.penaltyHome = penaltyHome
+        self.penaltyAway = penaltyAway
         self.competition = competition
         self.round = round
         self.lastUpdated = lastUpdated
@@ -173,6 +179,8 @@ extension FixtureModel {
             awayTeamId: awayTeamId,
             homeScore: homeGoals,
             awayScore: awayGoals,
+            homePenaltyScore: penaltyHome > 0 ? penaltyHome : nil,
+            awayPenaltyScore: penaltyAway > 0 ? penaltyAway : nil,
             status: status,
             minute: minute,
             competition: competition,

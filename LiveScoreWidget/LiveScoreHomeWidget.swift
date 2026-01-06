@@ -421,8 +421,11 @@ extension LiveMatchWidgetSnapshot {
         case "HT": return "Half Time"
         case "2H": return "2nd Half"
         case "ET": return "Extra Time"
-        case "P": return "Penalties"
+        case "BT": return "Break Time"
+        case "P": return "Penalty In Progress"
         case "FT": return "Full Time"
+        case "AET": return "After Extra Time"
+        case "PEN": return "Penalty Shootout"
         default: return status.uppercased()
         }
     }

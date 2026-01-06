@@ -3,7 +3,7 @@ import AFCONClient
 import SwiftData
 
 struct QuickStatsBarLive: View {
-    let liveScoresViewModel: LiveScoresViewModel
+    @Bindable var liveScoresViewModel: LiveScoresViewModel
 
     @Environment(\.tabBarMinimized) private var _isMinimized: Bool
 
@@ -223,9 +223,13 @@ struct QuickStatsBarLive: View {
 
                     // Only show status text when showing single match
                     if !isMinimized && !showTwoLiveMatches && !showTwoUpcomingMatches {
-                        let statusText = liveMatch != nil ?
-                            (liveMatch?.statusShort.uppercased() == "HT" ? "match.status.halftime" : "quickstats.live") :
-                            nil
+                        let statusText: String? = {
+                            guard let liveMatch = liveMatch else { return nil }
+                            let statusUpper = liveMatch.statusShort.uppercased()
+                            if statusUpper == "HT" { return "match.status.halftime" }
+                            if statusUpper == "BT" { return "match.status.breaktime" }
+                            return "quickstats.live"
+                        }()
                         if let statusText = statusText {
                             Text(LocalizedStringKey(statusText))
                                 .font(.caption2)
@@ -245,13 +249,14 @@ struct QuickStatsBarLive: View {
 
     @ViewBuilder
     private func liveMatchView(_ liveMatch: Game, isMinimized: Bool, compact: Bool) -> some View {
-        let isHalftime = liveMatch.statusShort.uppercased() == "HT"
+        let statusUpper = liveMatch.statusShort.uppercased()
+        let isBreak = statusUpper == "HT" || statusUpper == "BT"
         let flagSize: CGFloat = compact ? 16 : 20
         let fontSize: Font = compact ? .caption : .subheadline
 
         HStack(spacing: compact ? 4 : 6) {
-            // Halftime icon
-            if isHalftime && !compact {
+            // Break icon (halftime or break time)
+            if isBreak && !compact {
                 Image(systemName: "pause.circle.fill")
                     .font(.caption2)
                     .foregroundColor(.orange)
@@ -279,10 +284,10 @@ struct QuickStatsBarLive: View {
             }
 
             if !compact {
-                Text(isHalftime ? "" : stripExtraTime(liveMatch.minute))
-                    .fontWeight(isHalftime ? .semibold : .medium)
-                    .foregroundColor(isHalftime ? .orange : .white)
-                    .opacity(isHalftime ? 1.0 : 0.9)
+                Text(isBreak ? "" : liveMatch.minute)
+                    .fontWeight(isBreak ? .semibold : .medium)
+                    .foregroundColor(isBreak ? .orange : .white)
+                    .opacity(isBreak ? 1.0 : 0.9)
             }
         }
         .font(fontSize)
@@ -362,13 +367,5 @@ struct QuickStatsBarLive: View {
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         return formatter.string(from: date)
-    }
-
-    private func stripExtraTime(_ minute: String) -> String {
-        // Remove extra time (e.g., "45'+3" -> "45'", "90'+2" -> "90'")
-        if let plusIndex = minute.firstIndex(of: "+") {
-            return String(minute[..<plusIndex]) + "'"
-        }
-        return minute
     }
 }

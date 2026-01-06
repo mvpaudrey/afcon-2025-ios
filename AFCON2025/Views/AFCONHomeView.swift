@@ -133,12 +133,20 @@ struct AFCONHomeView: View {
             await dataManager.initializeFixtures()
 
             isInitializingFixtures = false
+            if let viewModel = liveScoresViewModel {
+                await viewModel.fetchLiveMatches()
+                viewModel.startLiveUpdates()
+            }
         } else {
             print("Found \(count) fixtures in SwiftData")
 
             // Even if fixtures exist, sync live matches to ensure fresh data
             let dataManager = FixtureDataManager(modelContext: modelContext)
             await dataManager.syncLiveFixtures()
+            if let viewModel = liveScoresViewModel {
+                await viewModel.fetchLiveMatches()
+                viewModel.startLiveUpdates()
+            }
         }
     }
 }
