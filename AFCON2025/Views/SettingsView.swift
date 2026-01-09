@@ -12,6 +12,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationView {
             List {
+                #if DEBUG
                 // Data Management Section
                 Section {
                     HStack {
@@ -98,6 +99,7 @@ struct SettingsView: View {
                         Text(LocalizedStringKey("Initialize fixtures before the tournament starts to have offline access to the schedule."))
                     }
                 }
+                #endif
 
                 // Notifications Section
                 Section(LocalizedStringKey("Notifications")) {

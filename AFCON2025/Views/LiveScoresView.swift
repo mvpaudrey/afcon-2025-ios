@@ -260,6 +260,8 @@ private extension Game {
             awayPenaltyScore: nil,
             status: .live,
             minute: minute,
+            statusElapsed: 45,
+            statusExtra: 3,
             competition: "AFCON 2025",
             venue: "Stade Prince Moulay Abdallah",
             date: Date(),
