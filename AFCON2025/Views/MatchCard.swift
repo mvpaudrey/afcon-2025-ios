@@ -129,7 +129,7 @@ struct MatchCard: View {
                         .foregroundColor(.secondary)
                 } else {
                     VStack(spacing: 4) {
-                        HStack(spacing: 16) {
+                        HStack(spacing: 8) {
                             Text("\(match.homeScore)")
                                 .font(.title)
                                 .fontWeight(.bold)
