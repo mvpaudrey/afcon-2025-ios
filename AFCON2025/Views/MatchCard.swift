@@ -20,7 +20,7 @@ struct MatchCard: View {
 
         switch match.status {
         case .live:
-            return match.minute
+            return match.displayMinute
         case .upcoming:
             return formatMatchTime(match.date)
         case .finished:
