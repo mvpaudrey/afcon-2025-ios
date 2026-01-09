@@ -284,7 +284,7 @@ struct QuickStatsBarLive: View {
             }
 
             if !compact {
-                Text(isBreak ? "" : liveMatch.minute)
+                Text(isBreak ? "" : liveMatch.displayMinute)
                     .fontWeight(isBreak ? .semibold : .medium)
                     .foregroundColor(isBreak ? .orange : .white)
                     .opacity(isBreak ? 1.0 : 0.9)

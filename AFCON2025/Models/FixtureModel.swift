@@ -147,7 +147,7 @@ extension FixtureModel {
     }
 
     /// Convert FixtureModel to Game for UI display
-    func toGame() -> Game {
+    @MainActor func toGame() -> Game {
         let status: MatchStatus
         switch statusShort {
         case "LIVE", "1H", "2H", "HT", "ET", "P":
@@ -203,6 +203,9 @@ extension FixtureModel {
             awayPenaltyScore: penaltyAway > 0 ? penaltyAway : nil,
             status: status,
             minute: minute,
+            statusElapsed: statusElapsed,
+            statusExtra: statusExtra,
+            lastUpdated: lastUpdated,
             competition: competition,
             venue: fullVenue,
             date: date,
@@ -210,3 +213,4 @@ extension FixtureModel {
         )
     }
 }
+
