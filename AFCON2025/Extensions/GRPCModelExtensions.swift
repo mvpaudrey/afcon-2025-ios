@@ -41,6 +41,8 @@ extension Afcon_Fixture {
             halftimeAway: Int(self.score.halftime.away),
             fulltimeHome: Int(self.score.fulltime.home),
             fulltimeAway: Int(self.score.fulltime.away),
+            penaltyHome: Int(self.score.penalty.home),
+            penaltyAway: Int(self.score.penalty.away),
             competition: "AFCON 2025",
             round: nil  // Round info not available from gRPC API
         )
@@ -67,7 +69,27 @@ extension Afcon_Fixture {
                 // Use the extra time provided by the API
                 minute = "\(self.status.elapsed)'+\(self.status.extra)"
             } else {
-                minute = "\(self.status.elapsed)'"
+                // Calculate extra time if elapsed exceeds normal period limits
+                let statusUpper = self.status.short.uppercased()
+                if statusUpper == "1H" && self.status.elapsed > 45 {
+                    // First half extra time
+                    let extraTime = self.status.elapsed - 45
+                    minute = "45'+\(extraTime)"
+                } else if statusUpper == "2H" && self.status.elapsed > 90 {
+                    // Second half extra time
+                    let extraTime = self.status.elapsed - 90
+                    minute = "90'+\(extraTime)"
+                } else if statusUpper == "ET" && self.status.elapsed > 105 {
+                    // First half of extra time
+                    let extraTime = self.status.elapsed - 105
+                    minute = "105'+\(extraTime)"
+                } else if statusUpper == "ET" && self.status.elapsed > 120 {
+                    // Second half of extra time
+                    let extraTime = self.status.elapsed - 120
+                    minute = "120'+\(extraTime)"
+                } else {
+                    minute = "\(self.status.elapsed)'"
+                }
             }
         } else {
             minute = self.status.short

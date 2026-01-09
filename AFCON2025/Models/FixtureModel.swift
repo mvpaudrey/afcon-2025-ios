@@ -165,7 +165,27 @@ extension FixtureModel {
                 // Use the extra time provided by the API
                 minute = "\(statusElapsed)'+\(statusExtra)"
             } else {
-                minute = "\(statusElapsed)'"
+                // Calculate extra time if elapsed exceeds normal period limits
+                let statusUpper = statusShort.uppercased()
+                if statusUpper == "1H" && statusElapsed > 45 {
+                    // First half extra time
+                    let extraTime = statusElapsed - 45
+                    minute = "45'+\(extraTime)"
+                } else if statusUpper == "2H" && statusElapsed > 90 {
+                    // Second half extra time
+                    let extraTime = statusElapsed - 90
+                    minute = "90'+\(extraTime)"
+                } else if statusUpper == "ET" && statusElapsed > 105 {
+                    // First half of extra time
+                    let extraTime = statusElapsed - 105
+                    minute = "105'+\(extraTime)"
+                } else if statusUpper == "ET" && statusElapsed > 120 {
+                    // Second half of extra time
+                    let extraTime = statusElapsed - 120
+                    minute = "120'+\(extraTime)"
+                } else {
+                    minute = "\(statusElapsed)'"
+                }
             }
         } else {
             minute = statusShort

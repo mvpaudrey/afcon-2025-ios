@@ -162,6 +162,9 @@ class LiveScoresViewModel {
                 throw NSError(domain: "LiveScoresViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "No SwiftData context available"])
             }
 
+            // Clean up stale Live Activities (for finished or non-existent matches)
+            await cleanupStaleActivities()
+
             // Fetch fixtures from SwiftData
             // Note: AFCONHomeView handles initial fixture loading, so we just read from SwiftData here
             var allFixtures = try dataManager.getAllFixtures()
@@ -345,6 +348,16 @@ class LiveScoresViewModel {
         let updatedGame = update.fixture.toGame()
         let fixtureId = Int(update.fixtureID)
 
+        // Check if update is stale before processing
+        if let existingMatch = liveMatches.first(where: { $0.id == fixtureId }) {
+            if shouldIgnoreUpdate(current: existingMatch, next: updatedGame) {
+                print("⏭️ Skipping stale update for fixture \(fixtureId) in ViewModel")
+                print("   Current: \(existingMatch.statusShort) \(existingMatch.minute) \(existingMatch.homeScore)-\(existingMatch.awayScore)")
+                print("   Incoming: \(updatedGame.statusShort) \(updatedGame.minute) \(updatedGame.homeScore)-\(updatedGame.awayScore)")
+                return
+            }
+        }
+
         // Update fixture in SwiftData
         if let dataManager = dataManager {
             Task {
@@ -410,6 +423,14 @@ class LiveScoresViewModel {
 
             // Update stream status
             streamService.updateLiveMatchesStatus(hasLiveMatches: !liveMatches.isEmpty)
+
+            // End Live Activity for finished match
+            let events = fixtureEvents[fixtureId] ?? []
+            await LiveActivityManager.shared.endActivity(
+                fixtureID: Int32(fixtureId),
+                finalState: createLiveActivityState(from: updatedGame, events: events),
+                dismissalPolicy: .after(Date().addingTimeInterval(60 * 5)) // Keep for 5 minutes
+            )
 
             // Add to finished if it's from today and not already there
             let calendar = Calendar.current
@@ -483,11 +504,20 @@ class LiveScoresViewModel {
         if game.status == .live {
             updateLiveActivity(for: game, events: events)
         } else if game.status == .finished {
-            // End Live Activity when match finishes
+            // End Live Activity when match finishes - keep for 5 minutes
             Task {
                 await LiveActivityManager.shared.endActivity(
                     fixtureID: Int32(game.id),
-                    finalState: createLiveActivityState(from: game, events: events)
+                    finalState: createLiveActivityState(from: game, events: events),
+                    dismissalPolicy: .after(Date().addingTimeInterval(60 * 5))
+                )
+            }
+        } else if game.status == .upcoming {
+            // End Live Activity if match hasn't started yet (shouldn't be active)
+            Task {
+                await LiveActivityManager.shared.endActivity(
+                    fixtureID: Int32(game.id),
+                    dismissalPolicy: .immediate
                 )
             }
         }
@@ -584,6 +614,113 @@ class LiveScoresViewModel {
             return "\(minute) \(player) (Ast. \(event.assist.name))"
         } else {
             return "\(minute) \(player)"
+        }
+    }
+
+    // MARK: - Stale Update Detection
+
+    /// Check if an incoming update should be ignored because it's stale
+    private func shouldIgnoreUpdate(current: Game, next: Game) -> Bool {
+        // Don't allow updates from finished to non-finished status
+        if isFinishedStatus(current.statusShort) && !isFinishedStatus(next.statusShort) {
+            return true
+        }
+
+        // Check for status progression going backwards (invalid transitions)
+        if let currentStatusOrder = statusOrder(current.statusShort),
+           let nextStatusOrder = statusOrder(next.statusShort),
+           nextStatusOrder < currentStatusOrder {
+            // Allow if it's the same status but with newer time
+            let sameStatus = current.statusShort.uppercased() == next.statusShort.uppercased()
+            if !sameStatus {
+                return true
+            }
+        }
+
+        // Don't allow scores to decrease
+        if next.homeScore < current.homeScore || next.awayScore < current.awayScore {
+            return true
+        }
+
+        // Parse elapsed minutes from the minute string (e.g., "45'" -> 45, "45'+3" -> 45)
+        let currentElapsed = parseElapsedMinute(current.minute)
+        let nextElapsed = parseElapsedMinute(next.minute)
+
+        // Don't allow elapsed time to go backwards (with small tolerance for network delays)
+        // For same status, reject if incoming is more than 1 minute behind
+        if current.statusShort.uppercased() == next.statusShort.uppercased() {
+            if nextElapsed + 1 < currentElapsed {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    /// Parse elapsed minute from minute string (e.g., "45'" -> 45, "45'+3" -> 45)
+    private func parseElapsedMinute(_ minute: String) -> Int {
+        // Extract just the base minute number before any ' or +
+        let components = minute.components(separatedBy: CharacterSet(charactersIn: "'+"))
+        if let firstComponent = components.first, let parsed = Int(firstComponent) {
+            return parsed
+        }
+        return 0
+    }
+
+    /// Get status order for progression checking
+    private func statusOrder(_ status: String) -> Int? {
+        switch status.uppercased() {
+        case "NS", "TBD": return 0
+        case "1H": return 1
+        case "HT": return 2
+        case "2H": return 3
+        case "BT": return 4  // Break time before extra time
+        case "ET": return 5
+        case "P": return 6   // Penalties in progress
+        case "PEN", "AET", "FT": return 7
+        default: return nil
+        }
+    }
+
+    /// Check if status represents a finished match
+    private func isFinishedStatus(_ status: String) -> Bool {
+        let normalized = status.uppercased()
+        return normalized == "FT" || normalized == "AET" || normalized == "PEN"
+    }
+
+    // MARK: - Cleanup Stale Activities
+
+    /// Clean up stale Live Activities (finished or non-live matches)
+    private func cleanupStaleActivities() async {
+        let activeActivityIDs = Array(LiveActivityManager.shared.activeActivities.keys)
+
+        guard let dataManager = dataManager else { return }
+
+        do {
+            let allFixtures = try dataManager.getAllFixtures()
+
+            for fixtureID in activeActivityIDs {
+                // Check if fixture exists and what its status is
+                if let fixture = allFixtures.first(where: { $0.id == Int(fixtureID) }) {
+                    // If fixture is finished or not live anymore, end the activity
+                    if fixture.isFinished || !fixture.isLive {
+                        print("🧹 Cleaning up stale Live Activity for finished/non-live fixture \(fixtureID)")
+                        await LiveActivityManager.shared.endActivity(
+                            fixtureID: fixtureID,
+                            dismissalPolicy: .after(Date().addingTimeInterval(60 * 5)) // Keep for 5 minutes after finish
+                        )
+                    }
+                } else {
+                    // Fixture doesn't exist anymore, end the activity
+                    print("🧹 Cleaning up orphaned Live Activity for non-existent fixture \(fixtureID)")
+                    await LiveActivityManager.shared.endActivity(
+                        fixtureID: fixtureID,
+                        dismissalPolicy: .immediate
+                    )
+                }
+            }
+        } catch {
+            print("❌ Error cleaning up stale activities: \(error)")
         }
     }
 }

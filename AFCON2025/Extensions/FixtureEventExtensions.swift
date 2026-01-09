@@ -3,6 +3,16 @@ import AFCONClient
 
 // MARK: - Fixture Event Display Extensions
 extension Afcon_FixtureEvent {
+    /// Stable identifier for UI collections
+    var eventKey: String {
+        let elapsed = time.elapsed
+        let extra = time.extra
+        let teamId = team.id
+        let playerId = player.id
+        let assistId = assist.id
+        return "\(type)|\(detail)|\(elapsed)|\(extra)|\(teamId)|\(playerId)|\(assistId)"
+    }
+
     /// Get a human-readable description of the event
     var displayDescription: String {
         let eventType = self.type.lowercased()

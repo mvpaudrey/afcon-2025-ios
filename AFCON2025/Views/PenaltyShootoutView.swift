@@ -43,17 +43,29 @@ struct PenaltyShootoutView: View {
     }
 
     private var compactView: some View {
-        HStack(spacing: 8) {
-            // Home team penalty score
-            penaltyBadge(score: homePenaltyScore, isLeading: true)
+        VStack(spacing: 2) {
+            // Regular score
+            HStack(spacing: 4) {
+                Text("\(homeScore)")
+                    .font(.body)
+                    .fontWeight(.bold)
+                    .monospacedDigit()
 
-            Text("PENS")
-                .font(.caption2)
-                .fontWeight(.bold)
-                .foregroundColor(.secondary)
+                Text(":")
+                    .foregroundColor(.secondary)
 
-            // Away team penalty score
-            penaltyBadge(score: awayPenaltyScore, isLeading: false)
+                Text("\(awayScore)")
+                    .font(.body)
+                    .fontWeight(.bold)
+                    .monospacedDigit()
+            }
+
+            // Penalty score
+            Text("Pens: \(homePenaltyScore)-\(awayPenaltyScore)")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(homePenaltyScore > awayPenaltyScore ? Color("moroccoGreen") : (awayPenaltyScore > homePenaltyScore ? Color("moroccoRed") : .secondary))
+                .monospacedDigit()
         }
     }
 
@@ -133,22 +145,24 @@ struct PenaltyShootoutView: View {
         .padding(.vertical, 20)
     }
 
-    private func penaltyBadge(score: Int, isLeading: Bool) -> some View {
-        Text("\(score)")
-            .font(.caption)
-            .fontWeight(.bold)
-            .foregroundColor(.white)
-            .frame(minWidth: 24, minHeight: 24)
-            .background(
-                Circle()
-                    .fill(Color.orange)
-            )
-    }
 }
 
 // MARK: - Previews
 #Preview("Full Penalty Shootout") {
     VStack(spacing: 20) {
+        // Mali vs Tunisia - 1-1 draw, Mali wins 3-2 on penalties
+        PenaltyShootoutView(
+            homeTeam: "Mali",
+            awayTeam: "Tunisia",
+            homeTeamId: 1551,
+            awayTeamId: 1530,
+            homePenaltyScore: 3,
+            awayPenaltyScore: 2,
+            homeScore: 1,
+            awayScore: 1,
+            compact: false
+        )
+
         PenaltyShootoutView(
             homeTeam: "Morocco",
             awayTeam: "Egypt",
@@ -179,6 +193,19 @@ struct PenaltyShootoutView: View {
 
 #Preview("Compact Penalty Shootout") {
     VStack(spacing: 16) {
+        // Mali vs Tunisia - 1-1 draw, Mali wins 3-2 on penalties
+        PenaltyShootoutView(
+            homeTeam: "Mali",
+            awayTeam: "Tunisia",
+            homeTeamId: 1551,
+            awayTeamId: 1530,
+            homePenaltyScore: 3,
+            awayPenaltyScore: 2,
+            homeScore: 1,
+            awayScore: 1,
+            compact: true
+        )
+
         PenaltyShootoutView(
             homeTeam: "Morocco",
             awayTeam: "Egypt",

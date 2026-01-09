@@ -18,30 +18,24 @@ struct LiveScoreActivityWidget: Widget {
                     HStack(spacing: 6) {
                         LogoImageView(path: context.state.homeTeamLogoPath, size: CGSize(width: 28, height: 28), useCircle: true)
                         Text(localizedTeamName(context.attributes.homeTeam))
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(.white)
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
-                        Text("\(context.state.homeScore)")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
                     }
-                    .padding(.leading, 6)
+                    .padding(.leading, 8)
                 }
 
                 DynamicIslandExpandedRegion(.trailing) {
                     HStack(spacing: 6) {
-                        Text("\(context.state.awayScore)")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
                         Text(localizedTeamName(context.attributes.awayTeam))
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(.white)
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
                         LogoImageView(path: context.state.awayTeamLogoPath, size: CGSize(width: 28, height: 28), useCircle: true)
                     }
-                    .padding(.trailing, 6)
+                    .padding(.trailing, 8)
                 }
 
                 DynamicIslandExpandedRegion(.center) {
@@ -50,11 +44,24 @@ struct LiveScoreActivityWidget: Widget {
                     let label = statusLabel(status)
                     let color = statusColor(status)
 
-                    Text(context.attributes.competition)
-                        .font(.caption2)
-                        .foregroundColor(.white.opacity(0.6))
-
                     VStack(spacing: 8) {
+                        // Score display
+                        HStack(spacing: 12) {
+                            Text("\(context.state.homeScore)")
+                                .font(.system(size: 40, weight: .heavy))
+                                .foregroundColor(.white)
+                                .monospacedDigit()
+
+                            Text("-")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.white.opacity(0.5))
+
+                            Text("\(context.state.awayScore)")
+                                .font(.system(size: 40, weight: .heavy))
+                                .foregroundColor(.white)
+                                .monospacedDigit()
+                        }
+
                         // Status and Time
                         HStack {
                             statusIndicator(status: status, color: color)
@@ -85,23 +92,21 @@ struct LiveScoreActivityWidget: Widget {
             } compactLeading: {
                 // Compact leading (left side of Dynamic Island)
                 HStack(spacing: 4) {
-                    LogoImageView(path: context.state.homeTeamLogoPath, size: CGSize(width: 22, height: 22), useCircle: true)
+                    LogoImageView(path: context.state.homeTeamLogoPath, size: CGSize(width: 20, height: 20), useCircle: true)
                     Text("\(context.state.homeScore)")
-                        .font(.caption)
-                        .fontWeight(.bold)
+                        .font(.system(size: 20, weight: .heavy))
                         .foregroundColor(.white)
+                        .monospacedDigit()
                 }
-                .padding(.leading, 6)
             } compactTrailing: {
                 // Compact trailing (right side of Dynamic Island)
                 HStack(spacing: 4) {
                     Text("\(context.state.awayScore)")
-                        .font(.caption)
-                        .fontWeight(.bold)
+                        .font(.system(size: 20, weight: .heavy))
                         .foregroundColor(.white)
-                    LogoImageView(path: context.state.awayTeamLogoPath, size: CGSize(width: 22, height: 22), useCircle: true)
+                        .monospacedDigit()
+                    LogoImageView(path: context.state.awayTeamLogoPath, size: CGSize(width: 20, height: 20), useCircle: true)
                 }
-                .padding(.trailing, 6)
             } minimal: {
                 // Minimal view (when multiple activities are running)
                 Image(systemName: "soccerball")

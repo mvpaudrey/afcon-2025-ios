@@ -102,7 +102,8 @@ struct LiveScoresView: View {
                                 ForEach(viewModel.liveMatches) { match in
                                     MatchCard(
                                         match: match,
-                                        events: viewModel.fixtureEvents[match.id] ?? []
+                                        events: viewModel.fixtureEvents[match.id] ?? [],
+                                        showsCompetition: false
                                     )
                                     .padding(.horizontal)
                                 }
@@ -126,7 +127,8 @@ struct LiveScoresView: View {
                                 ForEach(viewModel.finishedMatches) { match in
                                     MatchCard(
                                         match: match,
-                                        events: []
+                                        events: [],
+                                        showsCompetition: false
                                     )
                                     .padding(.horizontal)
                                 }
@@ -148,7 +150,7 @@ struct LiveScoresView: View {
                                 .padding(.horizontal)
 
                                 ForEach(viewModel.upcomingTodayMatches) { match in
-                                    MatchCard(match: match)
+                                    MatchCard(match: match, showsCompetition: false)
                                         .padding(.horizontal)
                                 }
                             }

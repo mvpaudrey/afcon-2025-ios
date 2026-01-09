@@ -11,7 +11,7 @@ private let moroccoGradient = LinearGradient(
 /// Root AFCON experience with the core tournament tabs.
 struct AFCONHomeView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var selectedTab = 0
+    @State private var selectedTab: Int?
     @State private var isInitializingFixtures = false
     @State private var hasCheckedFixtures = false
     @State private var liveScoresViewModel: LiveScoresViewModel?
@@ -21,7 +21,10 @@ struct AFCONHomeView: View {
             HeaderView()
 
             if #available(iOS 26.0, *) {
-                TabView(selection: $selectedTab) {
+                TabView(selection: Binding(
+                    get: { selectedTab ?? 0 },
+                    set: { selectedTab = $0 }
+                )) {
                     if let viewModel = liveScoresViewModel {
                         LiveScoresView(viewModel: viewModel, onOpenSchedule: {
                             selectedTab = 2
@@ -56,7 +59,10 @@ struct AFCONHomeView: View {
                 .modifier(TabBarMinimizeBehaviorCompat())
                 .background(Color(.systemGroupedBackground))
             } else {
-                TabView(selection: $selectedTab) {
+                TabView(selection: Binding(
+                    get: { selectedTab ?? 0 },
+                    set: { selectedTab = $0 }
+                )) {
                     if let viewModel = liveScoresViewModel {
                         LiveScoresView(viewModel: viewModel, onOpenSchedule: {
                             selectedTab = 2
@@ -105,10 +111,44 @@ struct AFCONHomeView: View {
                 liveScoresViewModel = LiveScoresViewModel(modelContext: modelContext)
             }
 
+            // Set initial tab if not already set
+            if selectedTab == nil {
+                selectedTab = determineInitialTab()
+            }
+
             // Start initialization in background without blocking the view
             Task {
                 await checkAndInitializeFixtures()
             }
+        }
+    }
+
+    // MARK: - Helper Methods
+
+    /// Determine which tab to show initially based on today's matches
+    private func determineInitialTab() -> Int {
+        // Check if there are any matches today
+        let calendar = Calendar.current
+        var calendarWithTimezone = calendar
+        calendarWithTimezone.timeZone = TimeZone(secondsFromGMT: 3600) ?? .current // Morocco timezone
+
+        let now = Date()
+        let startOfToday = calendarWithTimezone.startOfDay(for: now)
+        let endOfToday = calendarWithTimezone.date(byAdding: .day, value: 1, to: startOfToday) ?? startOfToday
+
+        do {
+            let descriptor = FetchDescriptor<FixtureModel>(
+                predicate: #Predicate { fixture in
+                    fixture.date >= startOfToday && fixture.date < endOfToday
+                }
+            )
+            let todayFixturesCount = try modelContext.fetchCount(descriptor)
+
+            // If no games today, show Schedule tab (2), otherwise show Live tab (0)
+            return todayFixturesCount > 0 ? 0 : 2
+        } catch {
+            print("❌ Error checking today's fixtures: \(error)")
+            return 0 // Default to Live tab on error
         }
     }
 
