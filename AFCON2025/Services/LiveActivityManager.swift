@@ -166,24 +166,58 @@ class LiveActivityManager {
         current: LiveScoreActivityAttributes.ContentState,
         next: LiveScoreActivityAttributes.ContentState
     ) -> Bool {
+        // Don't allow updates from finished to non-finished status
         if isFinishedStatus(current.status) && !isFinishedStatus(next.status) {
             return true
         }
 
+        // Check for status progression going backwards (invalid transitions)
+        if let currentStatusOrder = statusOrder(current.status),
+           let nextStatusOrder = statusOrder(next.status),
+           nextStatusOrder < currentStatusOrder {
+            // Allow if it's the same status but with newer time
+            let sameStatus = current.status.uppercased() == next.status.uppercased()
+            if !sameStatus {
+                return true
+            }
+        }
+
+        // Don't allow scores to decrease (unless it's a penalty shootout update)
         if next.homeScore < current.homeScore || next.awayScore < current.awayScore {
             return true
         }
 
-        if next.elapsed + 1 < current.elapsed {
-            return true
+        // Don't allow elapsed time to go backwards (with small tolerance for network delays)
+        // For same status, reject if incoming is more than 1 minute behind
+        if current.status.uppercased() == next.status.uppercased() {
+            if next.elapsed + 1 < current.elapsed {
+                return true
+            }
         }
 
+        // Don't allow goal events to decrease
         if next.homeGoalEvents.count < current.homeGoalEvents.count ||
             next.awayGoalEvents.count < current.awayGoalEvents.count {
             return true
         }
 
         return false
+    }
+
+    /// Get status order for progression checking
+    /// Returns nil for unknown statuses
+    private func statusOrder(_ status: String) -> Int? {
+        switch status.uppercased() {
+        case "NS", "TBD": return 0
+        case "1H": return 1
+        case "HT": return 2
+        case "2H": return 3
+        case "BT": return 4  // Break time before extra time
+        case "ET": return 5
+        case "P": return 6   // Penalties in progress
+        case "PEN", "AET", "FT": return 7
+        default: return nil
+        }
     }
 
     private func isFinishedStatus(_ status: String) -> Bool {

@@ -5,6 +5,7 @@ import ActivityKit
 struct MatchCard: View {
     let match: Game
     var events: [Afcon_FixtureEvent] = []
+    var showsCompetition: Bool = true
 
     private var statusText: String {
         let statusUpper = match.statusShort.uppercased()
@@ -77,9 +78,11 @@ struct MatchCard: View {
                 
                 Spacer()
                 
-                Text(match.competition)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                if showsCompetition {
+                    Text(match.competition)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
             
             HStack {
@@ -125,19 +128,30 @@ struct MatchCard: View {
                         .fontWeight(.semibold)
                         .foregroundColor(.secondary)
                 } else {
-                    HStack(spacing: 16) {
-                        Text("\(match.homeScore)")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(scoreColor(for: match.homeScore, opponentScore: match.awayScore))
-                        
-                        Text("-")
-                            .foregroundColor(.secondary)
-                        
-                        Text("\(match.awayScore)")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(scoreColor(for: match.awayScore, opponentScore: match.homeScore))
+                    VStack(spacing: 4) {
+                        HStack(spacing: 16) {
+                            Text("\(match.homeScore)")
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .foregroundColor(scoreColor(for: match.homeScore, opponentScore: match.awayScore))
+
+                            Text("-")
+                                .foregroundColor(.secondary)
+
+                            Text("\(match.awayScore)")
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .foregroundColor(scoreColor(for: match.awayScore, opponentScore: match.homeScore))
+                        }
+
+                        // Show penalty score if available
+                        if let homePens = match.homePenaltyScore, let awayPens = match.awayPenaltyScore {
+                            Text("Pens: \(homePens)-\(awayPens)")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(homePens > awayPens ? Color("moroccoGreen") : (awayPens > homePens ? Color("moroccoRed") : .secondary))
+                                .monospacedDigit()
+                        }
                     }
                 }
                 
@@ -182,24 +196,6 @@ struct MatchCard: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
 
-            // Penalty Shootout Section
-            if let homePens = match.homePenaltyScore, let awayPens = match.awayPenaltyScore {
-                Divider()
-                    .padding(.vertical, 4)
-
-                PenaltyShootoutView(
-                    homeTeam: match.homeTeam,
-                    awayTeam: match.awayTeam,
-                    homeTeamId: match.homeTeamId,
-                    awayTeamId: match.awayTeamId,
-                    homePenaltyScore: homePens,
-                    awayPenaltyScore: awayPens,
-                    homeScore: match.homeScore,
-                    awayScore: match.awayScore,
-                    compact: false
-                )
-            }
-
             // Events Section (goals, cards, etc.)
             if !events.isEmpty {
                 Divider()
@@ -219,11 +215,14 @@ struct MatchCard: View {
                             .foregroundColor(.secondary)
                     }
 
-                    let maxEvents = match.status == .live ? events.count : min(events.count, 5)
-                    ForEach(0..<maxEvents, id: \.self) { index in
+                    // Prepare a concrete array to avoid Slice/ReversedCollection type issues in ForEach
+                    let reversedEventsArray: [Afcon_FixtureEvent] = Array(events.reversed())
+                    let maxEvents = match.status == .live ? reversedEventsArray.count : min(reversedEventsArray.count, 5)
+                    let displayEvents: [Afcon_FixtureEvent] = Array(reversedEventsArray.prefix(maxEvents))
+                    ForEach(displayEvents, id: \.eventKey) { event in
                         MatchEventRow(
-                            event: events[index],
-                            isHomeEvent: events[index].team.name == match.homeTeam
+                            event: event,
+                            isHomeEvent: event.team.name == match.homeTeam
                         )
                     }
 

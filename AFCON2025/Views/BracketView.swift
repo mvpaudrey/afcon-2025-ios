@@ -300,7 +300,7 @@ struct BracketView: View {
             viewModel.configure(modelContext: modelContext)
             await viewModel.loadBracketData()
             await viewModel.syncKnockoutFixturesForPastDates()
-            viewModel.refreshBracketFromFixtures()
+            // Note: refreshBracketFromFixtures() will be called by onChange(of: fixtures) after sync completes
         }
         .onChange(of: fixtures) { _, _ in
             viewModel.refreshBracketFromFixtures()

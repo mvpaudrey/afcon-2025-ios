@@ -177,7 +177,9 @@ class BracketViewModel {
                 team2Id: nil,
                 venue: "",
                 score1: nil,
-                score2: nil
+                score2: nil,
+                penalty1: nil,
+                penalty2: nil
             )
         }
 
@@ -209,7 +211,9 @@ class BracketViewModel {
             team2Id: r1Third?.teamId,
             venue: schedule(37).venue,
             score1: nil,
-            score2: nil
+            score2: nil,
+            penalty1: nil,
+            penalty2: nil
         )
 
         let r2 = BracketMatch(
@@ -222,7 +226,9 @@ class BracketViewModel {
             team2Id: teamC2.id,
             venue: schedule(38).venue,
             score1: nil,
-            score2: nil
+            score2: nil,
+            penalty1: nil,
+            penalty2: nil
         )
 
         let r3 = BracketMatch(
@@ -235,7 +241,9 @@ class BracketViewModel {
             team2Id: r3Third?.teamId,
             venue: schedule(39).venue,
             score1: nil,
-            score2: nil
+            score2: nil,
+            penalty1: nil,
+            penalty2: nil
         )
 
         let r4 = BracketMatch(
@@ -248,7 +256,9 @@ class BracketViewModel {
             team2Id: teamF2.id,
             venue: schedule(40).venue,
             score1: nil,
-            score2: nil
+            score2: nil,
+            penalty1: nil,
+            penalty2: nil
         )
 
         let r5 = BracketMatch(
@@ -261,7 +271,9 @@ class BracketViewModel {
             team2Id: r5Third?.teamId,
             venue: schedule(41).venue,
             score1: nil,
-            score2: nil
+            score2: nil,
+            penalty1: nil,
+            penalty2: nil
         )
 
         let r6 = BracketMatch(
@@ -274,7 +286,9 @@ class BracketViewModel {
             team2Id: r6Third?.teamId,
             venue: schedule(42).venue,
             score1: nil,
-            score2: nil
+            score2: nil,
+            penalty1: nil,
+            penalty2: nil
         )
 
         let r7 = BracketMatch(
@@ -287,7 +301,9 @@ class BracketViewModel {
             team2Id: teamD2.id,
             venue: schedule(43).venue,
             score1: nil,
-            score2: nil
+            score2: nil,
+            penalty1: nil,
+            penalty2: nil
         )
 
         let r8 = BracketMatch(
@@ -300,7 +316,9 @@ class BracketViewModel {
             team2Id: teamE2.id,
             venue: schedule(44).venue,
             score1: nil,
-            score2: nil
+            score2: nil,
+            penalty1: nil,
+            penalty2: nil
         )
 
         // Order matches to match CAF bracket layout (QF3: R7 vs R6, QF4: R5 vs R8).

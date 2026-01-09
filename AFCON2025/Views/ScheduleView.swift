@@ -691,11 +691,41 @@ struct ScheduledMatchCard: View {
 
                 Spacer()
 
-                // VS
-                Text("VS")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.secondary)
+                // Score or VS
+                if let homeScore = match.homeScore, let awayScore = match.awayScore {
+                    // Show score for past matches
+                    VStack(spacing: 4) {
+                        HStack(spacing: 8) {
+                            Text("\(homeScore)")
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .foregroundColor(scoreColor(home: homeScore, away: awayScore))
+
+                            Text("-")
+                                .font(.title2)
+                                .foregroundColor(.secondary)
+
+                            Text("\(awayScore)")
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .foregroundColor(scoreColor(home: awayScore, away: homeScore))
+                        }
+
+                        // Show penalty score if available
+                        if let homePens = match.homePenaltyScore, let awayPens = match.awayPenaltyScore {
+                            Text("Pens: \(homePens)-\(awayPens)")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(penaltyColor(home: homePens, away: awayPens))
+                        }
+                    }
+                } else {
+                    // Show VS for upcoming matches
+                    Text("VS")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.secondary)
+                }
 
                 Spacer()
 
@@ -762,6 +792,28 @@ struct ScheduledMatchCard: View {
         displayFormatter.dateFormat = "E, MMM d"
         return displayFormatter.string(from: date)
     }
+
+    /// Get color for regular time score (grey for draw, green for win, red for loss)
+    private func scoreColor(home: Int, away: Int) -> Color {
+        if home == away {
+            return .gray  // Draw
+        } else if home > away {
+            return Color("moroccoGreen")  // Win
+        } else {
+            return Color("moroccoRed")  // Loss
+        }
+    }
+
+    /// Get color for penalty score (green for win, red for loss)
+    private func penaltyColor(home: Int, away: Int) -> Color {
+        if home > away {
+            return Color("moroccoGreen")  // Winner
+        } else if home < away {
+            return Color("moroccoRed")  // Loser
+        } else {
+            return .gray  // Shouldn't happen in penalties, but handle draw
+        }
+    }
 }
 
 // MARK: - Data Models
@@ -774,8 +826,90 @@ struct ScheduledMatch {
     let competition: String
     let venue: String
     let city: String
+    var homeScore: Int?
+    var awayScore: Int?
+    var homePenaltyScore: Int?
+    var awayPenaltyScore: Int?
 }
 
 #Preview {
     ScheduleView()
+}
+
+#Preview("Match with Penalties") {
+    VStack(spacing: 16) {
+        // Mali vs Tunisia - 1-1 draw, Mali wins 3-2 on penalties
+        ScheduledMatchCard(
+            match: ScheduledMatch(
+                id: 999,
+                date: "2026-01-09",
+                time: "20:00",
+                homeTeam: "Mali",
+                awayTeam: "Tunisia",
+                competition: "AFCON 2025 - Quarter-final",
+                venue: "Prince Moulay Abdellah Stadium",
+                city: "Rabat",
+                homeScore: 1,
+                awayScore: 1,
+                homePenaltyScore: 3,
+                awayPenaltyScore: 2
+            ),
+            isPast: true
+        )
+
+        // Draw without penalties
+        ScheduledMatchCard(
+            match: ScheduledMatch(
+                id: 998,
+                date: "2026-01-09",
+                time: "17:00",
+                homeTeam: "Morocco",
+                awayTeam: "Egypt",
+                competition: "AFCON 2025 - Quarter-final",
+                venue: "Ibn Batouta Stadium",
+                city: "Tangier",
+                homeScore: 2,
+                awayScore: 2,
+                homePenaltyScore: nil,
+                awayPenaltyScore: nil
+            ),
+            isPast: true
+        )
+
+        // Regular win
+        ScheduledMatchCard(
+            match: ScheduledMatch(
+                id: 997,
+                date: "2026-01-08",
+                time: "20:00",
+                homeTeam: "Senegal",
+                awayTeam: "Nigeria",
+                competition: "AFCON 2025 - Quarter-final",
+                venue: "Marrakesh Stadium",
+                city: "Marrakesh",
+                homeScore: 3,
+                awayScore: 1,
+                homePenaltyScore: nil,
+                awayPenaltyScore: nil
+            ),
+            isPast: true
+        )
+
+        // Upcoming match (no scores)
+        ScheduledMatchCard(
+            match: ScheduledMatch(
+                id: 996,
+                date: "2026-01-14",
+                time: "20:00",
+                homeTeam: "Algeria",
+                awayTeam: "Cameroon",
+                competition: "AFCON 2025 - Semi-final",
+                venue: "Prince Moulay Abdellah Stadium",
+                city: "Rabat"
+            ),
+            isPast: false
+        )
+    }
+    .padding()
+    .background(Color(.systemGroupedBackground))
 }

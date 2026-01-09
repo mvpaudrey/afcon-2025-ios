@@ -54,6 +54,8 @@ class BundledFixturesLoader {
                 halftimeAway: data.halftimeAway,
                 fulltimeHome: data.fulltimeHome,
                 fulltimeAway: data.fulltimeAway,
+                penaltyHome: data.penaltyHome,
+                penaltyAway: data.penaltyAway,
                 competition: data.competition,
                 round: data.round
             )
@@ -105,6 +107,8 @@ struct FixtureData: Codable {
     let halftimeAway: Int
     let fulltimeHome: Int
     let fulltimeAway: Int
+    let penaltyHome: Int
+    let penaltyAway: Int
     let competition: String
     let round: String?
 }
