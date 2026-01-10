@@ -313,6 +313,20 @@ private struct BracketContentView: View {
     let bracketMatches: BracketMatches
     @Binding var selectedRound: BracketRound
     let determineCurrentRound: () -> BracketRound
+    private let semiToQuarterFinalIds: [Int: (Int, Int)] = [
+        49: (45, 48),
+        50: (46, 47)
+    ]
+
+    private var orderedQuarterFinals: [BracketMatch] {
+        bracketMatches.quarterFinals.sorted { $0.id < $1.id }
+    }
+
+    private var orderedSemiFinals: [BracketMatch] {
+        let order = [50, 49]
+        let byId = Dictionary(uniqueKeysWithValues: bracketMatches.semiFinals.map { ($0.id, $0) })
+        return order.compactMap { byId[$0] }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -415,6 +429,9 @@ private struct BracketContentView: View {
                     Canvas { context, size in
                         let lineWidth: CGFloat = 2
                         let cardCenterOffset: CGFloat = 17 // Offset to align with card divider
+                        let qfIndexById = Dictionary(
+                            uniqueKeysWithValues: orderedQuarterFinals.enumerated().map { ($0.element.id, $0.offset) }
+                        )
 
                         // Round of 16 to Quarter Finals
                         for i in 0..<4 {
@@ -441,10 +458,16 @@ private struct BracketContentView: View {
                         }
 
                         // Quarter Finals to Semi Finals
-                        for i in 0..<2 {
-                            let y1 = qfYCenters[i * 2] + cardCenterOffset
-                            let y2 = qfYCenters[i * 2 + 1] + cardCenterOffset
-                            let sfY = sfYCenters[i] + cardCenterOffset
+                        for (semiIndex, semiMatch) in orderedSemiFinals.enumerated() {
+                            guard let qfIds = semiToQuarterFinalIds[semiMatch.id],
+                                  let qfIndex1 = qfIndexById[qfIds.0],
+                                  let qfIndex2 = qfIndexById[qfIds.1] else {
+                                continue
+                            }
+
+                            let y1 = qfYCenters[qfIndex1] + cardCenterOffset
+                            let y2 = qfYCenters[qfIndex2] + cardCenterOffset
+                            let sfY = sfYCenters[semiIndex] + cardCenterOffset
                             let x1 = qfLeft + cardWidth
                             let midX = (qfLeft + cardWidth + sfLeft) / 2
                             let x2 = sfLeft
@@ -534,7 +557,7 @@ private struct BracketContentView: View {
                     }
 
                     // Quarter Finals matches with date/venue/time info above
-                    ForEach(Array(bracketMatches.quarterFinals.enumerated()), id: \.element.id) { index, match in
+                    ForEach(Array(orderedQuarterFinals.enumerated()), id: \.element.id) { index, match in
                         VStack(spacing: 4) {
                             // Date, Time and Venue above card
                             VStack(spacing: 2) {
@@ -562,7 +585,7 @@ private struct BracketContentView: View {
                     }
 
                     // Semi Finals matches with date/venue/time info above
-                    ForEach(Array(bracketMatches.semiFinals.enumerated()), id: \.element.id) { index, match in
+                    ForEach(Array(orderedSemiFinals.enumerated()), id: \.element.id) { index, match in
                         VStack(spacing: 4) {
                             // Date, Time and Venue above card
                             VStack(spacing: 2) {
