@@ -512,7 +512,7 @@ struct ScheduleView: View {
             date: "2026-01-14",
             time: "17:00",
             homeTeam: "Winner QF1",
-            awayTeam: "Winner QF2",
+            awayTeam: "Winner QF4",
             competition: "AFCON 2025 - Semi-final",
             venue: "Ibn Batouta Stadium",
             city: "Tangier"
@@ -521,8 +521,8 @@ struct ScheduleView: View {
             id: 50,
             date: "2026-01-14",
             time: "20:00",
-            homeTeam: "Winner QF3",
-            awayTeam: "Winner QF4",
+            homeTeam: "Winner QF2",
+            awayTeam: "Winner QF3",
             competition: "AFCON 2025 - Semi-final",
             venue: "Prince Moulay Abdellah Stadium",
             city: "Rabat"
