@@ -2,11 +2,11 @@ import SwiftUI
 import SwiftData
 
 private enum Metrics {
-    static let horizontalPadding: CGFloat = 20
-    static let positionWidth: CGFloat = 32
-    static let statWidth: CGFloat = 28
-    static let gdWidth: CGFloat = 32
-    static let pointsWidth: CGFloat = 36
+    static let horizontalPadding: CGFloat = 16
+    static let positionWidth: CGFloat = 24
+    static let statWidth: CGFloat = 26
+    static let gdWidth: CGFloat = 30
+    static let pointsWidth: CGFloat = 34
 }
 
 struct GroupsView: View {
@@ -112,7 +112,7 @@ struct GroupCard: View {
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundColor(.secondary)
-                .padding(.horizontal, Metrics.horizontalPadding)
+                .padding(.horizontal, Metrics.horizontalPadding - 6)
                 .padding(.vertical, 12)
                 .background(
                     LinearGradient(
@@ -126,7 +126,7 @@ struct GroupCard: View {
                 )
             }
             .padding(.top, 20)
-            .padding(.horizontal, 20)
+            .padding(.horizontal, Metrics.horizontalPadding)
             .background(Color(.systemBackground))
 
             // Team rows with improved design
@@ -162,7 +162,7 @@ struct TeamRow: View {
                     .frame(width: 24, height: 24)
                     .background(positionBadgeColor)
                     .cornerRadius(6)
-                    .frame(width: Metrics.positionWidth, alignment: .center)
+                    .frame(width: Metrics.positionWidth, alignment: .trailing)
 
                 // Team with flag
                 HStack(spacing: 10) {
@@ -196,7 +196,9 @@ struct TeamRow: View {
                             .font(.footnote)
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
-                            .lineLimit(2)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
+                            .allowsTightening(true)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -311,4 +313,3 @@ struct TeamRow: View {
 #Preview {
     GroupsView()
 }
-
