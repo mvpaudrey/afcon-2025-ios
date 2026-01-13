@@ -29,13 +29,102 @@ final class LiveMatchStreamService {
     // Background check timer for upcoming matches
     @MainActor private var statusCheckTimer: Timer?
 
+    // Track if we should resume streaming when returning to foreground
+    private var shouldResumeStreaming = false
+
+    // Track if we're currently syncing data to prevent concurrent updates
+    private(set) var isSyncing = false
+
     private init() {
         // Private initializer for singleton
-        MainActor.assumeIsolated { startStatusCheckTimer() }
+        MainActor.assumeIsolated {
+            startStatusCheckTimer()
+            setupLifecycleObservers()
+        }
     }
 
     deinit {
-        MainActor.assumeIsolated { statusCheckTimer?.invalidate() }
+        MainActor.assumeIsolated {
+            statusCheckTimer?.invalidate()
+            NotificationCenter.default.removeObserver(self)
+        }
+    }
+
+    // MARK: - Lifecycle Observers
+
+    /// Setup observers for app lifecycle events
+    private func setupLifecycleObservers() {
+        // Observe when app enters background
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didEnterBackgroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.handleEnterBackground()
+            }
+        }
+
+        // Observe when app enters foreground
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.handleEnterForeground()
+            }
+        }
+    }
+
+    /// Handle app entering background
+    @MainActor
+    private func handleEnterBackground() {
+        print("📱 App entering background - pausing stream")
+
+        // Remember if we were streaming
+        shouldResumeStreaming = isStreaming && hasLiveMatches
+
+        // Stop the stream to save resources
+        if isStreaming {
+            stopStreaming()
+        }
+    }
+
+    /// Handle app entering foreground
+    @MainActor
+    private func handleEnterForeground() {
+        print("📱 App entering foreground - will resume after sync completes")
+        // Note: Streaming will resume after syncLiveFixtures() completes in LiveScoresViewModel
+        // This prevents race conditions between sync and stream updates
+    }
+
+    /// Begin sync operation (blocks stream updates)
+    @MainActor
+    func beginSync() {
+        isSyncing = true
+        print("🔄 Beginning sync - stream updates paused")
+    }
+
+    /// End sync operation and resume streaming if needed
+    @MainActor
+    func endSyncAndResume() {
+        isSyncing = false
+        print("✅ Sync complete - stream updates resumed")
+
+        if shouldResumeStreaming {
+            print("🔄 Resuming stream after sync completion...")
+            Task {
+                // Check if there are still live matches
+                if let onMatchStatusCheck = self.onMatchStatusCheck {
+                    let hasLive = await onMatchStatusCheck()
+                    if hasLive {
+                        self.startStreaming(hasLiveMatches: true)
+                    }
+                }
+            }
+            shouldResumeStreaming = false
+        }
     }
 
     // MARK: - Start Streaming

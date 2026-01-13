@@ -165,6 +165,9 @@ class LiveScoresViewModel {
             // Clean up stale Live Activities (for finished or non-existent matches)
             await cleanupStaleActivities()
 
+            // Sync live fixtures to get latest data
+            await syncLiveFixtures()
+
             // Fetch fixtures from SwiftData
             // Note: AFCONHomeView handles initial fixture loading, so we just read from SwiftData here
             var allFixtures = try dataManager.getAllFixtures()
@@ -343,6 +346,12 @@ class LiveScoresViewModel {
     // MARK: - Handle Live Update
     @MainActor
     private func handleLiveUpdate(_ update: Afcon_LiveMatchUpdate) async {
+        // Skip updates if we're currently syncing to prevent race conditions
+        if streamService.isSyncing {
+            print("⏭️ Skipping stream update during sync for fixture \(update.fixtureID)")
+            return
+        }
+
         print("📡 Live update for fixture \(update.fixtureID): \(update.eventType)")
 
         let updatedGame = update.fixture.toGame()
@@ -686,6 +695,23 @@ class LiveScoresViewModel {
     private func isFinishedStatus(_ status: String) -> Bool {
         let normalized = status.uppercased()
         return normalized == "FT" || normalized == "AET" || normalized == "PEN"
+    }
+
+    // MARK: - Sync Live Fixtures
+
+    /// Sync live fixtures from API to get latest updates
+    @MainActor
+    private func syncLiveFixtures() async {
+        guard let dataManager = dataManager else { return }
+
+        // Mark that we're syncing to prevent concurrent stream updates
+        streamService.beginSync()
+
+        print("🔄 Syncing live fixtures from API...")
+        await dataManager.syncLiveFixtures()
+
+        // Sync complete - now safe to resume streaming
+        streamService.endSyncAndResume()
     }
 
     // MARK: - Cleanup Stale Activities
