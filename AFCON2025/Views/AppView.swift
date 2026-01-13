@@ -34,6 +34,11 @@ struct AppView: View {
             // Update launch tracking
             AppSettings.shared.updateLastLaunchVersion()
 
+            // Clear badge when app opens
+            Task {
+                await AppNotificationService.shared.clearBadge()
+            }
+
             // Simulate minimum loading time for smooth experience
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 withAnimation(.easeInOut(duration: 0.3)) {

@@ -164,6 +164,12 @@ class AppNotificationService: NSObject, ObservableObject, UNUserNotificationCent
         notificationCenter.setBadgeCount(0, withCompletionHandler: nil)
     }
 
+    /// Clear app badge count
+    func clearBadge() async {
+        notificationCenter.setBadgeCount(0, withCompletionHandler: nil)
+        print("🔔 Badge cleared")
+    }
+
     // MARK: - Push Notification Token
 
     /// Store device token for push notifications
@@ -246,6 +252,11 @@ extension AppNotificationService {
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         let userInfo = response.notification.request.content.userInfo
+
+        // Clear badge when notification is tapped
+        Task { @MainActor in
+            await self.clearBadge()
+        }
 
         switch response.actionIdentifier {
         case "VIEW_MATCH":
