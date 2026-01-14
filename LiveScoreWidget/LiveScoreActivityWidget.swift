@@ -433,6 +433,11 @@ private func elapsedSeconds(for state: LiveScoreActivityAttributes.ContentState,
     let status = state.status.uppercased()
     let baseSeconds = max(Int(state.elapsed) * 60, 0)
 
+    // HT and BT - don't count, just show elapsed time
+    if status == "HT" || status == "BT" {
+        return baseSeconds
+    }
+
     if status == "1H", let start = state.firstPeriodStart {
         return max(Int(date.timeIntervalSince(start)), 0)
     }
