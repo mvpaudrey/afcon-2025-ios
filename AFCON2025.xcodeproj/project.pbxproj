@@ -63,22 +63,28 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		768D4CD82EEEF4F000BE7EC5 /* Exceptions for "AFCON2025" folder in "AFCON2025" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-				"Views/String+TeamNames.swift",
-			);
-			target = 768D4CB42EEEF4EE00BE7EC5 /* AFCON2025 */;
-		};
-		768D4E2F2EEF350700BE7EC5 /* Exceptions for "LiveScoreWidget" folder in "LiveScoreWidgetExtension" target */ = {
+		76A869C52F18134500C52F5E /* Exceptions for "LiveScoreWidget" folder in "LiveScoreWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
 			target = 768D4E142EEF350500BE7EC5 /* LiveScoreWidgetExtension */;
 		};
-		768D4E4E2EEF73E400BE7EC5 /* Exceptions for "AFCON2025" folder in "LiveScoreWidgetExtension" target */ = {
+		76A869C62F18134B00C52F5E /* Exceptions for "AFCON2025" folder in "AFCON2025" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 768D4CB42EEEF4EE00BE7EC5 /* AFCON2025 */;
+		};
+		76A869CA2F1813F100C52F5E /* Exceptions for "LiveScoreWidget" folder in "AFCON2025" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				SharedTypes.swift,
+			);
+			target = 768D4CB42EEEF4EE00BE7EC5 /* AFCON2025 */;
+		};
+		76A869CC2F18172100C52F5E /* Exceptions for "AFCON2025" folder in "LiveScoreWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Common/HomeWidgetSnapshotStore.swift,
@@ -93,8 +99,8 @@
 		768D4CB72EEEF4EE00BE7EC5 /* AFCON2025 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				768D4CD82EEEF4F000BE7EC5 /* Exceptions for "AFCON2025" folder in "AFCON2025" target */,
-				768D4E4E2EEF73E400BE7EC5 /* Exceptions for "AFCON2025" folder in "LiveScoreWidgetExtension" target */,
+				76A869C62F18134B00C52F5E /* Exceptions for "AFCON2025" folder in "AFCON2025" target */,
+				76A869CC2F18172100C52F5E /* Exceptions for "AFCON2025" folder in "LiveScoreWidgetExtension" target */,
 			);
 			path = AFCON2025;
 			sourceTree = "<group>";
@@ -112,7 +118,8 @@
 		768D4E1B2EEF350500BE7EC5 /* LiveScoreWidget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				768D4E2F2EEF350700BE7EC5 /* Exceptions for "LiveScoreWidget" folder in "LiveScoreWidgetExtension" target */,
+				76A869CA2F1813F100C52F5E /* Exceptions for "LiveScoreWidget" folder in "AFCON2025" target */,
+				76A869C52F18134500C52F5E /* Exceptions for "LiveScoreWidget" folder in "LiveScoreWidgetExtension" target */,
 			);
 			path = LiveScoreWidget;
 			sourceTree = "<group>";
