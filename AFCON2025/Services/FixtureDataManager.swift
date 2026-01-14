@@ -302,11 +302,33 @@ class FixtureDataManager {
     ]
 
     func updateFixtureModel(_ model: FixtureModel, with grpcFixture: Afcon_Fixture) {
+        let incomingStatusShort = grpcFixture.status.short
+        let incomingElapsed = Int(grpcFixture.status.elapsed)
+        let incomingExtra = Int(grpcFixture.status.extra)
+        let currentStatusShort = model.statusShort
+        let currentElapsed = model.statusElapsed
+        let currentExtra = model.statusExtra
+        let currentLastUpdated = model.lastUpdated
+
         // Update mutable fields that might change during a match
         model.statusLong = grpcFixture.status.long
-        model.statusShort = grpcFixture.status.short
-        model.statusElapsed = Int(grpcFixture.status.elapsed)
-        model.statusExtra = Int(grpcFixture.status.extra)
+        model.statusShort = incomingStatusShort
+
+        var finalElapsed = incomingElapsed
+        var finalExtra = incomingExtra
+        if incomingStatusShort.uppercased() == currentStatusShort.uppercased(),
+           isLiveStatus(incomingStatusShort) {
+            let deltaMinutes = max(Int(Date().timeIntervalSince(currentLastUpdated) / 60.0), 0)
+            let expectedElapsed = currentElapsed + currentExtra + deltaMinutes
+            let incomingTotal = incomingElapsed + incomingExtra
+            if incomingTotal + 1 < expectedElapsed {
+                finalElapsed = currentElapsed
+                finalExtra = currentExtra
+            }
+        }
+
+        model.statusElapsed = finalElapsed
+        model.statusExtra = finalExtra
 
         model.homeGoals = Int(grpcFixture.goals.home)
         model.awayGoals = Int(grpcFixture.goals.away)
@@ -324,6 +346,10 @@ class FixtureDataManager {
         // Note: round is not updated as it's not available from gRPC API
 
         model.lastUpdated = Date()
+    }
+
+    private func isLiveStatus(_ status: String) -> Bool {
+        ["LIVE", "1H", "2H", "HT", "ET", "P"].contains(status.uppercased())
     }
 }
 

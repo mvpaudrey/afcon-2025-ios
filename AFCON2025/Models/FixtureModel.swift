@@ -161,12 +161,15 @@ extension FixtureModel {
         // Display minute with extra time from API
         let minute: String
         if statusElapsed > 0 {
-            if statusExtra > 0 {
+            let statusUpper = statusShort.uppercased()
+            if statusUpper == "ET" {
+                let totalElapsed = statusElapsed + statusExtra
+                minute = "\(totalElapsed)'"
+            } else if statusExtra > 0 {
                 // Use the extra time provided by the API
                 minute = "\(statusElapsed)'+\(statusExtra)"
             } else {
                 // Calculate extra time if elapsed exceeds normal period limits
-                let statusUpper = statusShort.uppercased()
                 if statusUpper == "1H" && statusElapsed > 45 {
                     // First half extra time
                     let extraTime = statusElapsed - 45
@@ -213,4 +216,3 @@ extension FixtureModel {
         )
     }
 }
-

@@ -2107,6 +2107,29 @@
         }
       }
     },
+    "match.status.extratime" : {
+      "comment" : "Extra time status",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الوقت الإضافي"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EXTRA TIME"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PROLONGATION"
+          }
+        }
+      }
+    },
     "match.status.finished" : {
       "comment" : "Finished status",
       "extractionState" : "manual",

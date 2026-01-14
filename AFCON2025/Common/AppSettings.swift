@@ -48,6 +48,7 @@ final class AppSettings {
         static let selectedFavoriteTeams = "selectedFavoriteTeams"
         static let lastLaunchVersion = "lastLaunchVersion"
         static let appLanguage = "appLanguage"
+        static let lastDeviceToken = "lastDeviceToken"
     }
 
     // MARK: - Onboarding
@@ -70,6 +71,18 @@ final class AppSettings {
     /// Reset onboarding (for testing purposes)
     func resetOnboarding() {
         hasCompletedOnboarding = false
+    }
+
+    // MARK: - Favorite Teams
+
+    /// Store selected favorite team IDs for sync
+    var selectedFavoriteTeamIds: [Int] {
+        get {
+            userDefaults.array(forKey: Keys.selectedFavoriteTeams) as? [Int] ?? []
+        }
+        set {
+            userDefaults.set(newValue, forKey: Keys.selectedFavoriteTeams)
+        }
     }
 
     // MARK: - App Version
@@ -103,6 +116,18 @@ final class AppSettings {
     var wasAppUpdated: Bool {
         guard let lastVersion = lastLaunchVersion else { return false }
         return lastVersion != currentAppVersion
+    }
+
+    // MARK: - Push Notifications
+
+    /// Last APNs device token registered with the backend
+    var lastDeviceToken: String? {
+        get {
+            userDefaults.string(forKey: Keys.lastDeviceToken)
+        }
+        set {
+            userDefaults.set(newValue, forKey: Keys.lastDeviceToken)
+        }
     }
 
     // MARK: - Language Settings

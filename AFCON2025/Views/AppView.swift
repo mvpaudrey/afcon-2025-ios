@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 import UIKit
 
 private let moroccoGradient = LinearGradient(
@@ -15,6 +16,7 @@ private let moroccoGradient = LinearGradient(
 )
 
 struct AppView: View {
+    @Environment(\.modelContext) private var modelContext
     @State private var showOnboarding = !AppSettings.shared.hasCompletedOnboarding
     @State private var isLoading = true
 
@@ -39,6 +41,11 @@ struct AppView: View {
                 await AppNotificationService.shared.clearBadge()
             }
 
+            loadFavoriteTeams()
+            Task {
+                await AppNotificationService.shared.syncIfPossibleOnLaunch()
+            }
+
             // Simulate minimum loading time for smooth experience
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 withAnimation(.easeInOut(duration: 0.3)) {
@@ -52,6 +59,16 @@ struct AppView: View {
         AppSettings.shared.completeOnboarding()
         withAnimation {
             showOnboarding = false
+        }
+    }
+
+    private func loadFavoriteTeams() {
+        let descriptor = FetchDescriptor<FavoriteTeam>()
+        do {
+            let favorites = try modelContext.fetch(descriptor)
+            AppSettings.shared.selectedFavoriteTeamIds = favorites.map { $0.teamId }
+        } catch {
+            print("❌ Failed to load favorite teams: \(error)")
         }
     }
 }
@@ -128,4 +145,3 @@ struct LaunchScreen: View {
     @Previewable @State var showOnboarding = true
     AppView()
 }
-

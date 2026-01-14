@@ -37,6 +37,7 @@ struct TeamSelectionPage: View {
     @Environment(\.modelContext) private var modelContext
     @State private var selectedTeams = Set<NationalTeam>()
     var onContinue: () -> Void
+    private let syncService = FavoriteTeamSyncService()
     
     private let columns = [GridItem(.adaptive(minimum: 100), spacing: 16)]
     
@@ -87,6 +88,9 @@ struct TeamSelectionPage: View {
     }
     
     private func saveSelectedTeams() {
+        let teamIds = selectedTeams.map { $0.id }
+        AppSettings.shared.selectedFavoriteTeamIds = teamIds
+
         for team in selectedTeams {
             // Check if team is already a favorite
             let teamId = team.id
@@ -112,6 +116,14 @@ struct TeamSelectionPage: View {
             try modelContext.save()
         } catch {
             print("❌ Failed to save favorite teams: \(error)")
+        }
+
+        Task {
+            do {
+                try await syncService.updateFavoriteTeams(teamIds: teamIds)
+            } catch {
+                print("❌ Failed to sync favorite teams: \(error)")
+            }
         }
     }
 }

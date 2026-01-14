@@ -18,6 +18,7 @@ class AppNotificationService: NSObject, ObservableObject, UNUserNotificationCent
     @Published var deviceToken: String?
 
     private let notificationCenter = UNUserNotificationCenter.current()
+    private let syncService = FavoriteTeamSyncService()
 
     private override init() {
         super.init()
@@ -178,8 +179,15 @@ class AppNotificationService: NSObject, ObservableObject, UNUserNotificationCent
         self.deviceToken = tokenString
         print("📱 Device Token: \(tokenString)")
 
-        // TODO: Send token to your backend server
-        // sendTokenToServer(tokenString)
+        let previousToken = AppSettings.shared.lastDeviceToken
+        AppSettings.shared.lastDeviceToken = tokenString
+
+        Task { [weak self] in
+            await self?.registerDeviceAndSyncFavorites(
+                deviceToken: tokenString,
+                previousToken: previousToken
+            )
+        }
     }
 
     /// Handle push notification registration failure
@@ -229,6 +237,60 @@ class AppNotificationService: NSObject, ObservableObject, UNUserNotificationCent
             scoreUpdateCategory,
             matchResultCategory
         ])
+    }
+
+    func syncIfPossibleOnLaunch() async {
+        await checkAuthorizationStatus()
+        guard authorizationStatus == .authorized || authorizationStatus == .provisional else { return }
+        guard !AppSettings.shared.selectedFavoriteTeamIds.isEmpty else { return }
+        guard let token = deviceToken ?? AppSettings.shared.lastDeviceToken else {
+            await registerForPushNotifications()
+            return
+        }
+
+        deviceToken = token
+        await registerDeviceAndSyncFavorites(
+            deviceToken: token,
+            previousToken: AppSettings.shared.lastDeviceToken
+        )
+    }
+
+    private func registerDeviceAndSyncFavorites(
+        deviceToken: String,
+        previousToken: String?
+    ) async {
+        let needsRegistration = previousToken != deviceToken || syncService.getDeviceUuid() == nil
+        if needsRegistration {
+            let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+            let appVersion = AppSettings.shared.currentAppVersion
+            let osVersion = UIDevice.current.systemVersion
+
+            do {
+                _ = try await syncService.registerDevice(
+                    userId: "user-\(deviceId)",
+                    deviceToken: deviceToken,
+                    deviceId: deviceId,
+                    appVersion: appVersion,
+                    osVersion: osVersion
+                )
+            } catch {
+                print("❌ Failed to register device: \(error)")
+                return
+            }
+        }
+
+        await syncStoredFavoriteTeams()
+    }
+
+    private func syncStoredFavoriteTeams() async {
+        let teamIds = AppSettings.shared.selectedFavoriteTeamIds
+        guard !teamIds.isEmpty else { return }
+
+        do {
+            try await syncService.updateFavoriteTeams(teamIds: teamIds)
+        } catch {
+            print("❌ Failed to sync favorite teams: \(error)")
+        }
     }
 }
 

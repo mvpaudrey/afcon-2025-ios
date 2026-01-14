@@ -540,7 +540,7 @@ class LiveScoresViewModel {
 
         // Calculate elapsed seconds
         let elapsedSeconds: Int
-        if let minuteValue = Int(game.minute.filter { $0.isNumber }) {
+        if let minuteValue = parseElapsedMinuteWithExtra(game.minute) {
             elapsedSeconds = minuteValue * 60
         } else {
             elapsedSeconds = 0
@@ -571,9 +571,10 @@ class LiveScoresViewModel {
         let awayGoals = goalEvents.filter { $0.team.id == Int32(game.awayTeamId) }.map { formatGoalEvent($0) }
 
         // Parse elapsed minutes
-        let parsedMinute = Int(game.minute.filter { $0.isNumber }) ?? 0
+        let parsedMinute = parseElapsedMinuteWithExtra(game.minute) ?? 0
         let latestEventMinute = events.map { Int($0.time.elapsed) }.max() ?? 0
-        let elapsed = Int32(max(parsedMinute, latestEventMinute))
+        let apiElapsed = max(game.statusElapsed + game.statusExtra, 0)
+        let elapsed = Int32(max(apiElapsed, parsedMinute, latestEventMinute))
 
         return LiveScoreActivityAttributes.ContentState(
             homeScore: Int32(game.homeScore),
@@ -651,9 +652,8 @@ class LiveScoresViewModel {
             return true
         }
 
-        // Parse elapsed minutes from the minute string (e.g., "45'" -> 45, "45'+3" -> 45)
-        let currentElapsed = parseElapsedMinute(current.minute)
-        let nextElapsed = parseElapsedMinute(next.minute)
+        let currentElapsed = current.effectiveElapsedMinutes()
+        let nextElapsed = max(next.statusElapsed + next.statusExtra, parseElapsedMinute(next.minute))
 
         // Don't allow elapsed time to go backwards (with small tolerance for network delays)
         // For same status, reject if incoming is more than 1 minute behind
@@ -674,6 +674,13 @@ class LiveScoresViewModel {
             return parsed
         }
         return 0
+    }
+
+    private func parseElapsedMinuteWithExtra(_ minute: String) -> Int? {
+        let numbers = minute.split { !$0.isNumber }.compactMap { Int($0) }
+        guard let base = numbers.first else { return nil }
+        let extra = numbers.count > 1 ? numbers[1] : 0
+        return base + extra
     }
 
     /// Get status order for progression checking

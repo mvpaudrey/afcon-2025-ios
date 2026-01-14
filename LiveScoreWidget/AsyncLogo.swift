@@ -27,7 +27,9 @@ struct LogoImageView: View {
             if let path, !path.isEmpty, imageExists(path) {
                 Image(path)
                     .resizable()
-                    .scaledToFill()
+                    .scaledToFit()
+                    .padding(useCircle ? 2 : 0)
+                    .background(Color(.systemBackground).opacity(0.9))
             } else {
                 placeholder
             }
@@ -60,4 +62,3 @@ struct LogoImageView: View {
         }
     }
 }
-

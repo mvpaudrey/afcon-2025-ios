@@ -97,7 +97,7 @@ extension Game {
         return Game.formatMinute(statusShort: statusShort, elapsed: totalElapsed)
     }
 
-    private func effectiveElapsedMinutes() -> Int {
+    func effectiveElapsedMinutes() -> Int {
         let statusUpper = statusShort.uppercased()
         let hasElapsed = statusElapsed > 0 || statusExtra > 0
         let shouldTick = hasElapsed && (statusUpper == "1H" || statusUpper == "2H" || statusUpper == "ET" || statusUpper == "LIVE")
@@ -114,12 +114,7 @@ extension Game {
             return "90'+\(elapsed - 90)"
         }
         if statusUpper == "ET" {
-            if elapsed > 120 {
-                return "120'+\(elapsed - 120)"
-            }
-            if elapsed > 105 {
-                return "105'+\(elapsed - 105)"
-            }
+            return "\(elapsed)'"
         }
         return "\(elapsed)'"
     }

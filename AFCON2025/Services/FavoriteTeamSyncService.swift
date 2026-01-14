@@ -35,22 +35,32 @@ class FavoriteTeamSyncService {
     ///   - teamId: The team ID (e.g., 1530 for Cameroon, 1532 for Algeria)
     ///   - teamName: Team name for logging (optional)
     func updateFavoriteTeam(teamId: Int, teamName: String? = nil) async throws {
+        try await updateFavoriteTeams(teamIds: [teamId], teamNames: teamName.map { [$0] })
+    }
+
+    /// Call this when user changes their favorite teams in your app
+    func updateFavoriteTeams(teamIds: [Int], teamNames: [String]? = nil) async throws {
         guard let deviceUuid = getDeviceUuid() else {
             throw FavoriteTeamSyncError.deviceNotRegistered
         }
+        guard !teamIds.isEmpty else {
+            print("ℹ️ No favorite teams to sync")
+            return
+        }
 
-        print("📱 Syncing favorite team to server: \(teamName ?? "Team \(teamId)")")
+        let teamLabels = teamNames?.joined(separator: ", ")
+        let label = teamLabels ?? teamIds.map(String.init).joined(separator: ", ")
+        print("📱 Syncing favorite teams to server: \(label)")
 
-        let response = try await afconService.updateFavoriteTeam(
+        let response = try await afconService.updateFavoriteTeams(
             deviceUuid: deviceUuid,
-            favoriteTeamId: Int32(teamId)
+            favoriteTeamIds: teamIds.map(Int32.init)
         )
 
         if response.success {
-            print("✅ Favorite team synced! \(response.subscriptionsUpdated) subscription(s) updated")
-            print("   You'll now receive Live Activities for all \(teamName ?? "your team")'s matches")
+            print("✅ Favorite teams synced! \(response.subscriptionsUpdated) subscription(s) updated")
         } else {
-            print("❌ Failed to sync favorite team: \(response.message)")
+            print("❌ Failed to sync favorite teams: \(response.message)")
         }
     }
 

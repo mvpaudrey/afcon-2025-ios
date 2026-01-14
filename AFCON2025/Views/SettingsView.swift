@@ -304,6 +304,7 @@ struct FavoriteTeamManagementView: View {
     @Environment(\.dismiss) private var dismiss
     @Query private var favoriteTeams: [FavoriteTeam]
     @State private var selectedTeams = Set<NationalTeam>()
+    private let syncService = FavoriteTeamSyncService()
 
     private let columns = [GridItem(.adaptive(minimum: 100), spacing: 16)]
 
@@ -365,6 +366,9 @@ struct FavoriteTeamManagementView: View {
     }
 
     private func saveSelectedTeams() {
+        let teamIds = selectedTeams.map { $0.id }
+        AppSettings.shared.selectedFavoriteTeamIds = teamIds
+
         // Remove all existing favorites
         for favorite in favoriteTeams {
             modelContext.delete(favorite)
@@ -381,6 +385,14 @@ struct FavoriteTeamManagementView: View {
             print("✅ Saved \(selectedTeams.count) favorite teams")
         } catch {
             print("❌ Failed to save favorite teams: \(error)")
+        }
+
+        Task {
+            do {
+                try await syncService.updateFavoriteTeams(teamIds: teamIds)
+            } catch {
+                print("❌ Failed to sync favorite teams: \(error)")
+            }
         }
     }
 }

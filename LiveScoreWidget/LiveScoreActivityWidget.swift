@@ -15,27 +15,13 @@ struct LiveScoreActivityWidget: Widget {
             DynamicIsland {
                 // Expanded view
                 DynamicIslandExpandedRegion(.leading) {
-                    HStack(spacing: 6) {
-                        LogoImageView(path: context.state.homeTeamLogoPath, size: CGSize(width: 28, height: 28), useCircle: true)
-                        Text(localizedTeamName(context.attributes.homeTeam))
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(.white)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                    }
-                    .padding(.leading, 8)
+                    LogoImageView(path: context.state.homeTeamLogoPath, size: CGSize(width: 32, height: 32), useCircle: true)
+                        .padding(.leading, 8)
                 }
 
                 DynamicIslandExpandedRegion(.trailing) {
-                    HStack(spacing: 6) {
-                        Text(localizedTeamName(context.attributes.awayTeam))
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(.white)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                        LogoImageView(path: context.state.awayTeamLogoPath, size: CGSize(width: 28, height: 28), useCircle: true)
-                    }
-                    .padding(.trailing, 8)
+                    LogoImageView(path: context.state.awayTeamLogoPath, size: CGSize(width: 32, height: 32), useCircle: true)
+                        .padding(.trailing, 8)
                 }
 
                 DynamicIslandExpandedRegion(.center) {
@@ -44,37 +30,57 @@ struct LiveScoreActivityWidget: Widget {
                     let label = statusLabel(status)
                     let color = statusColor(status)
 
-                    VStack(spacing: 8) {
-                        // Score display
-                        HStack(spacing: 12) {
+                    VStack(spacing: 6) {
+                        // Team names with scores - horizontally aligned
+                        HStack(spacing: 6) {
+                            // Home team name
+                            Text(displayTeamName(context.attributes.homeTeam))
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.75))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                                .frame(maxWidth: 54, alignment: .trailing)
+
+                            // Home score
                             Text("\(context.state.homeScore)")
-                                .font(.system(size: 40, weight: .heavy))
+                                .font(.system(size: 28, weight: .heavy))
                                 .foregroundColor(.white)
                                 .monospacedDigit()
 
+                            // Dash separator
                             Text("-")
-                                .font(.system(size: 28, weight: .bold))
+                                .font(.system(size: 20, weight: .bold))
                                 .foregroundColor(.white.opacity(0.5))
 
+                            // Away score
                             Text("\(context.state.awayScore)")
-                                .font(.system(size: 40, weight: .heavy))
+                                .font(.system(size: 28, weight: .heavy))
                                 .foregroundColor(.white)
                                 .monospacedDigit()
+
+                            // Away team name
+                            Text(displayTeamName(context.attributes.awayTeam))
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.75))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                                .frame(maxWidth: 54, alignment: .leading)
                         }
 
                         // Status and Time
-                        HStack {
+                        HStack(spacing: 6) {
                             statusIndicator(status: status, color: color)
 
                             Text(label)
-                                .font(.caption)
+                                .font(.caption2)
                                 .foregroundColor(color)
                                 .fontWeight(.semibold)
-                        }
 
-                        matchTimerView(for: state, font: .caption)
+                            matchTimerView(for: state, font: .caption2, fullWidth: false)
+                                .foregroundColor(.white.opacity(0.8))
+                        }
                     }
-                    .padding(.horizontal, 12)
+                    .padding(.horizontal, 8)
                     .padding(.vertical, 8)
                 }
 
@@ -127,6 +133,7 @@ struct LockScreenLiveScoreView: View {
         let status = state.status
         let label = statusLabel(status)
         let color = statusColor(status)
+        let teamNameWidth: CGFloat = 90
 
         VStack(spacing: 12) {
             // Competition header
@@ -154,12 +161,12 @@ struct LockScreenLiveScoreView: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(localizedTeamName(context.attributes.homeTeam))
-                            .font(.system(size: 14, weight: .semibold))
-                            .lineLimit(2)
+                            .font(.system(size: 16, weight: .semibold))
+                            .lineLimit(1)
                             .minimumScaleFactor(0.7)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    .frame(maxWidth: 70, alignment: .leading)
+                    .frame(width: teamNameWidth, alignment: .leading)
                 }
 
                 Spacer()
@@ -187,12 +194,12 @@ struct LockScreenLiveScoreView: View {
                 HStack(spacing: 6) {
                     VStack(alignment: .trailing, spacing: 2) {
                         Text(localizedTeamName(context.attributes.awayTeam))
-                            .font(.system(size: 14, weight: .semibold))
-                            .lineLimit(2)
+                            .font(.system(size: 16, weight: .semibold))
+                            .lineLimit(1)
                             .minimumScaleFactor(0.7)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    .frame(maxWidth: 70, alignment: .trailing)
+                    .frame(width: teamNameWidth, alignment: .trailing)
 
                     LogoImageView(path: context.state.awayTeamLogoPath, size: CGSize(width: 32, height: 32), useCircle: true)
                 }
@@ -263,7 +270,11 @@ struct LockScreenLiveScoreView: View {
 // MARK: - Helpers
 
 @ViewBuilder
-private func matchTimerView(for state: LiveScoreActivityAttributes.ContentState, font: Font) -> some View {
+private func matchTimerView(
+    for state: LiveScoreActivityAttributes.ContentState,
+    font: Font,
+    fullWidth: Bool = true
+) -> some View {
     TimelineView(.periodic(from: .now, by: 1)) { timeline in
         let displayStatus = state.status.uppercased()
 
@@ -272,25 +283,25 @@ private func matchTimerView(for state: LiveScoreActivityAttributes.ContentState,
                 .font(font)
                 .fontWeight(.semibold)
                 .foregroundColor(.green)
-                .frame(maxWidth: .infinity, alignment: .center)
+                .frame(maxWidth: fullWidth ? .infinity : nil, alignment: .center)
         } else if let seconds = elapsedSeconds(for: state, at: timeline.date) {
             Text(formatClock(seconds))
                 .font(font)
                 .monospacedDigit()
                 .foregroundColor(.white.opacity(0.8))
-                .frame(maxWidth: .infinity, alignment: .center)
+                .frame(maxWidth: fullWidth ? .infinity : nil, alignment: .center)
         } else if state.elapsed >= 0 {
             Text("\(state.elapsed)'")
                 .font(font)
                 .monospacedDigit()
                 .foregroundColor(.white.opacity(0.8))
-                .frame(maxWidth: .infinity, alignment: .center)
+                .frame(maxWidth: fullWidth ? .infinity : nil, alignment: .center)
         } else {
             Text("--:--")
                 .font(font)
                 .monospacedDigit()
                 .foregroundColor(.white.opacity(0.8))
-                .frame(maxWidth: .infinity, alignment: .center)
+                .frame(maxWidth: fullWidth ? .infinity : nil, alignment: .center)
         }
     }
 }
@@ -395,6 +406,11 @@ private func teamAbbreviation(_ name: String) -> String {
     }
 
     return parts.prefix(2).map { String($0.prefix(1)).uppercased() }.joined()
+}
+
+private func displayTeamName(_ name: String) -> String {
+    let localized = localizedTeamName(name)
+    return localized.count > 10 ? teamAbbreviation(localized) : localized
 }
 
 private func sanitizedGoalText(_ text: String) -> String {

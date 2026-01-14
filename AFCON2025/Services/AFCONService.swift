@@ -141,13 +141,41 @@ class AFCONServiceWrapper {
         leagueId: Int32 = 6,
         season: Int32 = 2025
     ) async throws -> Afcon_UpdateSubscriptionsResponse {
-        // Create subscription for favorite team
+        return try await updateFavoriteTeams(
+            deviceUuid: deviceUuid,
+            favoriteTeamIds: [favoriteTeamId],
+            leagueId: leagueId,
+            season: season
+        )
+    }
+
+    /// Update favorite team subscriptions for multiple teams
+    func updateFavoriteTeams(
+        deviceUuid: String,
+        favoriteTeamIds: [Int32],
+        leagueId: Int32 = 6,
+        season: Int32 = 2025
+    ) async throws -> Afcon_UpdateSubscriptionsResponse {
+        let subscriptions = favoriteTeamIds.map {
+            makeFavoriteTeamSubscription(teamId: $0, leagueId: leagueId, season: season)
+        }
+
+        return try await service.updateSubscriptions(
+            deviceUuid: deviceUuid,
+            subscriptions: subscriptions
+        )
+    }
+
+    private func makeFavoriteTeamSubscription(
+        teamId: Int32,
+        leagueId: Int32,
+        season: Int32
+    ) -> Afcon_Subscription {
         var subscription = Afcon_Subscription()
         subscription.leagueID = leagueId
         subscription.season = season
-        subscription.teamID = favoriteTeamId
+        subscription.teamID = teamId
 
-        // Set notification preferences
         var preferences = Afcon_NotificationPreferences()
         preferences.notifyGoals = true
         preferences.notifyMatchStart = true
@@ -158,11 +186,7 @@ class AFCONServiceWrapper {
         preferences.matchStartMinutesBefore = 15
 
         subscription.preferences = preferences
-
-        return try await service.updateSubscriptions(
-            deviceUuid: deviceUuid,
-            subscriptions: [subscription]
-        )
+        return subscription
     }
 
     /// Get current subscriptions for device

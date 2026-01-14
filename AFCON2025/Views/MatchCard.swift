@@ -7,11 +7,25 @@ struct MatchCard: View {
     var events: [Afcon_FixtureEvent] = []
     var showsCompetition: Bool = true
 
+    private var isExtraTime: Bool {
+        match.statusShort.uppercased() == "ET"
+    }
+
+    private var isExtraTimeBreak: Bool {
+        let statusUpper = match.statusShort.uppercased()
+        if statusUpper == "BT" {
+            return true
+        }
+        return statusUpper == "HT" && match.statusElapsed >= 90
+    }
+
     private var statusText: String {
         let statusUpper = match.statusShort.uppercased()
 
         if statusUpper == "HT" {
-            return NSLocalizedString("match.status.halftime", value: "HALFTIME", comment: "Halftime status")
+            return isExtraTimeBreak
+                ? NSLocalizedString("match.status.extratime", value: "EXTRA TIME", comment: "Extra time status")
+                : NSLocalizedString("match.status.halftime", value: "HALFTIME", comment: "Halftime status")
         }
 
         if statusUpper == "BT" {
@@ -75,10 +89,19 @@ struct MatchCard: View {
                     (isLive || isBreak) ? .white : .secondary
                 )
                 .cornerRadius(12)
-                
+
                 Spacer()
-                
-                if showsCompetition {
+
+                if isExtraTime || isExtraTimeBreak {
+                    Text(NSLocalizedString("match.status.extratime", value: "EXTRA TIME", comment: "Extra time status"))
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.orange)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                } else if showsCompetition {
                     Text(match.competition)
                         .font(.caption)
                         .foregroundColor(.secondary)
