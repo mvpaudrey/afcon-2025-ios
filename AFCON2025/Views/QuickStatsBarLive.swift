@@ -228,6 +228,8 @@ struct QuickStatsBarLive: View {
                             let statusUpper = liveMatch.statusShort.uppercased()
                             if statusUpper == "HT" { return "match.status.halftime" }
                             if statusUpper == "BT" { return "match.status.breaktime" }
+                            if statusUpper == "ET" { return "match.status.extratime" }
+                            if statusUpper == "P" || statusUpper == "PEN" { return "match.status.penalties" }
                             return "quickstats.live"
                         }()
                         if let statusText = statusText {
@@ -251,6 +253,7 @@ struct QuickStatsBarLive: View {
     private func liveMatchView(_ liveMatch: Game, isMinimized: Bool, compact: Bool) -> some View {
         let statusUpper = liveMatch.statusShort.uppercased()
         let isBreak = statusUpper == "HT" || statusUpper == "BT"
+        let isPenalties = statusUpper == "P" || statusUpper == "PEN"
         let flagSize: CGFloat = compact ? 16 : 20
         let fontSize: Font = compact ? .caption : .subheadline
 
@@ -284,10 +287,24 @@ struct QuickStatsBarLive: View {
             }
 
             if !compact {
-                Text(isBreak ? "" : liveMatch.displayMinute)
-                    .fontWeight(isBreak ? .semibold : .medium)
-                    .foregroundColor(isBreak ? .orange : .white)
-                    .opacity(isBreak ? 1.0 : 0.9)
+                HStack(spacing: 6) {
+                    Text(isBreak || isPenalties ? "" : liveMatch.displayMinute)
+                        .fontWeight(isBreak ? .semibold : .medium)
+                        .foregroundColor(isBreak ? .orange : .white)
+                        .opacity(isBreak ? 1.0 : 0.9)
+
+                    if isPenalties, let homePens = liveMatch.homePenaltyScore, let awayPens = liveMatch.awayPenaltyScore {
+                        Text(String.localizedStringWithFormat(
+                            NSLocalizedString("Pens: %lld-%lld", comment: "Penalty shootout score label"),
+                            homePens,
+                            awayPens
+                        ).replacingOccurrences(of: "-", with: "–"))
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .opacity(0.9)
+                        .monospacedDigit()
+                    }
+                }
             }
         }
         .font(fontSize)

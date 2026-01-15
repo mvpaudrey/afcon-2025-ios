@@ -11,6 +11,14 @@ struct MatchCard: View {
         match.statusShort.uppercased() == "ET"
     }
 
+    private var isPenalties: Bool {
+        let statusUpper = match.statusShort.uppercased()
+        if statusUpper == "P" || statusUpper == "PEN" {
+            return true
+        }
+        return match.homePenaltyScore != nil || match.awayPenaltyScore != nil
+    }
+
     private var isExtraTimeBreak: Bool {
         let statusUpper = match.statusShort.uppercased()
         if statusUpper == "BT" {
@@ -21,6 +29,10 @@ struct MatchCard: View {
 
     private var statusText: String {
         let statusUpper = match.statusShort.uppercased()
+
+        if statusUpper == "P" || statusUpper == "PEN" {
+            return NSLocalizedString("match.status.penalties", value: "PENALTIES", comment: "Penalties status")
+        }
 
         if statusUpper == "HT" {
             return isExtraTimeBreak
@@ -66,15 +78,17 @@ struct MatchCard: View {
         VStack(spacing: 12) {
             HStack {
                 HStack(spacing: 4) {
-                    if isLive {
-                        Image(systemName: "clock")
-                            .font(.caption2)
-                    } else if isBreak {
-                        Image(systemName: "pause.circle.fill")
-                            .font(.caption2)
-                    } else if match.status == .upcoming {
-                        Image(systemName: "clock")
-                            .font(.caption2)
+                    if !isPenalties {
+                        if isLive {
+                            Image(systemName: "clock")
+                                .font(.caption2)
+                        } else if isBreak {
+                            Image(systemName: "pause.circle.fill")
+                                .font(.caption2)
+                        } else if match.status == .upcoming {
+                            Image(systemName: "clock")
+                                .font(.caption2)
+                        }
                     }
                     Text(statusText)
                         .font(.caption)
@@ -92,7 +106,13 @@ struct MatchCard: View {
 
                 Spacer()
 
-                if isExtraTime || isExtraTimeBreak {
+                if isPenalties {
+                    if showsCompetition {
+                        Text(match.competition)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                } else if isExtraTime || isExtraTimeBreak {
                     Text(NSLocalizedString("match.status.extratime", value: "EXTRA TIME", comment: "Extra time status"))
                         .font(.caption)
                         .fontWeight(.medium)
@@ -108,107 +128,219 @@ struct MatchCard: View {
                 }
             }
             
-            HStack {
-                // Home Team
-                HStack(spacing: 12) {
-                    if let flagAsset = match.homeTeamFlagAsset {
-                        Image(flagAsset)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 40, height: 40)
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.gray.opacity(0.2), lineWidth: 1))
-                    } else {
-                        ZStack {
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [Color("moroccoRed"), Color("moroccoRedDark")],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
+            if isPenalties {
+                HStack(alignment: .center) {
+                    VStack(spacing: 8) {
+                        if let flagAsset = match.homeTeamFlagAsset {
+                            Image(flagAsset)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 48, height: 48)
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                        } else {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color("moroccoRed"), Color("moroccoRedDark")],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
                                     )
-                                )
-                                .frame(width: 40, height: 40)
+                                    .frame(width: 48, height: 48)
 
-                            Text(String(match.homeTeam.prefix(1)))
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
+                                Text(String(match.homeTeam.prefix(1)))
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                            }
                         }
+
+                        Text(localizedTeamName(match.homeTeam))
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                            .frame(maxWidth: 120)
                     }
 
-                    Text(localizedTeamName(match.homeTeam))
-                        .fontWeight(.medium)
-                        .lineLimit(2)
-                }
-                
-                Spacer()
-                
-                // Score
-                if match.status == .upcoming && match.homeScore == 0 && match.awayScore == 0 {
-                    Text(LocalizedStringKey("VS"))
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.secondary)
-                } else {
-                    VStack(spacing: 4) {
-                        HStack(spacing: 8) {
-                            Text("\(match.homeScore)")
-                                .font(.title)
-                                .fontWeight(.bold)
-                                .foregroundColor(scoreColor(for: match.homeScore, opponentScore: match.awayScore))
+                    Spacer()
 
-                            Text("-")
+                    VStack(spacing: 6) {
+                        HStack(spacing: 10) {
+                            Text("\(match.homeScore)")
+                                .font(.system(size: 34, weight: .bold))
+                                .foregroundColor(.primary)
+                                .monospacedDigit()
+
+                            Text(":")
+                                .font(.system(size: 28, weight: .bold))
                                 .foregroundColor(.secondary)
 
                             Text("\(match.awayScore)")
-                                .font(.title)
-                                .fontWeight(.bold)
-                                .foregroundColor(scoreColor(for: match.awayScore, opponentScore: match.homeScore))
+                                .font(.system(size: 34, weight: .bold))
+                                .foregroundColor(.primary)
+                                .monospacedDigit()
                         }
 
-                        // Show penalty score if available
                         if let homePens = match.homePenaltyScore, let awayPens = match.awayPenaltyScore {
-                            Text("Pens: \(homePens)-\(awayPens)")
+                            Text(String.localizedStringWithFormat(
+                                NSLocalizedString("Pens: %lld-%lld", comment: "Penalty shootout score label"),
+                                homePens,
+                                awayPens
+                            ))
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+                            .monospacedDigit()
+                        }
+                    }
+
+                    Spacer()
+
+                    VStack(spacing: 8) {
+                        if let flagAsset = match.awayTeamFlagAsset {
+                            Image(flagAsset)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 48, height: 48)
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                        } else {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color("moroccoGreen"), Color("moroccoGreenDark")],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 48, height: 48)
+
+                                Text(String(match.awayTeam.prefix(1)))
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                            }
+                        }
+
+                        Text(localizedTeamName(match.awayTeam))
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                            .frame(maxWidth: 120)
+                    }
+                }
+            } else {
+                HStack {
+                    // Home Team
+                    HStack(spacing: 12) {
+                        if let flagAsset = match.homeTeamFlagAsset {
+                            Image(flagAsset)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 40, height: 40)
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                        } else {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color("moroccoRed"), Color("moroccoRedDark")],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 40, height: 40)
+
+                                Text(String(match.homeTeam.prefix(1)))
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                            }
+                        }
+
+                        Text(localizedTeamName(match.homeTeam))
+                            .fontWeight(.medium)
+                            .lineLimit(2)
+                    }
+                    
+                    Spacer()
+                    
+                    // Score
+                    if match.status == .upcoming && match.homeScore == 0 && match.awayScore == 0 {
+                        Text(LocalizedStringKey("VS"))
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+                    } else {
+                        VStack(spacing: 4) {
+                            HStack(spacing: 8) {
+                                Text("\(match.homeScore)")
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(scoreColor(for: match.homeScore, opponentScore: match.awayScore))
+
+                                Text("-")
+                                    .foregroundColor(.secondary)
+
+                                Text("\(match.awayScore)")
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(scoreColor(for: match.awayScore, opponentScore: match.homeScore))
+                            }
+
+                            // Show penalty score if available
+                            if let homePens = match.homePenaltyScore, let awayPens = match.awayPenaltyScore {
+                                Text(String.localizedStringWithFormat(
+                                    NSLocalizedString("Pens: %lld-%lld", comment: "Penalty shootout score label"),
+                                    homePens,
+                                    awayPens
+                                ))
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                                 .foregroundColor(homePens > awayPens ? Color("moroccoGreen") : (awayPens > homePens ? Color("moroccoRed") : .secondary))
                                 .monospacedDigit()
+                            }
                         }
                     }
-                }
-                
-                Spacer()
-                
-                // Away Team
-                HStack(spacing: 12) {
-                    Text(localizedTeamName(match.awayTeam))
-                        .fontWeight(.medium)
-                        .lineLimit(2)
+                    
+                    Spacer()
+                    
+                    // Away Team
+                    HStack(spacing: 12) {
+                        Text(localizedTeamName(match.awayTeam))
+                            .fontWeight(.medium)
+                            .lineLimit(2)
 
-                    if let flagAsset = match.awayTeamFlagAsset {
-                        Image(flagAsset)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 40, height: 40)
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.gray.opacity(0.2), lineWidth: 1))
-                    } else {
-                        ZStack {
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [Color("moroccoGreen"), Color("moroccoGreenDark")],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
+                        if let flagAsset = match.awayTeamFlagAsset {
+                            Image(flagAsset)
+                                .resizable()
+                                .scaledToFill()
                                 .frame(width: 40, height: 40)
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                        } else {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color("moroccoGreen"), Color("moroccoGreenDark")],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 40, height: 40)
 
-                            Text(String(match.awayTeam.prefix(1)))
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
+                                Text(String(match.awayTeam.prefix(1)))
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                            }
                         }
                     }
                 }
@@ -316,11 +448,14 @@ struct MatchCard: View {
                 .font(.caption2)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .monospacedDigit()
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)
                 .background(timeBackgroundColor)
                 .cornerRadius(4)
-                .frame(width: 45, alignment: .center)
+                .frame(width: 62, alignment: .center)
         }
         
         private var descriptionStack: some View {
