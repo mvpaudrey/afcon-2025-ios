@@ -32,10 +32,17 @@ struct MatchCardView: View {
                     Spacer()
 
                     if let score1 = match.score1 {
-                        Text("\(score1)")
-                            .font(.footnote)
-                            .fontWeight(.bold)
-                            .foregroundColor(scoreColor(for: score1, opponentScore: match.score2))
+                        HStack(spacing: 2) {
+                            Text("\(score1)")
+                                .foregroundColor(scoreColor(for: score1, opponentScore: match.score2))
+
+                            if let penalty1 = match.penalty1 {
+                                Text("(\(penalty1))")
+                                    .foregroundColor(penaltyColor(for: penalty1, opponentPenalty: match.penalty2))
+                            }
+                        }
+                        .font(.footnote)
+                        .fontWeight(.bold)
                     } else {
                         Text("-")
                             .font(.footnote)
@@ -67,10 +74,17 @@ struct MatchCardView: View {
                     Spacer()
 
                     if let score2 = match.score2 {
-                        Text("\(score2)")
-                            .font(.footnote)
-                            .fontWeight(.bold)
-                            .foregroundColor(scoreColor(for: score2, opponentScore: match.score1))
+                        HStack(spacing: 2) {
+                            Text("\(score2)")
+                                .foregroundColor(scoreColor(for: score2, opponentScore: match.score1))
+
+                            if let penalty2 = match.penalty2 {
+                                Text("(\(penalty2))")
+                                    .foregroundColor(penaltyColor(for: penalty2, opponentPenalty: match.penalty1))
+                            }
+                        }
+                        .font(.footnote)
+                        .fontWeight(.bold)
                     } else {
                         Text("-")
                             .font(.footnote)
@@ -132,6 +146,18 @@ struct MatchCardView: View {
             return nil
         }
         return score1 > score2 ? 1 : 2
+    }
+
+    private func penaltyColor(for penalty: Int, opponentPenalty: Int?) -> Color {
+        guard let opponentPenalty else { return .secondary }
+
+        if penalty > opponentPenalty {
+            return Color("moroccoGreen")
+        }
+        if penalty < opponentPenalty {
+            return Color("moroccoRed")
+        }
+        return .secondary
     }
 
     private func formatDate(_ dateString: String) -> String {
