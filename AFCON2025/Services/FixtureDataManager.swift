@@ -48,6 +48,7 @@ class FixtureDataManager {
             try modelContext.save()
 
             lastSyncDate = Date()
+            AppSettings.shared.lastFixturesSyncAt = lastSyncDate
             print("Successfully initialized \(serverFixtures.count) fixtures in SwiftData")
 
         } catch {
@@ -59,6 +60,40 @@ class FixtureDataManager {
     }
 
     // MARK: - Sync Updates
+
+    /// Sync all fixtures without clearing existing data
+    func syncAllFixtures(leagueId: Int32 = 6, season: Int32 = 2025) async {
+        do {
+            let serverFixtures = try await service.getFixtures(
+                leagueId: leagueId,
+                season: season
+            )
+
+            for grpcFixture in serverFixtures {
+                let fixtureId = Int(grpcFixture.id)
+                let descriptor = FetchDescriptor<FixtureModel>(
+                    predicate: #Predicate<FixtureModel> { fixture in
+                        fixture.id == fixtureId
+                    }
+                )
+
+                if let existingFixture = try modelContext.fetch(descriptor).first {
+                    applyFixtureMetadata(existingFixture, with: grpcFixture)
+                    updateFixtureModel(existingFixture, with: grpcFixture)
+                } else {
+                    let fixtureModel = mapToFixtureModel(grpcFixture)
+                    modelContext.insert(fixtureModel)
+                }
+            }
+
+            try modelContext.save()
+            lastSyncDate = Date()
+            AppSettings.shared.lastFixturesSyncAt = lastSyncDate
+
+        } catch {
+            print("Error syncing all fixtures: \(error)")
+        }
+    }
 
     /// Sync specific fixtures (e.g., today's matches or live matches)
     func syncLiveFixtures(leagueId: Int32 = 6, season: Int32 = 2025) async {
@@ -186,6 +221,34 @@ class FixtureDataManager {
             competition: "AFCON 2025",
             round: grpcFixture.league.round.isEmpty ? nil : grpcFixture.league.round
         )
+    }
+
+    private func applyFixtureMetadata(_ model: FixtureModel, with grpcFixture: Afcon_Fixture) {
+        let timestamp = Int(grpcFixture.timestamp)
+        let date = Date(timeIntervalSince1970: TimeInterval(timestamp))
+
+        model.referee = grpcFixture.referee
+        model.timezone = grpcFixture.timezone
+        model.date = date
+        model.timestamp = timestamp
+
+        model.venueId = Int(grpcFixture.venue.id)
+        model.venueName = grpcFixture.venue.name
+        model.venueCity = grpcFixture.venue.city
+
+        model.homeTeamId = Int(grpcFixture.teams.home.id)
+        model.homeTeamName = localizedTeamName(grpcFixture.teams.home.name)
+        model.homeTeamLogo = grpcFixture.teams.home.logo
+
+        model.awayTeamId = Int(grpcFixture.teams.away.id)
+        model.awayTeamName = localizedTeamName(grpcFixture.teams.away.name)
+        model.awayTeamLogo = grpcFixture.teams.away.logo
+
+        let competition = grpcFixture.league.name
+        if !competition.isEmpty {
+            model.competition = competition
+        }
+        model.round = grpcFixture.league.round.isEmpty ? nil : grpcFixture.league.round
     }
 
     // MARK: - Localization Helper

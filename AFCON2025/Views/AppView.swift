@@ -19,6 +19,7 @@ struct AppView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showOnboarding = !AppSettings.shared.hasCompletedOnboarding
     @State private var isLoading = true
+    private let fixturesRefreshInterval: TimeInterval = 6 * 60 * 60
 
     var body: some View {
         ZStack {
@@ -45,6 +46,9 @@ struct AppView: View {
             Task {
                 await AppNotificationService.shared.syncIfPossibleOnLaunch()
             }
+            Task {
+                await refreshFixturesOnLaunchIfNeeded()
+            }
 
             // Simulate minimum loading time for smooth experience
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -70,6 +74,19 @@ struct AppView: View {
         } catch {
             print("❌ Failed to load favorite teams: \(error)")
         }
+    }
+
+    private func refreshFixturesOnLaunchIfNeeded() async {
+        guard shouldRefreshFixturesOnLaunch() else { return }
+        let manager = FixtureDataManager(modelContext: modelContext)
+        await manager.syncAllFixtures()
+    }
+
+    private func shouldRefreshFixturesOnLaunch() -> Bool {
+        guard let lastSync = AppSettings.shared.lastFixturesSyncAt else {
+            return true
+        }
+        return Date().timeIntervalSince(lastSync) >= fixturesRefreshInterval
     }
 }
 

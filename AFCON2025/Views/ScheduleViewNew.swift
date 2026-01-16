@@ -127,6 +127,8 @@ struct ScheduleViewNew: View {
             // If no fixtures, fetch from server
             if !viewModel.hasFixtures {
                 await viewModel.fetchAllFixtures()
+            } else if viewModel.shouldRefreshFixtures() {
+                await viewModel.fetchAllFixtures()
             }
         }
     }

@@ -125,7 +125,8 @@ dependencies: [
 1. **Ensure the AFCON middleware is reachable** (gRPC endpoint that serves league ID 6).
 2. **Open the iOS app**:
    - Use the Live tab for real-time matches
-   - Schedule tab will fetch AFCON fixtures and cache them locally
+   - App refreshes fixtures on launch (every 6 hours) and caches them locally
+   - Schedule tab lets you manually refresh fixtures on demand
    - Live Activities can be enabled from the Live view when running on device
 
 ### Live Activity on Lock Screen

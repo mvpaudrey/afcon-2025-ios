@@ -49,6 +49,7 @@ final class AppSettings {
         static let lastLaunchVersion = "lastLaunchVersion"
         static let appLanguage = "appLanguage"
         static let lastDeviceToken = "lastDeviceToken"
+        static let lastFixturesSyncAt = "lastFixturesSyncAt"
     }
 
     // MARK: - Onboarding
@@ -127,6 +128,17 @@ final class AppSettings {
         }
         set {
             userDefaults.set(newValue, forKey: Keys.lastDeviceToken)
+        }
+    }
+
+    // MARK: - Fixtures Sync
+
+    var lastFixturesSyncAt: Date? {
+        get {
+            userDefaults.object(forKey: Keys.lastFixturesSyncAt) as? Date
+        }
+        set {
+            userDefaults.set(newValue, forKey: Keys.lastFixturesSyncAt)
         }
     }
 

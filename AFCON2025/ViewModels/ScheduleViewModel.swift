@@ -7,6 +7,7 @@ import AFCONClient
 final class ScheduleViewModel {
     private let afconService: AFCONServiceWrapper
     var modelContext: ModelContext?
+    private let fixturesRefreshInterval: TimeInterval = 6 * 60 * 60
 
     var fixtures: [FixtureModel] = []
     var isLoading: Bool = false
@@ -56,6 +57,7 @@ final class ScheduleViewModel {
 
             // Convert and save to database
             await saveFixturesToDatabase(grpcFixtures)
+            AppSettings.shared.lastFixturesSyncAt = Date()
 
             // Reload from database
             loadFixturesFromDatabase()
@@ -66,6 +68,13 @@ final class ScheduleViewModel {
         }
 
         isLoading = false
+    }
+
+    func shouldRefreshFixtures() -> Bool {
+        guard let lastSync = AppSettings.shared.lastFixturesSyncAt else {
+            return true
+        }
+        return Date().timeIntervalSince(lastSync) >= fixturesRefreshInterval
     }
 
     /// Fetch fixtures by date from middleware
