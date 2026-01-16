@@ -32,39 +32,39 @@ struct LiveScoreActivityWidget: Widget {
 
                     VStack(spacing: 6) {
                         // Team names with scores - horizontally aligned
-                        HStack(spacing: 6) {
+                        HStack(spacing: 8) {
                             // Home team name
                             Text(displayTeamName(context.attributes.homeTeam))
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.75))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.85))
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.7)
-                                .frame(maxWidth: 54, alignment: .trailing)
+                                .frame(maxWidth: 65, alignment: .trailing)
 
                             // Home score
                             Text("\(context.state.homeScore)")
-                                .font(.system(size: 28, weight: .heavy))
+                                .font(.system(size: 32, weight: .heavy))
                                 .foregroundColor(.white)
                                 .monospacedDigit()
 
                             // Dash separator
                             Text("-")
-                                .font(.system(size: 20, weight: .bold))
+                                .font(.system(size: 24, weight: .bold))
                                 .foregroundColor(.white.opacity(0.5))
 
                             // Away score
                             Text("\(context.state.awayScore)")
-                                .font(.system(size: 28, weight: .heavy))
+                                .font(.system(size: 32, weight: .heavy))
                                 .foregroundColor(.white)
                                 .monospacedDigit()
 
                             // Away team name
                             Text(displayTeamName(context.attributes.awayTeam))
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.75))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.85))
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.7)
-                                .frame(maxWidth: 54, alignment: .leading)
+                                .frame(maxWidth: 65, alignment: .leading)
                         }
 
                         // Status and Time
@@ -133,7 +133,7 @@ struct LockScreenLiveScoreView: View {
         let status = state.status
         let label = statusLabel(status)
         let color = statusColor(status)
-        let teamNameWidth: CGFloat = 90
+        let teamNameWidth: CGFloat = 80
 
         VStack(spacing: 12) {
             // Competition header
@@ -161,8 +161,8 @@ struct LockScreenLiveScoreView: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(localizedTeamName(context.attributes.homeTeam))
-                            .font(.system(size: 16, weight: .semibold))
-                            .lineLimit(1)
+                            .font(.system(size: 15, weight: .semibold))
+                            .lineLimit(2)
                             .minimumScaleFactor(0.7)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -172,20 +172,22 @@ struct LockScreenLiveScoreView: View {
                 Spacer()
 
                 // Center: Scores with dash
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Text("\(state.homeScore)")
-                        .font(.system(size: 36, weight: .bold))
-                        .foregroundColor(.primary)
+                        .font(.system(size: 30, weight: .heavy))
+                        .foregroundColor(.white)
                         .monospacedDigit()
+                        .shadow(color: Color.black.opacity(0.6), radius: 2, x: 0, y: 1)
 
                     Text("-")
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(.white.opacity(0.65))
 
                     Text("\(state.awayScore)")
-                        .font(.system(size: 36, weight: .bold))
-                        .foregroundColor(.primary)
+                        .font(.system(size: 30, weight: .heavy))
+                        .foregroundColor(.white)
                         .monospacedDigit()
+                        .shadow(color: Color.black.opacity(0.6), radius: 2, x: 0, y: 1)
                 }
 
                 Spacer()
@@ -194,8 +196,8 @@ struct LockScreenLiveScoreView: View {
                 HStack(spacing: 6) {
                     VStack(alignment: .trailing, spacing: 2) {
                         Text(localizedTeamName(context.attributes.awayTeam))
-                            .font(.system(size: 16, weight: .semibold))
-                            .lineLimit(1)
+                            .font(.system(size: 15, weight: .semibold))
+                            .lineLimit(2)
                             .minimumScaleFactor(0.7)
                             .fixedSize(horizontal: false, vertical: true)
                     }
