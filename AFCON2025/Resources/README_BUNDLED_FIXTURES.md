@@ -198,6 +198,7 @@ The current fixture files contain:
 - User can view schedule immediately
 
 ### During Tournament
+- App refreshes fixtures on launch (every 6 hours) to pull new games
 - User can tap "Sync Live Matches" in Settings
 - Updates scores and status for ongoing matches
 - Preserves offline capability

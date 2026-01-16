@@ -22,6 +22,7 @@ SwiftData model that stores all fixture information:
 ### 2. FixtureDataManager (`Services/FixtureDataManager.swift`)
 Service that handles syncing between server and SwiftData:
 - `initializeFixtures()` - Fetch all fixtures from server
+- `syncAllFixtures()` - Upsert all fixtures without clearing
 - `syncLiveFixtures()` - Update live matches
 - `syncFixturesForDate()` - Sync fixtures for specific date
 - Query helpers for getting fixtures by status
@@ -37,6 +38,11 @@ User interface for managing fixture data:
 Example view showing how to query and display fixtures from SwiftData
 
 ## Usage
+
+### Automatic Refresh on App Launch
+
+The app refreshes fixtures on launch if the last sync is older than 6 hours. This uses
+`syncAllFixtures()` so new matches are added and existing matches are updated without clearing data.
 
 ### Step 1: Initialize Fixtures Before Tournament Starts
 
@@ -126,6 +132,19 @@ During the tournament, you can sync live matches to get real-time updates:
 private func syncLiveMatches() async {
     let manager = FixtureDataManager(modelContext: modelContext)
     await manager.syncLiveFixtures()
+}
+```
+
+### Step 4: Full Refresh (Non-Destructive)
+
+If you want to pull the latest schedule updates without clearing local data:
+
+```swift
+@Environment(\.modelContext) private var modelContext
+
+private func refreshAllFixtures() async {
+    let manager = FixtureDataManager(modelContext: modelContext)
+    await manager.syncAllFixtures()
 }
 ```
 
