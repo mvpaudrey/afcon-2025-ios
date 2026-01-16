@@ -284,14 +284,17 @@ private func matchTimerView(
                 .fontWeight(.semibold)
                 .foregroundColor(.green)
                 .frame(maxWidth: fullWidth ? .infinity : nil, alignment: .center)
+        } else if displayStatus == "P" || displayStatus == "PEN" {
+            EmptyView()
         } else if let seconds = elapsedSeconds(for: state, at: timeline.date) {
-            Text(formatClock(seconds))
+            let minutes = max(Int(seconds / 60), 0)
+            Text(formatMatchMinute(status: displayStatus, elapsed: minutes))
                 .font(font)
                 .monospacedDigit()
                 .foregroundColor(.white.opacity(0.8))
                 .frame(maxWidth: fullWidth ? .infinity : nil, alignment: .center)
         } else if state.elapsed >= 0 {
-            Text("\(state.elapsed)'")
+            Text(formatMatchMinute(status: displayStatus, elapsed: Int(state.elapsed)))
                 .font(font)
                 .monospacedDigit()
                 .foregroundColor(.white.opacity(0.8))
@@ -478,11 +481,28 @@ private func elapsedSeconds(for state: LiveScoreActivityAttributes.ContentState,
     return baseSeconds + secondsSinceUpdate
 }
 
-private func formatClock(_ seconds: Int) -> String {
-    let total = max(seconds, 0)
-    let minutes = total / 60
-    let remainder = total % 60
-    return String(format: "%d:%02d", minutes, remainder)
+private func formatMatchMinute(status: String, elapsed: Int) -> String {
+    let minutes = max(elapsed, 0)
+    let upper = status.uppercased()
+
+    if upper == "1H" && minutes > 45 {
+        return "45'+\(minutes - 45)"
+    }
+
+    if upper == "2H" && minutes > 90 {
+        return "90'+\(minutes - 90)"
+    }
+
+    if upper == "ET" {
+        if minutes > 120 {
+            return "120'+\(minutes - 120)"
+        }
+        if minutes > 105 {
+            return "105'+\(minutes - 105)"
+        }
+    }
+
+    return "\(minutes)'"
 }
 
 private func statusLabel(_ status: String) -> String {
