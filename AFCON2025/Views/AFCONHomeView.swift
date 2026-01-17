@@ -92,7 +92,7 @@ struct AFCONHomeView: View {
                         .tag(4)
                 }
                 .overlay(alignment: .bottom) {
-                    if let viewModel = liveScoresViewModel {
+                    if let viewModel = liveScoresViewModel, viewModel.hasGamesToday {
                         QuickStatsBarLive(liveScoresViewModel: viewModel)
                             .padding(.bottom, 49)
                     }
@@ -256,13 +256,15 @@ private struct TabViewBottomAccessoryCompat: ViewModifier {
 
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
-            content
-                .tabViewBottomAccessory {
-                    if let viewModel = viewModel {
+            if let viewModel = viewModel, viewModel.hasGamesToday {
+                content
+                    .tabViewBottomAccessory {
                         QuickStatsBarLive(liveScoresViewModel: viewModel)
                             .ignoresSafeArea(edges: .horizontal)
                     }
-                }
+            } else {
+                content
+            }
         } else {
             content
         }
