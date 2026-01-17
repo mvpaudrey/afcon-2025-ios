@@ -225,14 +225,9 @@ enum BracketRound: String, CaseIterable {
 // MARK: - Main Bracket View
 struct BracketView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var viewModel = BracketViewModel()
-    @State private var selectedRound: BracketRound = .roundOf16
+    @State private var viewModel = BracketViewModel.shared
     @State private var scrollOffset: CGFloat = 0
     @Query(sort: \FixtureModel.date) private var fixtures: [FixtureModel]
-
-    init() {
-        _selectedRound = State(initialValue: determineCurrentRound())
-    }
 
     private func determineCurrentRound() -> BracketRound {
         let today = Date()
@@ -310,19 +305,23 @@ struct BracketView: View {
             } else if let bracketMatches = viewModel.bracketMatches {
                 BracketContentView(
                     bracketMatches: bracketMatches,
-                    selectedRound: $selectedRound,
+                    selectedRound: $viewModel.selectedRound,
                     determineCurrentRound: determineCurrentRound
                 )
             } else {
                 // Fallback to static data if API fails
                 BracketContentView(
                     bracketMatches: BracketData.allMatches,
-                    selectedRound: $selectedRound,
+                    selectedRound: $viewModel.selectedRound,
                     determineCurrentRound: determineCurrentRound
                 )
             }
         }
         .task {
+            if !viewModel.hasInitializedSelectedRound {
+                viewModel.selectedRound = determineCurrentRound()
+                viewModel.hasInitializedSelectedRound = true
+            }
             viewModel.configure(modelContext: modelContext)
             await viewModel.loadBracketData()
             await viewModel.syncKnockoutFixturesForPastDates()
@@ -339,6 +338,7 @@ private struct BracketContentView: View {
     let bracketMatches: BracketMatches
     @Binding var selectedRound: BracketRound
     let determineCurrentRound: () -> BracketRound
+    @State private var scrollRequestId = UUID()
     private let semiToQuarterFinalIds: [Int: (Int, Int)] = [
         49: (45, 48),
         50: (46, 47)
@@ -354,6 +354,41 @@ private struct BracketContentView: View {
         return order.compactMap { byId[$0] }
     }
 
+    private var semiFinalsFirstId: Int? {
+        orderedSemiFinals.first?.id
+    }
+
+    private var isThirdPlaceToday: Bool {
+        guard let thirdPlaceDate = matchDateTime(bracketMatches.thirdPlace) else {
+            return false
+        }
+        return Calendar.current.isDate(Date(), inSameDayAs: thirdPlaceDate)
+    }
+
+    private var finalScrollTargetId: String {
+        isThirdPlaceToday ? "third_place_scroll_anchor" : "final_scroll_anchor"
+    }
+
+    private func scheduleScroll(to round: BracketRound, proxy: ScrollViewProxy) {
+        let requestId = UUID()
+        scrollRequestId = requestId
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            guard scrollRequestId == requestId else { return }
+            withAnimation(.easeInOut(duration: 0.8)) {
+                switch round {
+                case .roundOf16:
+                    proxy.scrollTo("round16", anchor: .center)
+                case .quarterFinals:
+                    proxy.scrollTo("quarterfinals", anchor: .center)
+                case .semiFinals:
+                    proxy.scrollTo("semifinals_first_card", anchor: .center)
+                case .final:
+                    proxy.scrollTo(finalScrollTargetId, anchor: .center)
+                }
+            }
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ScrollViewReader { proxy in
@@ -363,18 +398,6 @@ private struct BracketContentView: View {
                         ForEach(BracketRound.allCases, id: \.self) { round in
                             Button(action: {
                                 selectedRound = round
-                                withAnimation(.easeInOut(duration: 0.8)) {
-                                    switch round {
-                                    case .roundOf16:
-                                        proxy.scrollTo("round16", anchor: .center)
-                                    case .quarterFinals:
-                                        proxy.scrollTo("quarterfinals", anchor: .center)
-                                    case .semiFinals:
-                                        proxy.scrollTo("semifinals", anchor: .center)
-                                    case .final:
-                                        proxy.scrollTo("final", anchor: .center)
-                                    }
-                                }
                             }) {
                                 Text(round.localizedKey)
                                     .font(.system(size: 14, weight: selectedRound == round ? .bold : .medium))
@@ -636,6 +659,7 @@ private struct BracketContentView: View {
                                 .frame(width: cardWidth, height: cardHeight)
                         }
                         .position(x: sfLeft + cardWidth / 2, y: 40 + sfYCenters[index])
+                        .id((match.id == semiFinalsFirstId || (semiFinalsFirstId == nil && index == 0)) ? "semifinals_first_card" : "semifinals_card_\(match.id)")
                     }
 
                     // Final with date/venue/time info above
@@ -663,6 +687,12 @@ private struct BracketContentView: View {
                             .frame(width: cardWidth, height: cardHeight)
                     }
                     .position(x: finalLeft + cardWidth / 2, y: 40 + finalYCenter)
+                    .id("final_card")
+
+                    Color.clear
+                        .frame(width: 1, height: 1)
+                        .position(x: finalLeft + cardWidth / 2, y: 40 + finalYCenter)
+                        .id("final_scroll_anchor")
 
                     // Third Place with date/venue/time info above
                     VStack(spacing: 4) {
@@ -689,6 +719,12 @@ private struct BracketContentView: View {
                             .frame(width: cardWidth, height: cardHeight)
                     }
                     .position(x: finalLeft + cardWidth / 2, y: 40 + finalYCenter + 150)
+                    .id("third_place_card")
+
+                    Color.clear
+                        .frame(width: 1, height: 1)
+                        .position(x: finalLeft + cardWidth / 2, y: 40 + finalYCenter + 150)
+                        .id("third_place_scroll_anchor")
                 }
                 .frame(width: 1300, height: 1300)
                 .padding(20)
@@ -703,18 +739,10 @@ private struct BracketContentView: View {
             )
             }
             .onAppear {
-                withAnimation(.easeInOut(duration: 0.8)) {
-                    switch selectedRound {
-                    case .roundOf16:
-                        proxy.scrollTo("round16", anchor: .center)
-                    case .quarterFinals:
-                        proxy.scrollTo("quarterfinals", anchor: .center)
-                    case .semiFinals:
-                        proxy.scrollTo("semifinals", anchor: .center)
-                    case .final:
-                        proxy.scrollTo("final", anchor: .center)
-                    }
-                }
+                scheduleScroll(to: selectedRound, proxy: proxy)
+            }
+            .onChange(of: selectedRound) { _, round in
+                scheduleScroll(to: round, proxy: proxy)
             }
                 }
             }

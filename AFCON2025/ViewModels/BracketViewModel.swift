@@ -5,9 +5,13 @@ import AFCONClient
 
 @Observable
 class BracketViewModel {
+    static let shared = BracketViewModel()
+
     var isLoading = false
     var errorMessage: String?
     var bracketMatches: BracketMatches?
+    var selectedRound: BracketRound = .roundOf16
+    var hasInitializedSelectedRound = false
 
     private let service = AFCONServiceWrapper.shared
     private var standings: [String: [Team]] = [:]
