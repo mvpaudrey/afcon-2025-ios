@@ -139,15 +139,60 @@ struct FixtureCard: View {
     private var showsScore: Bool {
         fixture.isFinished || fixture.isLive
     }
+    private var showsPenaltyScore: Bool {
+        fixture.penaltyHome > 0 || fixture.penaltyAway > 0
+    }
     private var homeScoreColor: Color {
+        if showsPenaltyScore { return .secondary }
         if fixture.homeTeamWinner { return Color("moroccoGreen") }
         if fixture.awayTeamWinner { return Color("moroccoRed") }
         return .secondary
     }
     private var awayScoreColor: Color {
+        if showsPenaltyScore { return .secondary }
         if fixture.awayTeamWinner { return Color("moroccoGreen") }
         if fixture.homeTeamWinner { return Color("moroccoRed") }
         return .secondary
+    }
+    private var homePenaltyColor: Color {
+        if fixture.penaltyHome > fixture.penaltyAway { return Color("moroccoGreen") }
+        if fixture.penaltyHome < fixture.penaltyAway { return Color("moroccoRed") }
+        return .secondary
+    }
+    private var awayPenaltyColor: Color {
+        if fixture.penaltyAway > fixture.penaltyHome { return Color("moroccoGreen") }
+        if fixture.penaltyAway < fixture.penaltyHome { return Color("moroccoRed") }
+        return .secondary
+    }
+    private var penaltyScoreText: AttributedString {
+        let penaltyFormat = String(localized: "Pens: %lld-%lld", comment: "Penalty shootout score label")
+        let penaltyText = String.localizedStringWithFormat(
+            penaltyFormat,
+            Int64(fixture.penaltyHome),
+            Int64(fixture.penaltyAway)
+        )
+
+        var attributed = AttributedString(penaltyText)
+        attributed.foregroundColor = .secondary
+
+        let homeText = String(fixture.penaltyHome)
+        let awayText = String(fixture.penaltyAway)
+
+        if let homeRange = attributed.range(of: homeText) {
+            attributed[homeRange].foregroundColor = homePenaltyColor
+
+            let searchStart = homeRange.upperBound
+            let tail = attributed[searchStart...]
+            if let awayRangeInTail = tail.range(of: awayText) {
+                attributed[awayRangeInTail].foregroundColor = awayPenaltyColor
+            } else if let awayRange = attributed.range(of: awayText) {
+                attributed[awayRange].foregroundColor = awayPenaltyColor
+            }
+        } else if let awayRange = attributed.range(of: awayText) {
+            attributed[awayRange].foregroundColor = awayPenaltyColor
+        }
+
+        return attributed
     }
 
     var body: some View {
@@ -231,23 +276,33 @@ struct FixtureCard: View {
                 .frame(maxWidth: .infinity)
 
                 if showsScore {
-                    HStack(spacing: 6) {
-                        Text("\(fixture.homeGoals)")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(homeScoreColor)
-                        Text("-")
-                            .font(.title)
-                            .foregroundColor(.secondary)
-                        Text("\(fixture.awayGoals)")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(awayScoreColor)
+                    VStack(spacing: 4) {
+                        HStack(spacing: 6) {
+                            Text("\(fixture.homeGoals)")
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .foregroundColor(homeScoreColor)
+                            Text("-")
+                                .font(.title)
+                                .foregroundColor(.secondary)
+                            Text("\(fixture.awayGoals)")
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .foregroundColor(awayScoreColor)
+                        }
+
+                        if showsPenaltyScore {
+                            Text(penaltyScoreText)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .monospacedDigit()
+                        }
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(8)
+                    .frame(minWidth: 140)
                 } else {
                     Text(LocalizedStringKey("VS"))
                         .font(.caption)
