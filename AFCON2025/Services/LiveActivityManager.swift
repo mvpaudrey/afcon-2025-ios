@@ -1,5 +1,5 @@
 import Foundation
-import ActivityKit
+@preconcurrency import ActivityKit
 import Observation
 
 /// Manager for creating and updating Live Activities for match scores
