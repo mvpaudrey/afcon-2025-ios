@@ -5,6 +5,7 @@
 import ActivityKit
 import WidgetKit
 import SwiftUI
+import TournamentKit
 
 struct LiveScoreActivityWidget: Widget {
     var body: some WidgetConfiguration {

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import TournamentKit
 
 /// EXAMPLE: How to integrate favorite team syncing with your SwiftData model
 ///

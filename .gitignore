@@ -64,3 +64,6 @@ xcuserdata/
 *.moved-aside
 *.xccheckout
 *.xcscmblueprint
+# ios-build-verify
+build.log
+.claude/ios-build-verify.*

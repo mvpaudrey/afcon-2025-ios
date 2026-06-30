@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import TournamentKit
 
 // MARK: - Match Card View
 struct MatchCardView: View {
@@ -210,18 +211,6 @@ struct StageLabel: View {
 }
 
 
-// MARK: - Round Selection
-enum BracketRound: String, CaseIterable {
-    case roundOf16 = "Round of 16"
-    case quarterFinals = "Quarter Finals"
-    case semiFinals = "Semi Finals"
-    case final = "Final"
-
-    var localizedKey: LocalizedStringKey {
-        LocalizedStringKey(self.rawValue)
-    }
-}
-
 // MARK: - Main Bracket View
 struct BracketView: View {
     @Environment(\.modelContext) private var modelContext
@@ -399,7 +388,7 @@ private struct BracketContentView: View {
                             Button(action: {
                                 selectedRound = round
                             }) {
-                                Text(round.localizedKey)
+                                Text(LocalizedStringKey(round.localizedKey))
                                     .font(.system(size: 14, weight: selectedRound == round ? .bold : .medium))
                                     .foregroundColor(selectedRound == round ? Color("moroccoRed") : .secondary)
                                     .padding(.horizontal, 12)
@@ -824,73 +813,6 @@ private struct BracketContentView: View {
         let components = venue.components(separatedBy: ", ")
         return components.last ?? venue
     }
-}
-
-// MARK: - Data Models (keeping existing ones)
-struct BracketMatch {
-    let id: Int
-    let date: String
-    let time: String
-    let team1: String
-    let team2: String
-    let team1Id: Int?
-    let team2Id: Int?
-    let venue: String
-    let score1: Int?
-    let score2: Int?
-    var penalty1: Int? = nil
-    var penalty2: Int? = nil
-}
-
-struct BracketData {
-    static let allMatches = BracketMatches(
-        roundOf16: [
-            // 37: 3 January - Tangier, 17:00
-            BracketMatch(id: 37, date: "2026-01-03", time: "17:00", team1: "1D", team2: "3B/E/F", team1Id: nil, team2Id: nil, venue: "Ibn Batouta Stadium, Tangier", score1: nil, score2: nil),
-            // 38: 3 January - Casablanca, 20:00
-            BracketMatch(id: 38, date: "2026-01-03", time: "20:00", team1: "2A", team2: "2C", team1Id: nil, team2Id: nil, venue: "Mohammed V Stadium, Casablanca", score1: nil, score2: nil),
-            // 39: 4 January - Rabat, 17:00
-            BracketMatch(id: 39, date: "2026-01-04", time: "17:00", team1: "1A", team2: "3C/D/E", team1Id: nil, team2Id: nil, venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil),
-            // 40: 4 January - Rabat, 20:00
-            BracketMatch(id: 40, date: "2026-01-04", time: "20:00", team1: "2B", team2: "2F", team1Id: nil, team2Id: nil, venue: "Al Barid Stadium, Rabat", score1: nil, score2: nil),
-            // 42: 5 January - Fez, 20:00
-            BracketMatch(id: 42, date: "2026-01-05", time: "20:00", team1: "1C", team2: "3A/B/F", team1Id: nil, team2Id: nil, venue: "Fez Stadium, Fez", score1: nil, score2: nil),
-            // 43: 6 January - Rabat, 17:00
-            BracketMatch(id: 43, date: "2026-01-06", time: "17:00", team1: "1E", team2: "2D", team1Id: nil, team2Id: nil, venue: "Moulay Hassan Stadium, Rabat", score1: nil, score2: nil),
-            // 41: 5 January - Agadir, 17:00
-            BracketMatch(id: 41, date: "2026-01-05", time: "17:00", team1: "1B", team2: "3A/C/D", team1Id: nil, team2Id: nil, venue: "Adrar Stadium, Agadir", score1: nil, score2: nil),
-            // 44: 6 January - Marrakesh, 20:00
-            BracketMatch(id: 44, date: "2026-01-06", time: "20:00", team1: "1F", team2: "2E", team1Id: nil, team2Id: nil, venue: "Marrakesh Stadium, Marrakesh", score1: nil, score2: nil)
-        ],
-        quarterFinals: [
-            // 45: 9 January - Tangier, 17:00
-            BracketMatch(id: 45, date: "2026-01-09", time: "17:00", team1: "W38", team2: "W37", team1Id: nil, team2Id: nil, venue: "Ibn Batouta Stadium, Tangier", score1: nil, score2: nil),
-            // 46: 9 January - Rabat, 20:00
-            BracketMatch(id: 46, date: "2026-01-09", time: "20:00", team1: "W40", team2: "W39", team1Id: nil, team2Id: nil, venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil),
-            // 47: 10 January - Marrakesh, 17:00
-            BracketMatch(id: 47, date: "2026-01-10", time: "17:00", team1: "W43", team2: "W42", team1Id: nil, team2Id: nil, venue: "Marrakesh Stadium, Marrakesh", score1: nil, score2: nil),
-            // 48: 10 January - Agadir, 20:00
-            BracketMatch(id: 48, date: "2026-01-10", time: "20:00", team1: "W41", team2: "W44", team1Id: nil, team2Id: nil, venue: "Adrar Stadium, Agadir", score1: nil, score2: nil)
-        ],
-        semiFinals: [
-            // 49: 14 January - Tangier, 18:00
-            BracketMatch(id: 49, date: "2026-01-14", time: "18:00", team1: "W45", team2: "W48", team1Id: nil, team2Id: nil, venue: "Ibn Batouta Stadium, Tangier", score1: nil, score2: nil),
-            // 50: 14 January - Rabat, 21:00
-            BracketMatch(id: 50, date: "2026-01-14", time: "21:00", team1: "W46", team2: "W47", team1Id: nil, team2Id: nil, venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil)
-        ],
-        // Final: 18 January - Rabat, 20:00
-        final: BracketMatch(id: 52, date: "2026-01-18", time: "20:00", team1: "W49", team2: "W50", team1Id: nil, team2Id: nil, venue: "Prince Moulay Abdellah Stadium, Rabat", score1: nil, score2: nil),
-        // Third Place: 17 January - Casablanca, 17:00
-        thirdPlace: BracketMatch(id: 51, date: "2026-01-17", time: "17:00", team1: "L49", team2: "L50", team1Id: nil, team2Id: nil, venue: "Mohammed V Stadium, Casablanca", score1: nil, score2: nil)
-    )
-}
-
-struct BracketMatches {
-    let roundOf16: [BracketMatch]
-    let quarterFinals: [BracketMatch]
-    let semiFinals: [BracketMatch]
-    let final: BracketMatch
-    let thirdPlace: BracketMatch
 }
 
 #Preview {

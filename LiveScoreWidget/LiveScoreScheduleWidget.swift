@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import TournamentKit
 
 struct LiveScoreScheduleEntry: TimelineEntry {
     let date: Date

@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import UIKit
+import TournamentKit
 
 private let moroccoGradient = LinearGradient(
     colors: [Color("moroccoRed"), Color("moroccoGreen")],

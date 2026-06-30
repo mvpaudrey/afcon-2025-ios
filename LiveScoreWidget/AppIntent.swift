@@ -1,6 +1,7 @@
 import WidgetKit
 import AppIntents
 import Foundation
+import TournamentKit
 
 struct SelectMatchIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource { "Live Match" }

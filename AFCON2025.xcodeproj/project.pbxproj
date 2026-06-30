@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		762C62632FED63000093A6D4 /* TournamentKit in Frameworks */ = {isa = PBXBuildFile; productRef = 762C62642FED63000093A6D4 /* TournamentKit */; };
+		762C62652FED63100093A6D4 /* TournamentKit in Frameworks */ = {isa = PBXBuildFile; productRef = 762C62662FED63100093A6D4 /* TournamentKit */; };
+		762C67B32FEDCCC50093A6D4 /* TournamentKit in Frameworks */ = {isa = PBXBuildFile; productRef = 762C67B22FEDCCC50093A6D4 /* TournamentKit */; };
 		768D4D3B2EEEF75F00BE7EC5 /* SwiftUIBackports in Frameworks */ = {isa = PBXBuildFile; productRef = 768D4D3A2EEEF75F00BE7EC5 /* SwiftUIBackports */; };
 		768D4D412EEF1E4200BE7EC5 /* AFCONClient in Frameworks */ = {isa = PBXBuildFile; productRef = 768D4D402EEF1E4200BE7EC5 /* AFCONClient */; };
 		768D4E182EEF350500BE7EC5 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768D4E172EEF350500BE7EC5 /* WidgetKit.framework */; };
@@ -15,6 +18,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		762C67992FEDCC4E0093A6D4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 768D4CAD2EEEF4EE00BE7EC5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 762C67892FEDCC4D0093A6D4;
+			remoteInfo = FWC2026;
+		};
+		762C67A32FEDCC4E0093A6D4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 768D4CAD2EEEF4EE00BE7EC5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 762C67892FEDCC4D0093A6D4;
+			remoteInfo = FWC2026;
+		};
 		768D4CC72EEEF4F000BE7EC5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 768D4CAD2EEEF4EE00BE7EC5 /* Project object */;
@@ -53,6 +70,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		762C678A2FEDCC4D0093A6D4 /* FWC2026.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FWC2026.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		762C67982FEDCC4E0093A6D4 /* FWC2026Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FWC2026Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		762C67A22FEDCC4E0093A6D4 /* FWC2026UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FWC2026UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		768D4CB52EEEF4EE00BE7EC5 /* AFCON2025.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AFCON2025.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		768D4CC62EEEF4F000BE7EC5 /* AFCON2025Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AFCON2025Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		768D4CD02EEEF4F000BE7EC5 /* AFCON2025UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AFCON2025UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -63,6 +83,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		762C67CD2FEDD3CE0093A6D4 /* Exceptions for "FWC2026" folder in "FWC2026" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 762C67892FEDCC4D0093A6D4 /* FWC2026 */;
+		};
 		76A869C52F18134500C52F5E /* Exceptions for "LiveScoreWidget" folder in "LiveScoreWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -84,23 +111,31 @@
 			);
 			target = 768D4CB42EEEF4EE00BE7EC5 /* AFCON2025 */;
 		};
-		76A869CC2F18172100C52F5E /* Exceptions for "AFCON2025" folder in "LiveScoreWidgetExtension" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Common/HomeWidgetSnapshotStore.swift,
-				Models/LiveScoreActivityAttributes.swift,
-				Services/AppGroup.swift,
-			);
-			target = 768D4E142EEF350500BE7EC5 /* LiveScoreWidgetExtension */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		762C678B2FEDCC4D0093A6D4 /* FWC2026 */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				762C67CD2FEDD3CE0093A6D4 /* Exceptions for "FWC2026" folder in "FWC2026" target */,
+			);
+			path = FWC2026;
+			sourceTree = "<group>";
+		};
+		762C679B2FEDCC4E0093A6D4 /* FWC2026Tests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = FWC2026Tests;
+			sourceTree = "<group>";
+		};
+		762C67A52FEDCC4E0093A6D4 /* FWC2026UITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = FWC2026UITests;
+			sourceTree = "<group>";
+		};
 		768D4CB72EEEF4EE00BE7EC5 /* AFCON2025 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				76A869C62F18134B00C52F5E /* Exceptions for "AFCON2025" folder in "AFCON2025" target */,
-				76A869CC2F18172100C52F5E /* Exceptions for "AFCON2025" folder in "LiveScoreWidgetExtension" target */,
 			);
 			path = AFCON2025;
 			sourceTree = "<group>";
@@ -127,12 +162,35 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		762C67872FEDCC4D0093A6D4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				762C67B32FEDCCC50093A6D4 /* TournamentKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		762C67952FEDCC4E0093A6D4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		762C679F2FEDCC4E0093A6D4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		768D4CB22EEEF4EE00BE7EC5 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				768D4D3B2EEEF75F00BE7EC5 /* SwiftUIBackports in Frameworks */,
 				768D4D412EEF1E4200BE7EC5 /* AFCONClient in Frameworks */,
+				762C62632FED63000093A6D4 /* TournamentKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -156,6 +214,7 @@
 			files = (
 				768D4E1A2EEF350500BE7EC5 /* SwiftUI.framework in Frameworks */,
 				768D4E182EEF350500BE7EC5 /* WidgetKit.framework in Frameworks */,
+				762C62652FED63100093A6D4 /* TournamentKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -170,6 +229,9 @@
 				768D4CC92EEEF4F000BE7EC5 /* AFCON2025Tests */,
 				768D4CD32EEEF4F000BE7EC5 /* AFCON2025UITests */,
 				768D4E1B2EEF350500BE7EC5 /* LiveScoreWidget */,
+				762C678B2FEDCC4D0093A6D4 /* FWC2026 */,
+				762C679B2FEDCC4E0093A6D4 /* FWC2026Tests */,
+				762C67A52FEDCC4E0093A6D4 /* FWC2026UITests */,
 				768D4E162EEF350500BE7EC5 /* Frameworks */,
 				768D4CB62EEEF4EE00BE7EC5 /* Products */,
 			);
@@ -182,6 +244,9 @@
 				768D4CC62EEEF4F000BE7EC5 /* AFCON2025Tests.xctest */,
 				768D4CD02EEEF4F000BE7EC5 /* AFCON2025UITests.xctest */,
 				768D4E152EEF350500BE7EC5 /* LiveScoreWidgetExtension.appex */,
+				762C678A2FEDCC4D0093A6D4 /* FWC2026.app */,
+				762C67982FEDCC4E0093A6D4 /* FWC2026Tests.xctest */,
+				762C67A22FEDCC4E0093A6D4 /* FWC2026UITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -198,6 +263,75 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		762C67892FEDCC4D0093A6D4 /* FWC2026 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 762C67A82FEDCC4E0093A6D4 /* Build configuration list for PBXNativeTarget "FWC2026" */;
+			buildPhases = (
+				762C67862FEDCC4D0093A6D4 /* Sources */,
+				762C67872FEDCC4D0093A6D4 /* Frameworks */,
+				762C67882FEDCC4D0093A6D4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				762C678B2FEDCC4D0093A6D4 /* FWC2026 */,
+			);
+			name = FWC2026;
+			packageProductDependencies = (
+				762C67B22FEDCCC50093A6D4 /* TournamentKit */,
+			);
+			productName = FWC2026;
+			productReference = 762C678A2FEDCC4D0093A6D4 /* FWC2026.app */;
+			productType = "com.apple.product-type.application";
+		};
+		762C67972FEDCC4E0093A6D4 /* FWC2026Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 762C67AB2FEDCC4E0093A6D4 /* Build configuration list for PBXNativeTarget "FWC2026Tests" */;
+			buildPhases = (
+				762C67942FEDCC4E0093A6D4 /* Sources */,
+				762C67952FEDCC4E0093A6D4 /* Frameworks */,
+				762C67962FEDCC4E0093A6D4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				762C679A2FEDCC4E0093A6D4 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				762C679B2FEDCC4E0093A6D4 /* FWC2026Tests */,
+			);
+			name = FWC2026Tests;
+			packageProductDependencies = (
+			);
+			productName = FWC2026Tests;
+			productReference = 762C67982FEDCC4E0093A6D4 /* FWC2026Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		762C67A12FEDCC4E0093A6D4 /* FWC2026UITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 762C67AE2FEDCC4E0093A6D4 /* Build configuration list for PBXNativeTarget "FWC2026UITests" */;
+			buildPhases = (
+				762C679E2FEDCC4E0093A6D4 /* Sources */,
+				762C679F2FEDCC4E0093A6D4 /* Frameworks */,
+				762C67A02FEDCC4E0093A6D4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				762C67A42FEDCC4E0093A6D4 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				762C67A52FEDCC4E0093A6D4 /* FWC2026UITests */,
+			);
+			name = FWC2026UITests;
+			packageProductDependencies = (
+			);
+			productName = FWC2026UITests;
+			productReference = 762C67A22FEDCC4E0093A6D4 /* FWC2026UITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		768D4CB42EEEF4EE00BE7EC5 /* AFCON2025 */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 768D4CD92EEEF4F000BE7EC5 /* Build configuration list for PBXNativeTarget "AFCON2025" */;
@@ -219,6 +353,7 @@
 			packageProductDependencies = (
 				768D4D3A2EEEF75F00BE7EC5 /* SwiftUIBackports */,
 				768D4D402EEF1E4200BE7EC5 /* AFCONClient */,
+				762C62642FED63000093A6D4 /* TournamentKit */,
 			);
 			productName = AFCON2025;
 			productReference = 768D4CB52EEEF4EE00BE7EC5 /* AFCON2025.app */;
@@ -287,6 +422,7 @@
 			);
 			name = LiveScoreWidgetExtension;
 			packageProductDependencies = (
+				762C62662FED63100093A6D4 /* TournamentKit */,
 			);
 			productName = LiveScoreWidgetExtensionExtension;
 			productReference = 768D4E152EEF350500BE7EC5 /* LiveScoreWidgetExtension.appex */;
@@ -299,9 +435,20 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2620;
+				LastSwiftUpdateCheck = 2700;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
+					762C67892FEDCC4D0093A6D4 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					762C67972FEDCC4E0093A6D4 = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = 762C67892FEDCC4D0093A6D4;
+					};
+					762C67A12FEDCC4E0093A6D4 = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = 762C67892FEDCC4D0093A6D4;
+					};
 					768D4CB42EEEF4EE00BE7EC5 = {
 						CreatedOnToolsVersion = 26.2;
 					};
@@ -331,6 +478,7 @@
 			packageReferences = (
 				768D4D392EEEF75F00BE7EC5 /* XCRemoteSwiftPackageReference "iOS-Backports" */,
 				768D4D3F2EEF1E4200BE7EC5 /* XCLocalSwiftPackageReference ".." */,
+				762C62622FED62FF0093A6D4 /* XCLocalSwiftPackageReference "TournamentKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 768D4CB62EEEF4EE00BE7EC5 /* Products */;
@@ -341,11 +489,35 @@
 				768D4CC52EEEF4F000BE7EC5 /* AFCON2025Tests */,
 				768D4CCF2EEEF4F000BE7EC5 /* AFCON2025UITests */,
 				768D4E142EEF350500BE7EC5 /* LiveScoreWidgetExtension */,
+				762C67892FEDCC4D0093A6D4 /* FWC2026 */,
+				762C67972FEDCC4E0093A6D4 /* FWC2026Tests */,
+				762C67A12FEDCC4E0093A6D4 /* FWC2026UITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		762C67882FEDCC4D0093A6D4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		762C67962FEDCC4E0093A6D4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		762C67A02FEDCC4E0093A6D4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		768D4CB32EEEF4EE00BE7EC5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -377,6 +549,27 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		762C67862FEDCC4D0093A6D4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		762C67942FEDCC4E0093A6D4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		762C679E2FEDCC4E0093A6D4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		768D4CB12EEEF4EE00BE7EC5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -408,6 +601,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		762C679A2FEDCC4E0093A6D4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 762C67892FEDCC4D0093A6D4 /* FWC2026 */;
+			targetProxy = 762C67992FEDCC4E0093A6D4 /* PBXContainerItemProxy */;
+		};
+		762C67A42FEDCC4E0093A6D4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 762C67892FEDCC4D0093A6D4 /* FWC2026 */;
+			targetProxy = 762C67A32FEDCC4E0093A6D4 /* PBXContainerItemProxy */;
+		};
 		768D4CC82EEEF4F000BE7EC5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 768D4CB42EEEF4EE00BE7EC5 /* AFCON2025 */;
@@ -426,6 +629,166 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		762C67A92FEDCC4E0093A6D4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = FWC2026/FWC2026.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 486Q5MQF2F;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FWC2026/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Halftime Football";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cheulah.AFCON2025;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		762C67AA2FEDCC4E0093A6D4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = FWC2026/FWC2026.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 486Q5MQF2F;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FWC2026/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Halftime Football";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cheulah.AFCON2025;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		762C67AC2FEDCC4E0093A6D4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 486Q5MQF2F;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cheulah.FWC2026Tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FWC2026.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FWC2026";
+			};
+			name = Debug;
+		};
+		762C67AD2FEDCC4E0093A6D4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 486Q5MQF2F;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cheulah.FWC2026Tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FWC2026.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FWC2026";
+			};
+			name = Release;
+		};
+		762C67AF2FEDCC4E0093A6D4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 486Q5MQF2F;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cheulah.FWC2026UITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = FWC2026;
+			};
+			name = Debug;
+		};
+		762C67B02FEDCC4E0093A6D4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 486Q5MQF2F;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cheulah.FWC2026UITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = FWC2026;
+			};
+			name = Release;
+		};
 		768D4CDA2EEEF4F000BE7EC5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -796,6 +1159,33 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		762C67A82FEDCC4E0093A6D4 /* Build configuration list for PBXNativeTarget "FWC2026" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				762C67A92FEDCC4E0093A6D4 /* Debug */,
+				762C67AA2FEDCC4E0093A6D4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		762C67AB2FEDCC4E0093A6D4 /* Build configuration list for PBXNativeTarget "FWC2026Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				762C67AC2FEDCC4E0093A6D4 /* Debug */,
+				762C67AD2FEDCC4E0093A6D4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		762C67AE2FEDCC4E0093A6D4 /* Build configuration list for PBXNativeTarget "FWC2026UITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				762C67AF2FEDCC4E0093A6D4 /* Debug */,
+				762C67B02FEDCC4E0093A6D4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		768D4CB02EEEF4EE00BE7EC5 /* Build configuration list for PBXProject "AFCON2025" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -844,6 +1234,10 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		762C62622FED62FF0093A6D4 /* XCLocalSwiftPackageReference "TournamentKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = TournamentKit;
+		};
 		768D4D3F2EEF1E4200BE7EC5 /* XCLocalSwiftPackageReference ".." */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ..;
@@ -862,6 +1256,21 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		762C62642FED63000093A6D4 /* TournamentKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 762C62622FED62FF0093A6D4 /* XCLocalSwiftPackageReference "TournamentKit" */;
+			productName = TournamentKit;
+		};
+		762C62662FED63100093A6D4 /* TournamentKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 762C62622FED62FF0093A6D4 /* XCLocalSwiftPackageReference "TournamentKit" */;
+			productName = TournamentKit;
+		};
+		762C67B22FEDCCC50093A6D4 /* TournamentKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 762C62622FED62FF0093A6D4 /* XCLocalSwiftPackageReference "TournamentKit" */;
+			productName = TournamentKit;
+		};
 		768D4D3A2EEEF75F00BE7EC5 /* SwiftUIBackports */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 768D4D392EEEF75F00BE7EC5 /* XCRemoteSwiftPackageReference "iOS-Backports" */;

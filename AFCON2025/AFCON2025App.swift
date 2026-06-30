@@ -8,11 +8,15 @@
 import SwiftUI
 import SwiftData
 import BackgroundTasks
+import TournamentKit
 
 @main
 struct AFCON2025App: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var notificationService = AppNotificationService.shared
+
+    private let tournamentConfig = AFCONTournamentConfig()
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             FixtureModel.self,
@@ -81,7 +85,8 @@ struct AFCON2025App: App {
 
     var body: some Scene {
         WindowGroup {
-            AppView()
+            AppView(factory: AFCONViewFactory())
+                .environment(\.tournamentConfig, tournamentConfig)
                 .environmentObject(notificationService)
                 .onAppear {
                     notificationService.setupNotificationCategories()
@@ -101,6 +106,17 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        // Set tournament config before any service singleton initializes
+        TournamentConfigStore.current = AFCONTournamentConfig()
+
+        // Write config to AppGroup so the widget can read it (before any view appears)
+        writeTournamentConfigToAppGroup(AFCONTournamentConfig())
+
+        // Wire background refresh handler so LiveMatchStreamService can schedule refreshes
+        LiveMatchStreamService.shared.backgroundRefreshHandler = { [weak self] in
+            self?.scheduleBackgroundRefresh()
+        }
+
         // Setup notification categories
         AppNotificationService.shared.setupNotificationCategories()
 

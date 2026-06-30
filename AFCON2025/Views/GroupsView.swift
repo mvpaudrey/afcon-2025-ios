@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import TournamentKit
 
 private enum Metrics {
     static let horizontalPadding: CGFloat = 16
@@ -63,7 +64,7 @@ struct GroupsView: View {
 }
 
 struct GroupCard: View {
-    let group: Group
+    let group: TournamentKit.Group
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
