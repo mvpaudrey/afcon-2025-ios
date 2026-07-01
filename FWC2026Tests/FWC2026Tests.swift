@@ -6,6 +6,7 @@
 //
 
 import Testing
+import Foundation
 @testable import FWC2026
 
 struct FWCBracketTypesTests {
@@ -80,8 +81,23 @@ struct FWCBracketViewModelTests {
     }
 
     @Test func determineCurrentRoundBeforeTournamentIsR32() {
-        // Valide tant que la date du jour est avant le 2026-07-04.
         let vm = FWCBracketViewModel()
-        #expect(vm.determineCurrentRound() == .roundOf32)
+        let cal = Calendar.current
+        let preTournament = cal.date(from: DateComponents(year: 2026, month: 6, day: 30))!
+        #expect(vm.determineCurrentRound(date: preTournament) == .roundOf32)
+    }
+
+    @Test func determineCurrentRoundDuringR32IsR32() {
+        let vm = FWCBracketViewModel()
+        let cal = Calendar.current
+        let duringR32 = cal.date(from: DateComponents(year: 2026, month: 7, day: 6))!
+        #expect(vm.determineCurrentRound(date: duringR32) == .roundOf32)
+    }
+
+    @Test func determineCurrentRoundDuringR16IsR16() {
+        let vm = FWCBracketViewModel()
+        let cal = Calendar.current
+        let duringR16 = cal.date(from: DateComponents(year: 2026, month: 7, day: 11))!
+        #expect(vm.determineCurrentRound(date: duringR16) == .roundOf16)
     }
 }

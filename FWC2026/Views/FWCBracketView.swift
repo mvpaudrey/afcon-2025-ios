@@ -93,7 +93,6 @@ private struct FWCBracketContentView: View {
 
     let matches: FWCBracketMatches
     @Binding var selectedRound: FWCBracketRound
-    let currentRoundProvider: () -> FWCBracketRound
 
     @State private var scrollRequestId = UUID()
 
@@ -386,8 +385,7 @@ public struct FWCBracketView: View {
             if let matches = viewModel.bracketMatches {
                 FWCBracketContentView(
                     matches: matches,
-                    selectedRound: $viewModel.selectedRound,
-                    currentRoundProvider: viewModel.determineCurrentRound
+                    selectedRound: $viewModel.selectedRound
                 )
             } else {
                 ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)

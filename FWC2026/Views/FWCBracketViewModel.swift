@@ -11,8 +11,8 @@ class FWCBracketViewModel {
 
     init() {}
 
-    func determineCurrentRound() -> FWCBracketRound {
-        let today = Date()
+    func determineCurrentRound(date: Date = Date()) -> FWCBracketRound {
+        let today = date
         let cal   = Calendar.current
 
         func d(_ year: Int, _ month: Int, _ day: Int) -> Date {
