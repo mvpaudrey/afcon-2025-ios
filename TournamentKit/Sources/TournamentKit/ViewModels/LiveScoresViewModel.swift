@@ -34,6 +34,11 @@ open class LiveScoresViewModel {
     // Favorite team IDs loaded from SwiftData
     private var favoriteTeamIds: Set<Int> = []
 
+    // Reads the name written by AppGroupWriter.writeTournamentConfigToAppGroup at app launch
+    private var currentTournamentName: String {
+        UserDefaults(suiteName: "group.com.cheulah.afcon")?.string(forKey: "tournamentName") ?? "AFCON 2025"
+    }
+
     public init(modelContext: ModelContext? = nil) {
         self.modelContext = modelContext
         if let context = modelContext {
@@ -550,7 +555,7 @@ open class LiveScoresViewModel {
             fixtureID: Int32(game.id),
             homeTeam: game.homeTeam,
             awayTeam: game.awayTeam,
-            competition: game.competition,
+            competition: currentTournamentName,
             homeScore: game.homeScore,
             awayScore: game.awayScore,
             status: game.statusShort,

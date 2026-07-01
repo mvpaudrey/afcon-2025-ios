@@ -79,8 +79,33 @@ struct LiveScoreScheduleWidgetView: View {
             case .systemLarge:
                 ScheduleListView(matches: Array(entry.matches.prefix(6)))
             default:
-                ScheduleListView(matches: Array(entry.matches.prefix(3)))
+                ScheduleMediumView(matches: Array(entry.matches.prefix(2)))
             }
+        }
+    }
+}
+
+// Medium widget: 2 rows filling the full height
+private struct ScheduleMediumView: View {
+    let matches: [LiveMatchWidgetSnapshot]
+
+    var body: some View {
+        ZStack {
+            ContainerRelativeShape()
+                .fill(Color("WidgetBackground", bundle: .main).opacity(0.95))
+
+            VStack(spacing: 0) {
+                ForEach(Array(matches.enumerated()), id: \.element.fixtureID) { index, match in
+                    ScheduleMediumRow(match: match)
+                        .frame(maxHeight: .infinity)
+                    if index < matches.count - 1 {
+                        Divider().opacity(0.2)
+                    }
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }
 }
@@ -94,7 +119,7 @@ private struct ScheduleListView: View {
                 .fill(Color("WidgetBackground", bundle: .main).opacity(0.95))
 
             VStack(alignment: .leading, spacing: 10) {
-                Text("Match Schedule")
+                Text(scheduleWidgetTitle())
                     .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundColor(.secondary)
@@ -121,100 +146,133 @@ private struct ScheduleListView: View {
     }
 }
 
+// MARK: - Shared helpers
+
+private func scheduleWidgetTitle() -> String {
+    let lang = Locale.current.language.languageCode?.identifier ?? "en"
+    switch lang {
+    case "fr": return "Programme"
+    case "ar": return "جدول المباريات"
+    default:   return "Match Schedule"
+    }
+}
+
+private func matchStatusInfo(for match: LiveMatchWidgetSnapshot) -> (String, Color) {
+    if match.isLive { return ("LIVE", .green) }
+    if match.isFinished { return ("FT", .gray) }
+    if let kickoff = match.kickoffDate, kickoff > Date() { return ("SOON", .blue) }
+    return ("NS", .gray)
+}
+
+private func matchStatusBadgeView(for match: LiveMatchWidgetSnapshot) -> some View {
+    let (label, color) = matchStatusInfo(for: match)
+    return Text(label)
+        .font(.system(size: 10, weight: .bold))
+        .lineLimit(1)
+        .frame(minWidth: 38, alignment: .center)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 4)
+        .background(color.opacity(0.15))
+        .foregroundColor(color)
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+}
+
+private struct TeamScoreLine: View {
+    let name: String
+    let logoPath: String?
+    let score: Int
+    let showScore: Bool
+
+    var body: some View {
+        HStack(spacing: 6) {
+            LogoImageView(path: logoPath, size: CGSize(width: 20, height: 20), useCircle: true)
+            Text(localizedTeamName(name))
+                .font(.system(size: 12, weight: .medium))
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+            Spacer(minLength: 4)
+            if showScore {
+                Text("\(score)")
+                    .font(.system(size: 13, weight: .bold))
+                    .monospacedDigit()
+                    .foregroundColor(.primary)
+            } else {
+                Text("—")
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(.systemGray3))
+            }
+        }
+    }
+}
+
+// MARK: - Row layouts
+
+private struct ScheduleMediumRow: View {
+    let match: LiveMatchWidgetSnapshot
+    private var showScore: Bool { match.isLive || match.isFinished }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            matchStatusBadgeView(for: match)
+
+            VStack(alignment: .leading, spacing: 5) {
+                TeamScoreLine(name: match.homeTeam, logoPath: match.homeLogoPath,
+                              score: match.homeScore, showScore: showScore)
+                TeamScoreLine(name: match.awayTeam, logoPath: match.awayLogoPath,
+                              score: match.awayScore, showScore: showScore)
+            }
+
+            kickoffOrTimer
+        }
+    }
+
+    @ViewBuilder private var kickoffOrTimer: some View {
+        if match.isLive {
+            LiveMatchTimerLabel(match: match)
+        } else if !match.isFinished, let kickoff = match.kickoffDate, kickoff > Date() {
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(kickoff, style: .time)
+                    .font(.system(size: 11, weight: .semibold))
+                Text(kickoff, format: .dateTime.month(.abbreviated).day())
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+}
+
 private struct ScheduleRow: View {
     let match: LiveMatchWidgetSnapshot
+    private var showScore: Bool { match.isLive || match.isFinished }
 
     var body: some View {
         GridRow(alignment: .center) {
-            // Column 1: Status badge (auto-sized, aligns all badges)
-            statusBadge
+            matchStatusBadgeView(for: match)
 
-            // Column 2: Team names (auto-sized, all team columns align)
-            VStack(alignment: .leading, spacing: 6) {
-                TeamLine(name: match.homeTeam, logoPath: match.homeLogoPath)
-                TeamLine(name: match.awayTeam, logoPath: match.awayLogoPath)
+            VStack(alignment: .leading, spacing: 5) {
+                TeamScoreLine(name: match.homeTeam, logoPath: match.homeLogoPath,
+                              score: match.homeScore, showScore: showScore)
+                TeamScoreLine(name: match.awayTeam, logoPath: match.awayLogoPath,
+                              score: match.awayScore, showScore: showScore)
             }
 
-            // Column 3: Score/Time (auto-sized, trailing alignment)
-            scoreAndTimerSection
+            kickoffOrTimer
         }
     }
 
-    private var statusBadge: some View {
-        let (label, color) = statusLabelAndColor(for: match)
-        return Text(label)
-            .font(.system(size: 10, weight: .bold))
-            .lineLimit(1)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 4)
-            .background(color.opacity(0.15))
-            .foregroundColor(color)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-    }
-
-    private func statusLabelAndColor(for match: LiveMatchWidgetSnapshot) -> (String, Color) {
+    @ViewBuilder private var kickoffOrTimer: some View {
         if match.isLive {
-            return ("LIVE", .green)
-        } else if match.isFinished {
-            return ("FT", .gray)
+            LiveMatchTimerLabel(match: match)
+        } else if !match.isFinished, let kickoff = match.kickoffDate, kickoff > Date() {
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(kickoff, style: .time)
+                    .font(.system(size: 11, weight: .semibold))
+                Text(kickoff, format: .dateTime.month(.abbreviated).day())
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary)
+            }
         } else {
-            return ("SOON", .blue)
-        }
-    }
-
-    private var scoreAndTimerSection: some View {
-        VStack(alignment: .trailing, spacing: 4) {
-            if match.isLive {
-                Text("\(match.homeScore) - \(match.awayScore)")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.primary)
-                    .monospacedDigit()
-
-                LiveMatchTimerLabel(match: match)
-            } else if match.isFinished {
-                Text("\(match.homeScore) - \(match.awayScore)")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.primary)
-                    .monospacedDigit()
-
-                Text("FT")
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(.secondary)
-            } else if let kickoff = match.kickoffDate, kickoff > Date() {
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(kickoff, style: .time)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
-                    Text(kickoff, format: .dateTime.month(.abbreviated).day())
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                }
-                .frame(minWidth: 50, alignment: .trailing)
-            } else {
-                Text(match.statusLabel)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.secondary)
-            }
-        }
-        .frame(minWidth: 60, alignment: .trailing)
-    }
-
-    private struct TeamLine: View {
-        let name: String
-        let logoPath: String?
-
-        var body: some View {
-            HStack(spacing: 6) {
-                LogoImageView(path: logoPath, size: CGSize(width: 22, height: 22), useCircle: true)
-                Text(localizedTeamName(name))
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(Color.primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-            }
+            EmptyView()
         }
     }
 }
@@ -238,12 +296,32 @@ private struct NoMatchScheduleView: View {
 private struct LiveMatchTimerLabel: View {
     let match: LiveMatchWidgetSnapshot
 
+    private var elapsedMinute: Int { match.elapsedSeconds / 60 }
+    private var secondsAnchor: Date {
+        match.lastUpdated.addingTimeInterval(-TimeInterval(match.elapsedSeconds % 60))
+    }
+
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { timeline in
-            Text(match.timerText(reference: timeline.date))
-                .font(.system(size: 10, weight: .bold))
+        let size: CGFloat = 10
+        let dw = size * 0.62
+        let cw = size * 0.35
+        HStack(spacing: 0) {
+            Text("\(elapsedMinute):")
+                .font(.system(size: size, weight: .bold))
                 .foregroundColor(.green)
                 .monospacedDigit()
+            Color.clear
+                .frame(width: dw * 2, height: size * 1.3)
+                .overlay(
+                    Text(secondsAnchor, style: .timer)
+                        .font(.system(size: size, weight: .bold))
+                        .foregroundColor(.green)
+                        .monospacedDigit()
+                        .fixedSize()
+                        .offset(x: -(dw + cw)),
+                    alignment: .leading
+                )
+                .clipped()
         }
     }
 }

@@ -15,6 +15,7 @@
 		768D4E182EEF350500BE7EC5 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768D4E172EEF350500BE7EC5 /* WidgetKit.framework */; };
 		768D4E1A2EEF350500BE7EC5 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768D4E192EEF350500BE7EC5 /* SwiftUI.framework */; };
 		768D4E2B2EEF350700BE7EC5 /* LiveScoreWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 768D4E152EEF350500BE7EC5 /* LiveScoreWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		762C6801FEEDCC000093A6D4 /* LiveScoreWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 768D4E152EEF350500BE7EC5 /* LiveScoreWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,9 +54,27 @@
 			remoteGlobalIDString = 768D4E142EEF350500BE7EC5;
 			remoteInfo = LiveScoreWidgetExtensionExtension;
 		};
+		762C6802FEEDCC000093A6D4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 768D4CAD2EEEF4EE00BE7EC5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 768D4E142EEF350500BE7EC5;
+			remoteInfo = LiveScoreWidgetExtensionExtension;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		762C6804FEEDCC000093A6D4 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				762C6801FEEDCC000093A6D4 /* LiveScoreWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		768D4E302EEF350700BE7EC5 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -270,10 +289,12 @@
 				762C67862FEDCC4D0093A6D4 /* Sources */,
 				762C67872FEDCC4D0093A6D4 /* Frameworks */,
 				762C67882FEDCC4D0093A6D4 /* Resources */,
+				762C6804FEEDCC000093A6D4 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				762C6803FEEDCC000093A6D4 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				762C678B2FEDCC4D0093A6D4 /* FWC2026 */,
@@ -625,6 +646,11 @@
 			isa = PBXTargetDependency;
 			target = 768D4E142EEF350500BE7EC5 /* LiveScoreWidgetExtension */;
 			targetProxy = 768D4E292EEF350700BE7EC5 /* PBXContainerItemProxy */;
+		};
+		762C6803FEEDCC000093A6D4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 768D4E142EEF350500BE7EC5 /* LiveScoreWidgetExtension */;
+			targetProxy = 762C6802FEEDCC000093A6D4 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

@@ -121,7 +121,7 @@ public extension Afcon_Fixture {
             statusElapsed: Int(self.status.elapsed),
             statusExtra: Int(self.status.extra),
             lastUpdated: Date(),
-            competition: "African Cup of Nations",
+            competition: "AFCON 2025",
             venue: self.venue.name.isEmpty ? "TBD" : "\(self.venue.name), \(self.venue.city)",
             date: fixtureDate,
             statusShort: self.status.short

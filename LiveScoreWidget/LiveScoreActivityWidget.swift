@@ -278,37 +278,39 @@ private func matchTimerView(
     font: Font,
     fullWidth: Bool = true
 ) -> some View {
-    TimelineView(.periodic(from: .now, by: 1)) { timeline in
-        let displayStatus = state.status.uppercased()
+    let displayStatus = state.status.uppercased()
 
-        if isFinishedStatus(displayStatus) {
-            Text("Full Time")
-                .font(font)
-                .fontWeight(.semibold)
-                .foregroundColor(.green)
-                .frame(maxWidth: fullWidth ? .infinity : nil, alignment: .center)
-        } else if displayStatus == "P" || displayStatus == "PEN" {
-            EmptyView()
-        } else if let seconds = elapsedSeconds(for: state, at: timeline.date) {
-            let minutes = max(Int(seconds / 60), 0)
-            Text(formatMatchMinute(status: displayStatus, elapsed: minutes))
-                .font(font)
-                .monospacedDigit()
-                .foregroundColor(.white.opacity(0.8))
-                .frame(maxWidth: fullWidth ? .infinity : nil, alignment: .center)
-        } else if state.elapsed >= 0 {
-            Text(formatMatchMinute(status: displayStatus, elapsed: Int(state.elapsed)))
-                .font(font)
-                .monospacedDigit()
-                .foregroundColor(.white.opacity(0.8))
-                .frame(maxWidth: fullWidth ? .infinity : nil, alignment: .center)
-        } else {
-            Text("--:--")
+    if isFinishedStatus(displayStatus) {
+        Text("Full Time")
+            .font(font)
+            .fontWeight(.semibold)
+            .foregroundColor(.green)
+            .frame(maxWidth: fullWidth ? .infinity : nil, alignment: .center)
+    } else if displayStatus == "HT" || displayStatus == "BT" {
+        Text(displayStatus == "HT" ? "45'" : "90'")
+            .font(font)
+            .monospacedDigit()
+            .foregroundColor(.white.opacity(0.8))
+            .frame(maxWidth: fullWidth ? .infinity : nil, alignment: .center)
+    } else if displayStatus == "P" || displayStatus == "PEN" {
+        EmptyView()
+    } else if isLiveStatus(displayStatus) {
+        TimelineView(.periodic(from: .now, by: 1)) { ctx in
+            let total = max(Int(state.elapsed) * 60 + Int(ctx.date.timeIntervalSince(state.lastUpdateTime)), 0)
+            let mins = total / 60
+            let secs = total % 60
+            Text(String(format: "%d:%02d", mins, secs))
                 .font(font)
                 .monospacedDigit()
                 .foregroundColor(.white.opacity(0.8))
                 .frame(maxWidth: fullWidth ? .infinity : nil, alignment: .center)
         }
+    } else {
+        Text("\(state.elapsed)'")
+            .font(font)
+            .monospacedDigit()
+            .foregroundColor(.white.opacity(0.8))
+            .frame(maxWidth: fullWidth ? .infinity : nil, alignment: .center)
     }
 }
 
@@ -451,62 +453,7 @@ private func isFinishedStatus(_ status: String) -> Bool {
     return finished.contains(status.uppercased())
 }
 
-private func elapsedSeconds(for state: LiveScoreActivityAttributes.ContentState, at date: Date) -> Int? {
-    let status = state.status.uppercased()
-    let baseSeconds = max(Int(state.elapsed) * 60, 0)
 
-    // HT and BT - don't count, just show elapsed time
-    if status == "HT" || status == "BT" {
-        return baseSeconds
-    }
-
-    if status == "1H", let start = state.firstPeriodStart {
-        return max(Int(date.timeIntervalSince(start)), 0)
-    }
-
-    if status == "2H" {
-        if let second = state.secondPeriodStart {
-            return max(Int(date.timeIntervalSince(second)), 0) + 45 * 60
-        } else if let first = state.firstPeriodStart {
-            return max(Int(date.timeIntervalSince(first)), 0)
-        }
-    }
-
-    if status == "ET", let second = state.secondPeriodStart {
-        return max(Int(date.timeIntervalSince(second)), 0) + 90 * 60
-    }
-
-    guard isLiveStatus(status) else {
-        return baseSeconds
-    }
-
-    let secondsSinceUpdate = max(Int(date.timeIntervalSince(state.lastUpdateTime)), 0)
-    return baseSeconds + secondsSinceUpdate
-}
-
-private func formatMatchMinute(status: String, elapsed: Int) -> String {
-    let minutes = max(elapsed, 0)
-    let upper = status.uppercased()
-
-    if upper == "1H" && minutes > 45 {
-        return "45'+\(minutes - 45)"
-    }
-
-    if upper == "2H" && minutes > 90 {
-        return "90'+\(minutes - 90)"
-    }
-
-    if upper == "ET" {
-        if minutes > 120 {
-            return "120'+\(minutes - 120)"
-        }
-        if minutes > 105 {
-            return "105'+\(minutes - 105)"
-        }
-    }
-
-    return "\(minutes)'"
-}
 
 private func statusLabel(_ status: String) -> String {
     switch status.uppercased() {

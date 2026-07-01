@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+  <!-- Blue background -->
+  <rect width="640" height="480" fill="#002b7f"/>
+  <!-- Yellow horizontal stripe -->
+  <rect y="320" width="640" height="64" fill="#f9e814"/>
+  <!-- Small star (upper left) -->
+  <polygon fill="#fff" points="
+    80,60
+    85.9,78.2
+    105,78.2
+    89.6,89.4
+    95.5,107.6
+    80,96.4
+    64.5,107.6
+    70.4,89.4
+    55,78.2
+    74.1,78.2
+  "/>
+  <!-- Large star (right of small star) -->
+  <polygon fill="#fff" points="
+    155,45
+    163.8,72.4
+    192.5,72.4
+    170,88.6
+    178.8,116
+    155,99.8
+    131.2,116
+    140,88.6
+    117.5,72.4
+    146.2,72.4
+  "/>
+</svg>

@@ -5,6 +5,8 @@ import TournamentKit
 struct LiveScoreHomeEntry: TimelineEntry {
     let date: Date
     let match: LiveMatchWidgetSnapshot?
+    let accentColorName: String
+    let secondaryColorName: String
 }
 
 struct LiveScoreHomeProvider: AppIntentTimelineProvider {
@@ -19,22 +21,25 @@ struct LiveScoreHomeProvider: AppIntentTimelineProvider {
 
     func placeholder(in context: Context) -> LiveScoreHomeEntry {
         print("🔵 Widget placeholder() called")
-        return LiveScoreHomeEntry(date: Date(), match: .sample)
+        let config = loadWidgetTournamentConfig()
+        return LiveScoreHomeEntry(date: Date(), match: .sample, accentColorName: config.accentColorName, secondaryColorName: config.secondaryColorName)
     }
 
     func snapshot(for configuration: SelectMatchIntent, in context: Context) async -> LiveScoreHomeEntry {
         print("🔵 Widget snapshot() called - isPreview: \(context.isPreview)")
+        let config = loadWidgetTournamentConfig()
         if context.isPreview {
-            return LiveScoreHomeEntry(date: Date(), match: .sample)
+            return LiveScoreHomeEntry(date: Date(), match: .sample, accentColorName: config.accentColorName, secondaryColorName: config.secondaryColorName)
         }
-        return LiveScoreHomeEntry(date: Date(), match: match(for: configuration))
+        return LiveScoreHomeEntry(date: Date(), match: match(for: configuration), accentColorName: config.accentColorName, secondaryColorName: config.secondaryColorName)
     }
 
     func timeline(for configuration: SelectMatchIntent, in context: Context) async -> Timeline<LiveScoreHomeEntry> {
         print("🔵🔵🔵 WIDGET TIMELINE CALLED 🔵🔵🔵")
+        let config = loadWidgetTournamentConfig()
         let matchData = match(for: configuration)
         print("🔵 Widget Timeline - Match data: \(matchData != nil ? "Found" : "nil")")
-        let entry = LiveScoreHomeEntry(date: Date(), match: matchData)
+        let entry = LiveScoreHomeEntry(date: Date(), match: matchData, accentColorName: config.accentColorName, secondaryColorName: config.secondaryColorName)
         let refresh = Calendar.current.date(byAdding: .minute, value: 1, to: Date()) ?? Date().addingTimeInterval(60)
         return Timeline(entries: [entry], policy: .after(refresh))
     }
@@ -76,9 +81,9 @@ struct LiveScoreHomeWidgetView: View {
         if let match = entry.match {
             switch family {
             case .systemLarge:
-                LargeLiveScoreView(match: match, date: entry.date)
+                LargeLiveScoreView(match: match, date: entry.date, accentColorName: entry.accentColorName, secondaryColorName: entry.secondaryColorName)
             default:
-                MediumLiveScoreView(match: match, date: entry.date)
+                MediumLiveScoreView(match: match, date: entry.date, accentColorName: entry.accentColorName, secondaryColorName: entry.secondaryColorName)
             }
         } else {
             NoMatchView()
@@ -89,138 +94,196 @@ struct LiveScoreHomeWidgetView: View {
 private struct MediumLiveScoreView: View {
     let match: LiveMatchWidgetSnapshot
     let date: Date
+    let accentColorName: String
+    let secondaryColorName: String
 
-    private var isHalftime: Bool {
-        match.status.uppercased() == "HT"
+    private var isHalftime: Bool { match.status.uppercased() == "HT" }
+
+    private var badgeColor: Color {
+        isHalftime ? .orange : (match.isLive ? Color(accentColorName) : Color(.systemGray4))
     }
 
-    private var statusBadgeColor: Color {
-        if isHalftime {
-            return .orange
-        } else if match.isLive {
-            return Color("moroccoRed")
-        } else {
-            return Color(.systemGray5)
-        }
-    }
-
-    private var statusBadgeTextColor: Color {
-        (match.isLive || isHalftime) ? .white : .secondary
-    }
+    private var isPenalty: Bool { match.status.uppercased() == "P" }
+    private var isAET: Bool { match.status.uppercased() == "AET" }
+    private var isPEN: Bool { match.status.uppercased() == "PEN" }
+    private var hasGoalEvents: Bool { !match.homeGoalEvents.isEmpty || !match.awayGoalEvents.isEmpty }
 
     var body: some View {
         ZStack {
             ContainerRelativeShape()
                 .fill(Color("WidgetBackground", bundle: .main).opacity(0.95))
 
-            VStack(spacing: 12) {
-                // Header matching MatchCard
-                HStack {
-                    HStack(spacing: 4) {
-                        if match.isLive {
-                            Image(systemName: "clock")
-                                .font(.caption2)
+            VStack(alignment: .leading, spacing: 0) {
+                // Header
+                HStack(spacing: 6) {
+                    HStack(spacing: 3) {
+                        if match.isLive || isPenalty {
+                            Circle().fill(Color.white).frame(width: 5, height: 5)
                         } else if isHalftime {
-                            Image(systemName: "pause.circle.fill")
-                                .font(.caption2)
+                            Image(systemName: "pause.circle.fill").font(.system(size: 9))
                         }
                         Text(match.statusLabel)
-                            .font(.caption)
-                            .fontWeight(.medium)
+                            .font(.system(size: 10, weight: .bold))
                     }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(statusBadgeColor)
-                    .foregroundColor(statusBadgeTextColor)
-                    .cornerRadius(12)
-
-                    Spacer()
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(badgeColor)
+                    .foregroundColor(match.isLive || isHalftime || isPenalty ? .white : .secondary)
+                    .clipShape(Capsule())
 
                     Text(match.competition)
-                        .font(.caption)
+                        .font(.system(size: 11))
                         .foregroundColor(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+
+                    Spacer(minLength: 0)
+
+                    if match.isLive || isPenalty {
+                        MatchTimerView(match: match, fontSize: 11)
+                    }
                 }
+                .padding(.bottom, 8)
 
-                // Teams and Scores matching MatchCard layout
-                HStack(alignment: .center, spacing: 8) {
-                    // Home Team
-                    HStack(spacing: 8) {
-                        LogoImageView(path: match.homeLogoPath, size: CGSize(width: 40, height: 40), useCircle: true)
+                // Score rows — each fills equal vertical space
+                TeamScoreRow(
+                    logoPath: match.homeLogoPath,
+                    name: localizedTeamName(match.homeTeam),
+                    score: match.homeScore,
+                    scoreColor: Color(accentColorName),
+                    scoreSize: 28
+                )
+                .frame(maxHeight: .infinity)
 
-                        Text(localizedTeamName(match.homeTeam))
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .lineLimit(2)
-                            .minimumScaleFactor(0.8)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .frame(maxWidth: .infinity)
+                Divider().opacity(0.2)
 
-                    // Score
-                    HStack(spacing: 12) {
-                        Text("\(match.homeScore)")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(Color("moroccoRed"))
+                TeamScoreRow(
+                    logoPath: match.awayLogoPath,
+                    name: localizedTeamName(match.awayTeam),
+                    score: match.awayScore,
+                    scoreColor: Color(secondaryColorName),
+                    scoreSize: 28
+                )
+                .frame(maxHeight: .infinity)
 
-                        Text("-")
-                            .foregroundColor(.secondary)
-
-                        Text("\(match.awayScore)")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(Color("moroccoGreen"))
-                    }
-                    .fixedSize()
-
-                    // Away Team
-                    HStack(spacing: 8) {
-                        Text(localizedTeamName(match.awayTeam))
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .lineLimit(2)
-                            .minimumScaleFactor(0.8)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-
-                        LogoImageView(path: match.awayLogoPath, size: CGSize(width: 40, height: 40), useCircle: true)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-
-                // Timer/Status
-                if match.isLive {
-                    Text(match.timerText(reference: date))
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.green)
-                        .monospacedDigit()
+                // Extra info row
+                if isAET || isPEN || hasGoalEvents {
+                    Divider().opacity(0.15).padding(.top, 2)
+                    extraInfoView.padding(.top, 4)
                 }
             }
             .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
+    }
+
+    @ViewBuilder
+    private var extraInfoView: some View {
+        if hasGoalEvents {
+            HStack(alignment: .top, spacing: 0) {
+                VStack(alignment: .leading, spacing: 1) {
+                    ForEach(grouped(match.homeGoalEvents).prefix(3), id: \.player) { g in
+                        Text("⚽ \(g.minutes) \(g.player)")
+                            .font(.system(size: 9.5))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                VStack(alignment: .trailing, spacing: 1) {
+                    ForEach(grouped(match.awayGoalEvents).prefix(3), id: \.player) { g in
+                        Text("\(g.minutes) \(g.player) ⚽")
+                            .font(.system(size: 9.5))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+        } else {
+            Text(isAET ? "After Extra Time" : "Decided on Penalties")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(.orange)
+        }
+    }
+}
+
+// Shows "MM:SS" at any minute by rendering the minute as static text and clipping
+// the "0:" prefix from Text(.timer), which always shows "0:SS" when anchored to
+// the start of the current elapsed minute (< 60 s ago).
+private struct MatchTimerView: View {
+    let match: LiveMatchWidgetSnapshot
+    let fontSize: CGFloat
+
+    private var elapsedMinute: Int { match.elapsedSeconds / 60 }
+
+    // Anchor to start of the current elapsed minute → .timer shows "0:SS"
+    private var secondsAnchor: Date {
+        match.lastUpdated.addingTimeInterval(-TimeInterval(match.elapsedSeconds % 60))
+    }
+
+    // SF Mono digit metrics used to clip the "0:" prefix
+    private var digitWidth: CGFloat { fontSize * 0.62 }
+    private var colonWidth: CGFloat { fontSize * 0.35 }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Text("\(elapsedMinute):")
+                .font(.system(size: fontSize, weight: .semibold))
+                .foregroundColor(.green)
+                .monospacedDigit()
+
+            // Clip container sized for "SS" only; shifts the "0:SS" text left so "0:" is outside bounds
+            Color.clear
+                .frame(width: digitWidth * 2, height: fontSize * 1.3)
+                .overlay(
+                    Text(secondsAnchor, style: .timer)
+                        .font(.system(size: fontSize, weight: .semibold))
+                        .foregroundColor(.green)
+                        .monospacedDigit()
+                        .fixedSize()
+                        .offset(x: -(digitWidth + colonWidth)),
+                    alignment: .leading
+                )
+                .clipped()
+        }
+    }
+}
+
+// Groups goal events by player: ["53' Barcola", "74' Mbappe", "88' Mbappe"]
+// → [(player:"Mbappe", minutes:"74', 88'"), (player:"Barcola", minutes:"53'")]
+private func grouped(_ events: [String]) -> [(player: String, minutes: String)] {
+    var order: [String] = []
+    var map: [String: [String]] = [:]
+    for raw in events {
+        let text = sanitized(raw)
+        let parts = text.split(separator: " ", maxSplits: 1)
+        guard parts.count == 2 else { continue }
+        let minute = String(parts[0])
+        let player = String(parts[1])
+        if map[player] == nil {
+            order.append(player)
+            map[player] = []
+        }
+        map[player]!.append(minute)
+    }
+    return order.compactMap { p in
+        guard let mins = map[p] else { return nil }
+        return (player: p, minutes: mins.joined(separator: ", "))
     }
 }
 
 private struct LargeLiveScoreView: View {
     let match: LiveMatchWidgetSnapshot
     let date: Date
+    let accentColorName: String
+    let secondaryColorName: String
 
-    private var isHalftime: Bool {
-        match.status.uppercased() == "HT"
-    }
+    private var isHalftime: Bool { match.status.uppercased() == "HT" }
 
-    private var statusBadgeColor: Color {
-        if isHalftime {
-            return .orange
-        } else if match.isLive {
-            return Color("moroccoRed")
-        } else {
-            return Color(.systemGray5)
-        }
-    }
-
-    private var statusBadgeTextColor: Color {
-        (match.isLive || isHalftime) ? .white : .secondary
+    private var badgeColor: Color {
+        isHalftime ? .orange : (match.isLive ? Color(accentColorName) : Color(.systemGray4))
     }
 
     var body: some View {
@@ -228,98 +291,93 @@ private struct LargeLiveScoreView: View {
             ContainerRelativeShape()
                 .fill(Color("WidgetBackground", bundle: .main).opacity(0.95))
 
-            VStack(spacing: 12) {
-                // Header matching MatchCard
-                HStack {
-                    HStack(spacing: 4) {
+            VStack(alignment: .leading, spacing: 12) {
+                // Header
+                HStack(spacing: 6) {
+                    HStack(spacing: 3) {
                         if match.isLive {
-                            Image(systemName: "clock")
-                                .font(.caption2)
+                            Circle().fill(Color.white).frame(width: 5, height: 5)
                         } else if isHalftime {
-                            Image(systemName: "pause.circle.fill")
-                                .font(.caption2)
+                            Image(systemName: "pause.circle.fill").font(.system(size: 9))
                         }
                         Text(match.statusLabel)
-                            .font(.caption)
-                            .fontWeight(.medium)
+                            .font(.system(size: 11, weight: .bold))
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(statusBadgeColor)
-                    .foregroundColor(statusBadgeTextColor)
-                    .cornerRadius(12)
-
-                    Spacer()
+                    .background(badgeColor)
+                    .foregroundColor(match.isLive || isHalftime ? .white : .secondary)
+                    .clipShape(Capsule())
 
                     Text(match.competition)
-                        .font(.caption)
+                        .font(.system(size: 12))
                         .foregroundColor(.secondary)
+                        .lineLimit(1)
+
+                    Spacer(minLength: 0)
+
+                    if match.isLive {
+                        MatchTimerView(match: match, fontSize: 12)
+                    }
                 }
 
-                // Teams and Scores matching MatchCard layout
-                HStack(alignment: .center, spacing: 8) {
-                    // Home Team
-                    HStack(spacing: 12) {
-                        LogoImageView(path: match.homeLogoPath, size: CGSize(width: 50, height: 50), useCircle: true)
-
-                        Text(localizedTeamName(match.homeTeam))
-                            .font(.body)
-                            .fontWeight(.medium)
-                            .lineLimit(2)
-                            .minimumScaleFactor(0.8)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .frame(maxWidth: .infinity)
-
-                    // Score
-                    HStack(spacing: 16) {
-                        Text("\(match.homeScore)")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(Color("moroccoRed"))
-
-                        Text("-")
-                            .font(.title)
-                            .foregroundColor(.secondary)
-
-                        Text("\(match.awayScore)")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(Color("moroccoGreen"))
-                    }
-                    .fixedSize()
-
-                    // Away Team
-                    HStack(spacing: 12) {
-                        Text(localizedTeamName(match.awayTeam))
-                            .font(.body)
-                            .fontWeight(.medium)
-                            .lineLimit(2)
-                            .minimumScaleFactor(0.8)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-
-                        LogoImageView(path: match.awayLogoPath, size: CGSize(width: 50, height: 50), useCircle: true)
-                    }
-                    .frame(maxWidth: .infinity)
+                // Two score rows (larger)
+                VStack(spacing: 10) {
+                    TeamScoreRow(
+                        logoPath: match.homeLogoPath,
+                        name: localizedTeamName(match.homeTeam),
+                        score: match.homeScore,
+                        scoreColor: Color(accentColorName),
+                        scoreSize: 38
+                    )
+                    Divider().opacity(0.25)
+                    TeamScoreRow(
+                        logoPath: match.awayLogoPath,
+                        name: localizedTeamName(match.awayTeam),
+                        score: match.awayScore,
+                        scoreColor: Color(secondaryColorName),
+                        scoreSize: 38
+                    )
                 }
 
-                // Timer
-                if match.isLive {
-                    Text(match.timerText(reference: date))
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.green)
-                        .monospacedDigit()
-                }
-
-                // Goals Section
+                // Goals
                 if !match.homeGoalEvents.isEmpty || !match.awayGoalEvents.isEmpty {
-                    Divider()
-
+                    Divider().opacity(0.3)
                     GoalListView(home: match.homeGoalEvents, away: match.awayGoalEvents)
                 }
             }
             .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
+    }
+}
+
+private struct TeamScoreRow: View {
+    let logoPath: String?
+    let name: String
+    let score: Int
+    let scoreColor: Color
+    var scoreSize: CGFloat = 28
+
+    private var logoSize: CGFloat { scoreSize < 34 ? 26 : 34 }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            LogoImageView(
+                path: logoPath,
+                size: CGSize(width: logoSize, height: logoSize),
+                useCircle: true
+            )
+            Text(name)
+                .font(.system(size: scoreSize < 34 ? 14 : 16, weight: .semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .truncationMode(.tail)
+            Spacer(minLength: 4)
+            Text("\(score)")
+                .font(.system(size: scoreSize, weight: .black))
+                .foregroundColor(scoreColor)
+                .monospacedDigit()
         }
     }
 }
@@ -429,6 +487,10 @@ extension LiveMatchWidgetSnapshot {
         case "PEN": return "Penalty Shootout"
         default: return status.uppercased()
         }
+    }
+
+    var timerStartDate: Date {
+        lastUpdated.addingTimeInterval(-TimeInterval(elapsedSeconds))
     }
 
     func timerText(reference: Date) -> String {
