@@ -36,3 +36,32 @@ struct FWCBracketTypesTests {
         #expect(m.penalty1 == nil)
     }
 }
+
+struct FWCBracketDataTests {
+
+    @Test func roundOf32HasSixteenMatches() {
+        #expect(FWCBracketData.placeholderMatches.roundOf32.count == 16)
+    }
+
+    @Test func roundOf16HasEightMatches() {
+        #expect(FWCBracketData.placeholderMatches.roundOf16.count == 8)
+    }
+
+    @Test func quarterFinalsHasFourMatches() {
+        #expect(FWCBracketData.placeholderMatches.quarterFinals.count == 4)
+    }
+
+    @Test func semiFinalsHasTwoMatches() {
+        #expect(FWCBracketData.placeholderMatches.semiFinals.count == 2)
+    }
+
+    @Test func allMatchIdsAreUnique() {
+        let m = FWCBracketData.placeholderMatches
+        let allIds = m.roundOf32.map(\.id)
+            + m.roundOf16.map(\.id)
+            + m.quarterFinals.map(\.id)
+            + m.semiFinals.map(\.id)
+            + [m.final.id, m.thirdPlace.id]
+        #expect(Set(allIds).count == allIds.count)
+    }
+}
