@@ -112,13 +112,13 @@ private struct FWCBracketContentView: View {
             .map { $0 + cardHeight / 2 }
     }
     var r16YCenters: [CGFloat] {
-        (0..<8).map { i in (r32YCenters[i * 2] + r32YCenters[i * 2 + 1]) / 2 }
+        (0..<8).map { (i: Int) -> CGFloat in (r32YCenters[i * 2] + r32YCenters[i * 2 + 1]) / 2 }
     }
     var qfYCenters: [CGFloat] {
-        (0..<4).map { i in (r16YCenters[i * 2] + r16YCenters[i * 2 + 1]) / 2 }
+        (0..<4).map { (i: Int) -> CGFloat in (r16YCenters[i * 2] + r16YCenters[i * 2 + 1]) / 2 }
     }
     var sfYCenters: [CGFloat] {
-        (0..<2).map { i in (qfYCenters[i * 2] + qfYCenters[i * 2 + 1]) / 2 }
+        (0..<2).map { (i: Int) -> CGFloat in (qfYCenters[i * 2] + qfYCenters[i * 2 + 1]) / 2 }
     }
     var finalYCenter: CGFloat     { (sfYCenters[0] + sfYCenters[1]) / 2 }
     var thirdPlaceYCenter: CGFloat { finalYCenter + 150 }
