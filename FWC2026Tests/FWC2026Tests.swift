@@ -65,3 +65,23 @@ struct FWCBracketDataTests {
         #expect(Set(allIds).count == allIds.count)
     }
 }
+
+struct FWCBracketViewModelTests {
+
+    @Test func defaultSelectedRoundIsR32() {
+        let vm = FWCBracketViewModel()
+        #expect(vm.selectedRound == .roundOf32)
+    }
+
+    @Test func placeholderMatchesLoadedByDefault() {
+        let vm = FWCBracketViewModel()
+        #expect(vm.bracketMatches != nil)
+        #expect(vm.bracketMatches?.roundOf32.count == 16)
+    }
+
+    @Test func determineCurrentRoundBeforeTournamentIsR32() {
+        // Valide tant que la date du jour est avant le 2026-07-04.
+        let vm = FWCBracketViewModel()
+        #expect(vm.determineCurrentRound() == .roundOf32)
+    }
+}
