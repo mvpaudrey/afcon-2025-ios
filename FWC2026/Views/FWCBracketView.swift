@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import TournamentKit
 
 // MARK: - Match Card
 
@@ -14,11 +15,11 @@ private struct FWCMatchCardView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            teamRow(name: match.team1,
+            teamRow(name: match.team1, teamId: match.team1Id,
                     score: match.score1, opponentScore: match.score2,
                     penalty: match.penalty1, opponentPenalty: match.penalty2)
             Rectangle().fill(Color.gray.opacity(0.3)).frame(height: 1)
-            teamRow(name: match.team2,
+            teamRow(name: match.team2, teamId: match.team2Id,
                     score: match.score2, opponentScore: match.score1,
                     penalty: match.penalty2, opponentPenalty: match.penalty1)
         }
@@ -40,16 +41,25 @@ private struct FWCMatchCardView: View {
     }
 
     @ViewBuilder
-    private func teamRow(name: String, score: Int?, opponentScore: Int?,
+    private func teamRow(name: String, teamId: Int?, score: Int?, opponentScore: Int?,
                          penalty: Int?, opponentPenalty: Int?) -> some View {
         HStack {
-            Circle()
-                .fill(Color("fifaBlue").opacity(0.25))
-                .frame(width: 20, height: 20)
-                .overlay(
-                    Text(String(name.prefix(1)))
-                        .font(.caption2).fontWeight(.bold).foregroundColor(.white)
-                )
+            if let id = teamId, let asset = TeamFlagMapper.flagAssetName(for: id) {
+                Image(asset)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 22, height: 22)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.gray.opacity(0.2), lineWidth: 0.5))
+            } else {
+                Circle()
+                    .fill(Color("fifaBlue").opacity(0.25))
+                    .frame(width: 22, height: 22)
+                    .overlay(
+                        Text(String(name.prefix(1)))
+                            .font(.caption2).fontWeight(.bold).foregroundColor(.white)
+                    )
+            }
             Text(name)
                 .font(.caption).fontWeight(.medium)
                 .lineLimit(1).truncationMode(.tail)
