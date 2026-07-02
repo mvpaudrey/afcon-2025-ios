@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 // MARK: - Match Card
 
@@ -376,6 +377,7 @@ private struct FWCBracketContentView: View {
 // MARK: - Main View
 
 public struct FWCBracketView: View {
+    @Environment(\.modelContext) private var modelContext
     @State private var viewModel = FWCBracketViewModel.shared
 
     public init() {}
@@ -396,6 +398,11 @@ public struct FWCBracketView: View {
                 viewModel.selectedRound = viewModel.determineCurrentRound()
                 viewModel.hasInitializedSelectedRound = true
             }
+        }
+        .task {
+            viewModel.configure(modelContext: modelContext)
+            await viewModel.loadBracketData()
+            await viewModel.syncKnockoutFixturesForPastDates()
         }
     }
 }
