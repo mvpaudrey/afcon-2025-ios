@@ -658,7 +658,7 @@
 		762C67A92FEDCC4E0093A6D4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "HalftimeFootball-AppIcon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FWC2026/FWC2026.entitlements;
 				CODE_SIGN_STYLE = Automatic;
@@ -697,7 +697,7 @@
 		762C67AA2FEDCC4E0093A6D4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "HalftimeFootball-AppIcon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FWC2026/FWC2026.entitlements;
 				CODE_SIGN_STYLE = Automatic;
