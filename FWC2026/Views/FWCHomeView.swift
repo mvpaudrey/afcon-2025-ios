@@ -123,11 +123,11 @@ struct FWCInitializingOverlay: View {
                     .tint(Color(accentColorName))
 
                 VStack(spacing: 8) {
-                    Text("Initializing Tournament Data")
+                    Text(LocalizedStringKey("Initializing Tournament Data"))
                         .font(.headline)
                         .foregroundColor(.primary)
 
-                    Text("Loading fixtures for FIFA World Cup 2026...")
+                    Text(LocalizedStringKey("Loading fixtures for FIFA World Cup 2026..."))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)

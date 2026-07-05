@@ -211,11 +211,11 @@ struct InitializingOverlay: View {
                     .tint(Color("moroccoRed"))
 
                 VStack(spacing: 8) {
-                    Text("Initializing Tournament Data")
+                    Text(LocalizedStringKey("Initializing Tournament Data"))
                         .font(.headline)
                         .foregroundColor(.primary)
 
-                    Text("Loading fixtures for AFCON 2025...")
+                    Text(LocalizedStringKey("Loading fixtures for AFCON 2025..."))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)

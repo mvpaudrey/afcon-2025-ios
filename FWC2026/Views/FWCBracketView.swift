@@ -60,7 +60,7 @@ private struct FWCMatchCardView: View {
                             .font(.caption2).fontWeight(.bold).foregroundColor(.white)
                     )
             }
-            Text(name)
+            Text(localizedTeamName(name))
                 .font(.caption).fontWeight(.medium)
                 .lineLimit(1).truncationMode(.tail)
             Spacer()
@@ -89,7 +89,7 @@ private struct FWCMatchCardView: View {
 // MARK: - Stage Label
 
 private struct FWCStageLabel: View {
-    let title: String
+    let title: LocalizedStringKey
     var body: some View {
         Text(title)
             .font(.system(size: 13, weight: .bold))
@@ -144,7 +144,7 @@ private struct FWCBracketContentView: View {
                         Button {
                             selectedRound = round
                         } label: {
-                            Text(round.rawValue)
+                            Text(LocalizedStringKey(round.localizedKey))
                                 .font(.system(size: 14,
                                               weight: selectedRound == round ? .bold : .medium))
                                 .foregroundColor(selectedRound == round
@@ -276,7 +276,7 @@ private struct FWCBracketContentView: View {
                             cardColumn(match: m, x: r32Left, y: r32YCenters[i])
                                 .id(i == 0 ? "r32" : "r32_\(m.id)")
                         }
-                        FWCStageLabel(title: "Seizièmes")
+                        FWCStageLabel(title: LocalizedStringKey(FWCBracketRound.roundOf32.localizedKey))
                             .position(x: r32Left + cardWidth / 2, y: 15)
 
                         // R16 — 8 cartes
@@ -284,7 +284,7 @@ private struct FWCBracketContentView: View {
                             cardColumn(match: m, x: r16Left, y: r16YCenters[i])
                                 .id(i == 0 ? "r16" : "r16_\(m.id)")
                         }
-                        FWCStageLabel(title: "Huitièmes")
+                        FWCStageLabel(title: LocalizedStringKey(FWCBracketRound.roundOf16.localizedKey))
                             .position(x: r16Left + cardWidth / 2, y: 15)
 
                         // QF — 4 cartes
@@ -292,7 +292,7 @@ private struct FWCBracketContentView: View {
                             cardColumn(match: m, x: qfLeft, y: qfYCenters[i])
                                 .id(i == 0 ? "quarterfinals" : "qf_\(m.id)")
                         }
-                        FWCStageLabel(title: "Quarts")
+                        FWCStageLabel(title: LocalizedStringKey(FWCBracketRound.quarterFinals.localizedKey))
                             .position(x: qfLeft + cardWidth / 2, y: 15)
 
                         // SF — 2 cartes
@@ -300,14 +300,14 @@ private struct FWCBracketContentView: View {
                             cardColumn(match: m, x: sfLeft, y: sfYCenters[i])
                                 .id(i == 0 ? "semifinals" : "sf_\(m.id)")
                         }
-                        FWCStageLabel(title: "Demi-finales")
+                        FWCStageLabel(title: LocalizedStringKey(FWCBracketRound.semiFinals.localizedKey))
                             .position(x: sfLeft + cardWidth / 2, y: 15)
 
                         // Finale
                         cardColumn(match: matches.final, x: finalLeft,
                                    y: finalYCenter, isFinal: true)
                             .id("final_anchor")
-                        FWCStageLabel(title: "Finale")
+                        FWCStageLabel(title: LocalizedStringKey(FWCBracketRound.final.localizedKey))
                             .position(x: finalLeft + cardWidth / 2, y: 15)
 
                         // 3e Place
@@ -318,6 +318,7 @@ private struct FWCBracketContentView: View {
                     .frame(width: 1380, height: 2200)
                     .padding(20)
                 }
+                .environment(\.layoutDirection, .leftToRight)
                 .background(
                     LinearGradient(
                         colors: [Color("fifaBlue").opacity(0.05),

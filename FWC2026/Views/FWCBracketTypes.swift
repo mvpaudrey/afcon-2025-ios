@@ -8,6 +8,16 @@ enum FWCBracketRound: String, CaseIterable {
     case quarterFinals = "Quarts"
     case semiFinals    = "Demi-finales"
     case final         = "Finale"
+
+    var localizedKey: String {
+        switch self {
+        case .roundOf32:     return "Round of 32"
+        case .roundOf16:     return "Round of 16"
+        case .quarterFinals: return "Quarter-finals"
+        case .semiFinals:    return "Semi-finals"
+        case .final:         return "Final"
+        }
+    }
 }
 
 // MARK: - Match

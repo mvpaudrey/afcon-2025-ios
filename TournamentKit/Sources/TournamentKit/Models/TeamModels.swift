@@ -135,6 +135,6 @@ public struct NationalTeam: Identifiable, Hashable, Sendable {
     }
 
     public var localizedName: String {
-        NSLocalizedString(name, comment: "")
+        localizedTeamName(name)
     }
 }

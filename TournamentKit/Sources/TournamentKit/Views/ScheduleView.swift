@@ -282,7 +282,7 @@ public struct ScheduledMatchCard: View {
                         )
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(match.homeTeam)
+                        Text(localizedTeamName(match.homeTeam))
                             .fontWeight(.medium)
                         Text("Home")
                             .font(.caption)
@@ -333,7 +333,7 @@ public struct ScheduledMatchCard: View {
                 // Away team
                 HStack(spacing: 12) {
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text(match.awayTeam)
+                        Text(localizedTeamName(match.awayTeam))
                             .fontWeight(.medium)
                         Text("Away")
                             .font(.caption)
