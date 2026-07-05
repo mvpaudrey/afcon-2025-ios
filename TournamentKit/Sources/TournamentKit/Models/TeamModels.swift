@@ -67,8 +67,71 @@ public struct NationalTeam: Identifiable, Hashable, Sendable {
         .init(id: 1512, name: "Mozambique", assetName: "MOZ")
     ]
 
+    public static let worldCupTeams: [NationalTeam] = [
+        // Group A
+        .init(id: 16, name: "Mexico", assetName: "MEX"),
+        .init(id: 1531, name: "South Africa", assetName: "RSA"),
+        .init(id: 17, name: "South Korea", assetName: "KOR"),
+        .init(id: 770, name: "Czech Republic", assetName: "CZE"),
+        // Group B
+        .init(id: 15, name: "Switzerland", assetName: "SUI"),
+        .init(id: 5529, name: "Canada", assetName: "CAN"),
+        .init(id: 1113, name: "Bosnia & Herzegovina", assetName: "BIH"),
+        .init(id: 1569, name: "Qatar", assetName: "QAT"),
+        // Group C
+        .init(id: 6, name: "Brazil", assetName: "BRA"),
+        .init(id: 31, name: "Morocco", assetName: "MAR"),
+        .init(id: 1108, name: "Scotland", assetName: "SCO"),
+        .init(id: 2386, name: "Haiti", assetName: "HAI"),
+        // Group D
+        .init(id: 2384, name: "United States", assetName: "USA"),
+        .init(id: 20, name: "Australia", assetName: "AUS"),
+        .init(id: 2380, name: "Paraguay", assetName: "PAR"),
+        .init(id: 777, name: "Turkey", assetName: "TUR"),
+        // Group E
+        .init(id: 25, name: "Germany", assetName: "GER"),
+        .init(id: 1501, name: "Ivory Coast", assetName: "CIV"),
+        .init(id: 2382, name: "Ecuador", assetName: "ECU"),
+        .init(id: 5530, name: "Curacao", assetName: "CUW"),
+        // Group F
+        .init(id: 1118, name: "Netherlands", assetName: "NED"),
+        .init(id: 12, name: "Japan", assetName: "JPN"),
+        .init(id: 5, name: "Sweden", assetName: "SWE"),
+        .init(id: 28, name: "Tunisia", assetName: "TUN"),
+        // Group G
+        .init(id: 1, name: "Belgium", assetName: "BEL"),
+        .init(id: 32, name: "Egypt", assetName: "EGY"),
+        .init(id: 22, name: "Iran", assetName: "IRN"),
+        .init(id: 4673, name: "New Zealand", assetName: "NZL"),
+        // Group H
+        .init(id: 9, name: "Spain", assetName: "ESP"),
+        .init(id: 1533, name: "Cape Verde", assetName: "CPV"),
+        .init(id: 7, name: "Uruguay", assetName: "URU"),
+        .init(id: 23, name: "Saudi Arabia", assetName: "KSA"),
+        // Group I
+        .init(id: 2, name: "France", assetName: "FRA"),
+        .init(id: 1090, name: "Norway", assetName: "NOR"),
+        .init(id: 13, name: "Senegal", assetName: "SEN"),
+        .init(id: 1567, name: "Iraq", assetName: "IRQ"),
+        // Group J
+        .init(id: 26, name: "Argentina", assetName: "ARG"),
+        .init(id: 775, name: "Austria", assetName: "AUT"),
+        .init(id: 1532, name: "Algeria", assetName: "ALG"),
+        .init(id: 1548, name: "Jordan", assetName: "JOR"),
+        // Group K
+        .init(id: 8, name: "Colombia", assetName: "COL"),
+        .init(id: 27, name: "Portugal", assetName: "POR"),
+        .init(id: 1508, name: "DR Congo", assetName: "COD"),
+        .init(id: 1568, name: "Uzbekistan", assetName: "UZB"),
+        // Group L
+        .init(id: 10, name: "England", assetName: "ENG"),
+        .init(id: 3, name: "Croatia", assetName: "CRO"),
+        .init(id: 1504, name: "Ghana", assetName: "GHA"),
+        .init(id: 11, name: "Panama", assetName: "PAN")
+    ]
+
     public static func team(for id: Int) -> NationalTeam? {
-        sampleTeams.first { $0.id == id }
+        (sampleTeams + worldCupTeams).first { $0.id == id }
     }
 
     public var localizedName: String {

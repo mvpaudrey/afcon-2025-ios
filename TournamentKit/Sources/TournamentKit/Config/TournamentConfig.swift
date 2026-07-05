@@ -11,6 +11,12 @@ public protocol TournamentConfig: Sendable {
     var appGroupIdentifier: String { get }
     /// Maps API-Football team IDs to asset image names (FIFA codes, e.g. "MAR")
     var teamFlagMap: [Int: String] { get }
+    /// Teams available for selection as favorites in this tournament
+    var availableTeams: [NationalTeam] { get }
+}
+
+public extension TournamentConfig {
+    var availableTeams: [NationalTeam] { NationalTeam.sampleTeams }
 }
 
 // Internal fallback — every App struct injects a concrete config before any view renders

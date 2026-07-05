@@ -9,6 +9,7 @@ struct FWCTournamentConfig: TournamentConfig {
     let accentColorName = "fifaBlue"
     let secondaryColorName = "fifaGold"
     let appGroupIdentifier = "group.com.cheulah.afcon"
+    var availableTeams: [NationalTeam] { NationalTeam.worldCupTeams }
     let teamFlagMap: [Int: String] = [
         // Group A
         16: "MEX", 1531: "RSA", 17: "KOR", 770: "CZE",
