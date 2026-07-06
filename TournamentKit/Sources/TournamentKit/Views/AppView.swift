@@ -6,6 +6,11 @@ public struct AppView<Factory: TournamentViewFactory>: View {
     @State private var showOnboarding = false
     @EnvironmentObject private var notificationService: AppNotificationService
     @Environment(\.modelContext) private var modelContext
+    @AppStorage("appLanguage") private var languageCode: String = "en"
+
+    private var layoutDirection: LayoutDirection {
+        languageCode == "ar" ? .rightToLeft : .leftToRight
+    }
 
     private let factory: Factory
 
@@ -28,6 +33,7 @@ public struct AppView<Factory: TournamentViewFactory>: View {
                 factory.makeHomeView()
             }
         }
+        .environment(\.layoutDirection, layoutDirection)
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 withAnimation(.easeInOut(duration: 0.3)) {
