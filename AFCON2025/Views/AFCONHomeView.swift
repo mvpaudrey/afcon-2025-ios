@@ -181,8 +181,11 @@ struct AFCONHomeView: View {
         } else {
             print("Found \(count) fixtures in SwiftData")
 
-            // Even if fixtures exist, sync live matches to ensure fresh data
             let dataManager = FixtureDataManager(modelContext: modelContext)
+            // Full sync of all fixtures if stale (>30 min), then live sync for real-time scores
+            if AppSettings.shared.needsFixturesRefresh {
+                await dataManager.syncAllFixtures()
+            }
             await dataManager.syncLiveFixtures()
             if let viewModel = liveScoresViewModel {
                 await viewModel.fetchLiveMatches()

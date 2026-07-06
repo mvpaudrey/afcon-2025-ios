@@ -92,6 +92,10 @@ struct FWCHomeView: View {
                 viewModel.startLiveUpdates()
             }
         } else {
+            // Full sync of all fixtures if stale (>30 min), then live sync for real-time scores
+            if AppSettings.shared.needsFixturesRefresh {
+                await dataManager.syncAllFixtures()
+            }
             await dataManager.syncLiveFixtures()
             if let viewModel = liveScoresViewModel {
                 await viewModel.fetchLiveMatches()

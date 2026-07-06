@@ -7,7 +7,7 @@ import AFCONClient
 public final class ScheduleViewModel {
     private let afconService: TournamentServiceWrapper
     public var modelContext: ModelContext?
-    private let fixturesRefreshInterval: TimeInterval = 6 * 60 * 60
+    private let fixturesRefreshInterval: TimeInterval = 30 * 60
 
     public var fixtures: [FixtureModel] = []
     public var isLoading: Bool = false
