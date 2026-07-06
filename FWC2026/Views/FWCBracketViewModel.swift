@@ -152,8 +152,8 @@ class FWCBracketViewModel {
             match(71, team("A", 1), third(["C","E","F","H","I"])),
             match(72, team("L", 1), third(["E","H","I","J","K"])),
             match(79, team("J", 1), team("H", 2)),
-            match(77, team("B", 1), third(["E","F","G","I","J"])),
             match(78, team("D", 2), team("G", 2)),
+            match(77, team("B", 1), third(["E","F","G","I","J"])),
             match(80, team("K", 1), third(["D","E","I","J","L"])),
         ]
     }

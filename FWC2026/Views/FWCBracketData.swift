@@ -32,17 +32,26 @@ struct FWCBracketData {
             FWCBracketMatch(id: 80, date: "2026-07-04", time: "03:30", team1: "1K", team2: "3e", team1Id: nil, team2Id: nil, venue: "", score1: nil, score2: nil),
         ],
         roundOf16: [
-            FWCBracketMatch(id: 81, date: "2026-07-04", time: "23:00", team1: "TBD", team2: "TBD", team1Id: nil, team2Id: nil, venue: "", score1: nil, score2: nil),
-            FWCBracketMatch(id: 82, date: "2026-07-04", time: "19:00", team1: "TBD", team2: "TBD", team1Id: nil, team2Id: nil, venue: "", score1: nil, score2: nil),
-            FWCBracketMatch(id: 83, date: "2026-07-06", time: "21:00", team1: "TBD", team2: "TBD", team1Id: nil, team2Id: nil, venue: "", score1: nil, score2: nil),
-            FWCBracketMatch(id: 84, date: "2026-07-07", time: "18:00", team1: "TBD", team2: "TBD", team1Id: nil, team2Id: nil, venue: "", score1: nil, score2: nil),
-            FWCBracketMatch(id: 85, date: "2026-07-06", time: "02:00", team1: "TBD", team2: "TBD", team1Id: nil, team2Id: nil, venue: "", score1: nil, score2: nil),
-            FWCBracketMatch(id: 86, date: "2026-07-07", time: "21:00", team1: "TBD", team2: "TBD", team1Id: nil, team2Id: nil, venue: "", score1: nil, score2: nil),
-            FWCBracketMatch(id: 87, date: "2026-07-07", time: "22:00", team1: "TBD", team2: "TBD", team1Id: nil, team2Id: nil, venue: "", score1: nil, score2: nil),
-            FWCBracketMatch(id: 88, date: "2026-07-05", time: "22:00", team1: "TBD", team2: "TBD", team1Id: nil, team2Id: nil, venue: "", score1: nil, score2: nil),
+            // R16[0] — Paraguay vs France [Jul 04 23:00]
+            FWCBracketMatch(id: 81, date: "2026-07-04", time: "23:00", team1: "Paraguay", team2: "France", team1Id: 2380, team2Id: 2, venue: "", score1: 0, score2: 1),
+            // R16[1] — Canada vs Morocco [Jul 04 19:00]
+            FWCBracketMatch(id: 82, date: "2026-07-04", time: "19:00", team1: "Canada", team2: "Morocco", team1Id: 5529, team2Id: 31, venue: "", score1: 0, score2: 3),
+            // R16[2] — Portugal vs Spain [Jul 06 21:00]
+            FWCBracketMatch(id: 83, date: "2026-07-06", time: "21:00", team1: "Portugal", team2: "Spain", team1Id: 27, team2Id: 9, venue: "", score1: nil, score2: nil),
+            // R16[3] — United States vs Belgium [Jul 07 02:00]
+            FWCBracketMatch(id: 84, date: "2026-07-07", time: "02:00", team1: "United States", team2: "Belgium", team1Id: 2384, team2Id: 1, venue: "", score1: nil, score2: nil),
+            // R16[4] — Brazil vs Norway [Jul 05 22:00]
+            FWCBracketMatch(id: 85, date: "2026-07-05", time: "22:00", team1: "Brazil", team2: "Norway", team1Id: 6, team2Id: 1090, venue: "", score1: nil, score2: nil),
+            // R16[5] — Mexico vs England [Jul 06 02:00]
+            FWCBracketMatch(id: 86, date: "2026-07-06", time: "02:00", team1: "Mexico", team2: "England", team1Id: 16, team2Id: 10, venue: "", score1: nil, score2: nil),
+            // R16[6] — Argentina vs Egypt [Jul 07 18:00]
+            FWCBracketMatch(id: 87, date: "2026-07-07", time: "18:00", team1: "Argentina", team2: "Egypt", team1Id: 26, team2Id: 32, venue: "", score1: nil, score2: nil),
+            // R16[7] — Switzerland vs Colombia [Jul 07 22:00]
+            FWCBracketMatch(id: 88, date: "2026-07-07", time: "22:00", team1: "Switzerland", team2: "Colombia", team1Id: 15, team2Id: 8, venue: "", score1: nil, score2: nil),
         ],
         quarterFinals: [
-            FWCBracketMatch(id: 89, date: "2026-07-09", time: "22:00", team1: "TBD", team2: "TBD", team1Id: nil, team2Id: nil, venue: "", score1: nil, score2: nil),
+            // QF[0] — France vs Morocco [Jul 09 22:00]
+            FWCBracketMatch(id: 89, date: "2026-07-09", time: "22:00", team1: "France", team2: "Morocco", team1Id: 2, team2Id: 31, venue: "", score1: nil, score2: nil),
             FWCBracketMatch(id: 90, date: "2026-07-10", time: "21:00", team1: "TBD", team2: "TBD", team1Id: nil, team2Id: nil, venue: "", score1: nil, score2: nil),
             FWCBracketMatch(id: 91, date: "2026-07-11", time: "23:00", team1: "TBD", team2: "TBD", team1Id: nil, team2Id: nil, venue: "", score1: nil, score2: nil),
             FWCBracketMatch(id: 92, date: "2026-07-12", time: "03:00", team1: "TBD", team2: "TBD", team1Id: nil, team2Id: nil, venue: "", score1: nil, score2: nil),
