@@ -24,7 +24,7 @@ struct MatchCardView: View {
                         gradient: badgeGradient(for: 1)
                     )
 
-                    Text(match.team1)
+                    Text(localizedTeamName(match.team1))
                         .font(.caption)
                         .fontWeight(.medium)
                         .lineLimit(1)
@@ -66,7 +66,7 @@ struct MatchCardView: View {
                         gradient: badgeGradient(for: 2)
                     )
 
-                    Text(match.team2)
+                    Text(localizedTeamName(match.team2))
                         .font(.caption)
                         .fontWeight(.medium)
                         .lineLimit(1)
@@ -720,6 +720,7 @@ private struct BracketContentView: View {
 
             }
             .frame(maxWidth: .infinity)
+            .environment(\.layoutDirection, .leftToRight)
             .background(
                 LinearGradient(colors: [
                     Color("moroccoGreen").opacity(0.08),

@@ -92,6 +92,10 @@ struct FWCHomeView: View {
                 viewModel.startLiveUpdates()
             }
         } else {
+            // Full sync of all fixtures if stale (>30 min), then live sync for real-time scores
+            if AppSettings.shared.needsFixturesRefresh {
+                await dataManager.syncAllFixtures()
+            }
             await dataManager.syncLiveFixtures()
             if let viewModel = liveScoresViewModel {
                 await viewModel.fetchLiveMatches()
@@ -123,11 +127,11 @@ struct FWCInitializingOverlay: View {
                     .tint(Color(accentColorName))
 
                 VStack(spacing: 8) {
-                    Text("Initializing Tournament Data")
+                    Text(LocalizedStringKey("Initializing Tournament Data"))
                         .font(.headline)
                         .foregroundColor(.primary)
 
-                    Text("Loading fixtures for FIFA World Cup 2026...")
+                    Text(LocalizedStringKey("Loading fixtures for FIFA World Cup 2026..."))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)

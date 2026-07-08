@@ -1,0 +1,47 @@
+{
+  "fill" : {
+    "automatic-gradient" : "extended-srgb:0.00000,0.53333,1.00000,1.00000"
+  },
+  "groups" : [
+    {
+      "hidden" : false,
+      "layers" : [
+        {
+          "image-name" : "Split_Background.png",
+          "name" : "Split_Background"
+        },
+        {
+          "image-name" : "Split_Ball.png",
+          "name" : "Split_Ball"
+        },
+        {
+          "image-name" : "Split_Glass.png",
+          "name" : "Split_Glass"
+        },
+        {
+          "image-name" : "Split_Text.png",
+          "name" : "Split_Text"
+        }
+      ],
+      "shadow-specializations" : [
+        {
+          "appearance" : "light",
+          "value" : {
+            "kind" : "neutral",
+            "opacity" : 0.6
+          }
+        }
+      ],
+      "translucency" : {
+        "enabled" : false,
+        "value" : 0.2
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

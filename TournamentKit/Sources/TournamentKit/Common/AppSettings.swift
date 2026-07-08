@@ -142,6 +142,12 @@ public final class AppSettings: @unchecked Sendable {
         }
     }
 
+    /// Returns true if no full sync has been done, or if the last one was more than 30 minutes ago.
+    public var needsFixturesRefresh: Bool {
+        guard let last = lastFixturesSyncAt else { return true }
+        return Date().timeIntervalSince(last) >= 30 * 60
+    }
+
     // MARK: - Language Settings
 
     /// Get the selected app language

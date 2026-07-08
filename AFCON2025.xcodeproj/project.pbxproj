@@ -10,6 +10,7 @@
 		762C62632FED63000093A6D4 /* TournamentKit in Frameworks */ = {isa = PBXBuildFile; productRef = 762C62642FED63000093A6D4 /* TournamentKit */; };
 		762C62652FED63100093A6D4 /* TournamentKit in Frameworks */ = {isa = PBXBuildFile; productRef = 762C62662FED63100093A6D4 /* TournamentKit */; };
 		762C67B32FEDCCC50093A6D4 /* TournamentKit in Frameworks */ = {isa = PBXBuildFile; productRef = 762C67B22FEDCCC50093A6D4 /* TournamentKit */; };
+		762C6801FEEDCC000093A6D4 /* LiveScoreWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 768D4E152EEF350500BE7EC5 /* LiveScoreWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		768D4D3B2EEEF75F00BE7EC5 /* SwiftUIBackports in Frameworks */ = {isa = PBXBuildFile; productRef = 768D4D3A2EEEF75F00BE7EC5 /* SwiftUIBackports */; };
 		768D4D412EEF1E4200BE7EC5 /* AFCONClient in Frameworks */ = {isa = PBXBuildFile; productRef = 768D4D402EEF1E4200BE7EC5 /* AFCONClient */; };
 		768D4E182EEF350500BE7EC5 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768D4E172EEF350500BE7EC5 /* WidgetKit.framework */; };
@@ -31,6 +32,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 762C67892FEDCC4D0093A6D4;
 			remoteInfo = FWC2026;
+		};
+		762C6802FEEDCC000093A6D4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 768D4CAD2EEEF4EE00BE7EC5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 768D4E142EEF350500BE7EC5;
+			remoteInfo = LiveScoreWidgetExtensionExtension;
 		};
 		768D4CC72EEEF4F000BE7EC5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -56,6 +64,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		762C6804FEEDCC000093A6D4 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				762C6801FEEDCC000093A6D4 /* LiveScoreWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		768D4E302EEF350700BE7EC5 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -270,10 +289,12 @@
 				762C67862FEDCC4D0093A6D4 /* Sources */,
 				762C67872FEDCC4D0093A6D4 /* Frameworks */,
 				762C67882FEDCC4D0093A6D4 /* Resources */,
+				762C6804FEEDCC000093A6D4 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				762C6803FEEDCC000093A6D4 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				762C678B2FEDCC4D0093A6D4 /* FWC2026 */,
@@ -611,6 +632,11 @@
 			target = 762C67892FEDCC4D0093A6D4 /* FWC2026 */;
 			targetProxy = 762C67A32FEDCC4E0093A6D4 /* PBXContainerItemProxy */;
 		};
+		762C6803FEEDCC000093A6D4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 768D4E142EEF350500BE7EC5 /* LiveScoreWidgetExtension */;
+			targetProxy = 762C6802FEEDCC000093A6D4 /* PBXContainerItemProxy */;
+		};
 		768D4CC82EEEF4F000BE7EC5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 768D4CB42EEEF4EE00BE7EC5 /* AFCON2025 */;
@@ -632,16 +658,18 @@
 		762C67A92FEDCC4E0093A6D4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "HalftimeFootball-AppIcon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FWC2026/FWC2026.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 486Q5MQF2F;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FWC2026/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Halftime Football";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -669,16 +697,18 @@
 		762C67AA2FEDCC4E0093A6D4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "HalftimeFootball-AppIcon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FWC2026/FWC2026.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 486Q5MQF2F;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FWC2026/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Halftime Football";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

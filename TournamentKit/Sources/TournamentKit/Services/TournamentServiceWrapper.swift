@@ -88,6 +88,59 @@ public class TournamentServiceWrapper: @unchecked Sendable {
         )
     }
 
+    /// Get standings parsed into TournamentKit types — no AFCONClient import needed by callers.
+    /// Supports all group letters (A–Z) for multi-group tournaments like FWC2026.
+    public func getParsedStandings(
+        leagueId: Int32? = nil, season: Int32? = nil
+    ) async throws -> (groups: [String: [Team]], thirdPlace: [Team]) {
+        let response = try await getStandings(leagueId: leagueId, season: season)
+
+        var groupStandings: [String: [Team]] = [:]
+        var thirdPlaceTeams: [Team] = []
+
+        for standingGroup in response.groups {
+            let teams = standingGroup.standings.map { standing in
+                Team(
+                    name: standing.team.name,
+                    teamId: Int(standing.team.id),
+                    played: Int(standing.all.played),
+                    won: Int(standing.all.win),
+                    drawn: Int(standing.all.draw),
+                    lost: Int(standing.all.lose),
+                    gf: Int(standing.all.goals.for),
+                    ga: Int(standing.all.goals.against),
+                    points: Int(standing.points),
+                    position: Int(standing.rank),
+                    groupName: standing.group
+                )
+            }
+
+            let lowercasedName = standingGroup.groupName.lowercased()
+            if lowercasedName.contains("third") || lowercasedName.contains("3rd") ||
+               lowercasedName.contains("troisième") {
+                thirdPlaceTeams = teams
+            } else if let letter = groupLetterFromName(standingGroup.groupName) {
+                groupStandings[letter] = teams
+            }
+        }
+
+        return (groupStandings, thirdPlaceTeams)
+    }
+
+    private func groupLetterFromName(_ name: String) -> String? {
+        let pattern = "(?:group|groupe)\\s*([A-Z])"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
+            return nil
+        }
+        let range = NSRange(name.startIndex..<name.endIndex, in: name)
+        guard let match = regex.firstMatch(in: name, options: [], range: range),
+              match.numberOfRanges > 1,
+              let letterRange = Range(match.range(at: 1), in: name) else {
+            return nil
+        }
+        return String(name[letterRange]).uppercased()
+    }
+
     /// Get fixture lineups
     public func getLineups(fixtureId: Int32) async throws -> [Afcon_FixtureLineup] {
         return try await service.getLineups(fixtureId: fixtureId)

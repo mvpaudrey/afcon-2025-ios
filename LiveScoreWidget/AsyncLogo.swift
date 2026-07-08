@@ -27,14 +27,14 @@ struct LogoImageView: View {
             if let path, !path.isEmpty, imageExists(path) {
                 Image(path)
                     .resizable()
-                    .scaledToFit()
-                    .padding(useCircle ? 2 : 0)
-                    .background(Color(.systemBackground).opacity(0.9))
+                    .scaledToFill()
+                    .frame(width: size.width, height: size.height)
+                    .clipped()
             } else {
                 placeholder
+                    .frame(width: size.width, height: size.height)
             }
         }
-        .frame(width: size.width, height: size.height)
         .clipShape(useCircle ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: 6)))
         .overlay(
             useCircle ?

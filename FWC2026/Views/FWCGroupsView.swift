@@ -66,7 +66,7 @@ private struct FWCGroupCard: View {
                         .foregroundColor(Color("fifaBlue"))
                         .font(.title2)
 
-                    Text(group.name)
+                    Text(localizedGroupName(group.name))
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.primary)
@@ -164,7 +164,7 @@ private struct FWCTeamRow: View {
                             )
                     }
 
-                    Text(team.name)
+                    Text(localizedTeamName(team.name))
                         .font(.footnote)
                         .fontWeight(.semibold)
                         .foregroundColor(.primary)

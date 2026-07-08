@@ -53,7 +53,7 @@ public struct TeamSelectionPage: View {
 
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(NationalTeam.sampleTeams.sorted {
+                    ForEach(config.availableTeams.sorted {
                         $0.localizedName.localizedStandardCompare($1.localizedName) == .orderedAscending
                     }) { team in
                         TeamCardView(team: team, isSelected: selectedTeams.contains(team))

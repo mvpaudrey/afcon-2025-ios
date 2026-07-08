@@ -145,6 +145,49 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         AppNotificationService.shared.handleRegistrationError(error)
     }
 
+    func application(
+        _ application: UIApplication,
+        didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+        fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+    ) {
+        guard
+            let type = userInfo["type"] as? String,
+            type == "start_live_activity",
+            let fixtureIdStr = userInfo["fixture_id"] as? String,
+            let fixtureId = Int32(fixtureIdStr),
+            let homeTeam = userInfo["home_team"] as? String,
+            let awayTeam = userInfo["away_team"] as? String
+        else {
+            completionHandler(.noData)
+            return
+        }
+
+        guard let deviceUuid = FavoriteTeamSyncService().getDeviceUuid() else {
+            print("⚠️ start_live_activity: no device UUID, skipping")
+            completionHandler(.failed)
+            return
+        }
+
+        let initialState = LiveScoreActivityAttributes.ContentState(
+            homeScore: 0,
+            awayScore: 0,
+            status: "NS",
+            elapsed: 0,
+            lastUpdateTime: Date()
+        )
+
+        let started = LiveActivityManager.shared.startActivityAndRegisterWithServer(
+            fixtureID: fixtureId,
+            homeTeam: homeTeam,
+            awayTeam: awayTeam,
+            competition: TournamentConfigStore.current.competitionName,
+            initialState: initialState,
+            deviceUuid: deviceUuid
+        )
+
+        completionHandler(started ? .newData : .noData)
+    }
+
     // MARK: - Background Tasks
 
     /// Handle background refresh task for live match updates

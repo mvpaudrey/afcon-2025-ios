@@ -75,7 +75,7 @@ struct GroupCard: View {
                         .foregroundColor(Color("moroccoGreen"))
                         .font(.title2)
 
-                    Text(group.name)
+                    Text(localizedGroupName(group.name))
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.primary)

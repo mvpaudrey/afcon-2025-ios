@@ -63,7 +63,7 @@ public class LiveActivityManager {
             let activity = try ActivityKit.Activity.request(
                 attributes: attributes,
                 content: .init(state: initialState, staleDate: nil),
-                pushType: nil
+                pushType: .token
             )
 
             activeActivities[fixtureID] = activity
@@ -74,6 +74,70 @@ public class LiveActivityManager {
             return true
         } catch {
             print("Failed to start Live Activity: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Start a Live Activity and register its push token with the server.
+    /// Use this when starting an activity in response to a `start_live_activity` background push.
+    @discardableResult
+    public func startActivityAndRegisterWithServer(
+        fixtureID: Int32,
+        homeTeam: String,
+        awayTeam: String,
+        competition: String,
+        initialState: LiveScoreActivityAttributes.ContentState,
+        deviceUuid: String
+    ) -> Bool {
+        guard activeActivities[fixtureID] == nil else {
+            print("Live Activity already exists for fixture \(fixtureID)")
+            return false
+        }
+        guard isSupported else {
+            print("Live Activities not supported on this device")
+            return false
+        }
+
+        do {
+            let attributes = LiveScoreActivityAttributes(
+                fixtureID: fixtureID,
+                homeTeam: homeTeam,
+                awayTeam: awayTeam,
+                competition: competition,
+                matchDate: Date()
+            )
+
+            let activity = try ActivityKit.Activity.request(
+                attributes: attributes,
+                content: .init(state: initialState, staleDate: nil),
+                pushType: .token
+            )
+
+            activeActivities[fixtureID] = activity
+            print("Started Live Activity for \(homeTeam) vs \(awayTeam) (activity ID: \(activity.id))")
+
+            // Register the push token with the server as soon as it's available.
+            // The token can rotate during the activity's lifetime; each update is sent to the server.
+            Task {
+                for await pushTokenData in activity.pushTokenUpdates {
+                    let pushToken = pushTokenData.map { String(format: "%02.2hhx", $0) }.joined()
+                    do {
+                        _ = try await TournamentServiceWrapper.shared.startLiveActivity(
+                            deviceUuid: deviceUuid,
+                            fixtureId: fixtureID,
+                            activityId: activity.id,
+                            pushToken: pushToken
+                        )
+                        print("Live Activity push token registered with server for fixture \(fixtureID)")
+                    } catch {
+                        print("Failed to register Live Activity push token: \(error)")
+                    }
+                }
+            }
+
+            return true
+        } catch {
+            print("Failed to start Live Activity: \(error)")
             return false
         }
     }
