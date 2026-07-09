@@ -300,6 +300,9 @@ private struct LiveMatchTimerLabel: View {
     private var secondsAnchor: Date {
         match.lastUpdated.addingTimeInterval(-TimeInterval(match.elapsedSeconds % 60))
     }
+    private var isActivelyCounting: Bool {
+        ["1H", "2H", "ET", "LIVE"].contains(match.status.uppercased())
+    }
 
     var body: some View {
         let size: CGFloat = 10
@@ -310,18 +313,25 @@ private struct LiveMatchTimerLabel: View {
                 .font(.system(size: size, weight: .bold))
                 .foregroundColor(.green)
                 .monospacedDigit()
-            Color.clear
-                .frame(width: dw * 2, height: size * 1.3)
-                .overlay(
-                    Text(secondsAnchor, style: .timer)
-                        .font(.system(size: size, weight: .bold))
-                        .foregroundColor(.green)
-                        .monospacedDigit()
-                        .fixedSize()
-                        .offset(x: -(dw + cw)),
-                    alignment: .leading
-                )
-                .clipped()
+            if isActivelyCounting {
+                Color.clear
+                    .frame(width: dw * 2, height: size * 1.3)
+                    .overlay(
+                        Text(secondsAnchor, style: .timer)
+                            .font(.system(size: size, weight: .bold))
+                            .foregroundColor(.green)
+                            .monospacedDigit()
+                            .fixedSize()
+                            .offset(x: -(dw + cw)),
+                        alignment: .leading
+                    )
+                    .clipped()
+            } else {
+                Text("00")
+                    .font(.system(size: size, weight: .bold))
+                    .foregroundColor(.green)
+                    .monospacedDigit()
+            }
         }
     }
 }

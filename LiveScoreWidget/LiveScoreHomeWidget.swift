@@ -227,6 +227,11 @@ private struct MatchTimerView: View {
     private var digitWidth: CGFloat { fontSize * 0.62 }
     private var colonWidth: CGFloat { fontSize * 0.35 }
 
+    // Only 1H / 2H / ET have a running clock; all other statuses freeze at current elapsed.
+    private var isActivelyCounting: Bool {
+        ["1H", "2H", "ET", "LIVE"].contains(match.status.uppercased())
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             Text("\(elapsedMinute):")
@@ -234,19 +239,26 @@ private struct MatchTimerView: View {
                 .foregroundColor(.green)
                 .monospacedDigit()
 
-            // Clip container sized for "SS" only; shifts the "0:SS" text left so "0:" is outside bounds
-            Color.clear
-                .frame(width: digitWidth * 2, height: fontSize * 1.3)
-                .overlay(
-                    Text(secondsAnchor, style: .timer)
-                        .font(.system(size: fontSize, weight: .semibold))
-                        .foregroundColor(.green)
-                        .monospacedDigit()
-                        .fixedSize()
-                        .offset(x: -(digitWidth + colonWidth)),
-                    alignment: .leading
-                )
-                .clipped()
+            if isActivelyCounting {
+                // Clip container sized for "SS" only; shifts the "0:SS" text left so "0:" is outside bounds
+                Color.clear
+                    .frame(width: digitWidth * 2, height: fontSize * 1.3)
+                    .overlay(
+                        Text(secondsAnchor, style: .timer)
+                            .font(.system(size: fontSize, weight: .semibold))
+                            .foregroundColor(.green)
+                            .monospacedDigit()
+                            .fixedSize()
+                            .offset(x: -(digitWidth + colonWidth)),
+                        alignment: .leading
+                    )
+                    .clipped()
+            } else {
+                Text("00")
+                    .font(.system(size: fontSize, weight: .semibold))
+                    .foregroundColor(.green)
+                    .monospacedDigit()
+            }
         }
     }
 }

@@ -184,6 +184,8 @@ public final class ScheduleViewModel {
                     existingFixture.halftimeAway = fixtureModel.halftimeAway
                     existingFixture.fulltimeHome = fixtureModel.fulltimeHome
                     existingFixture.fulltimeAway = fixtureModel.fulltimeAway
+                    existingFixture.penaltyHome = fixtureModel.penaltyHome
+                    existingFixture.penaltyAway = fixtureModel.penaltyAway
                     existingFixture.homeTeamWinner = fixtureModel.homeTeamWinner
                     existingFixture.awayTeamWinner = fixtureModel.awayTeamWinner
                     existingFixture.lastUpdated = Date()

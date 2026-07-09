@@ -539,7 +539,7 @@ open class LiveScoresViewModel {
 
     /// Create widget snapshot from game data
     private func createWidgetSnapshot(from game: Game, events: [Afcon_FixtureEvent]) -> LiveMatchWidgetSnapshot {
-        let goalEvents = events.filter { $0.isGoal }
+        let goalEvents = regularTimeGoalEvents(from: events, status: game.statusShort)
         let homeGoals = goalEvents.filter { $0.team.id == Int32(game.homeTeamId) }.map { formatGoalEvent($0) }
         let awayGoals = goalEvents.filter { $0.team.id == Int32(game.awayTeamId) }.map { formatGoalEvent($0) }
 
@@ -571,7 +571,7 @@ open class LiveScoresViewModel {
 
     /// Create Live Activity state from game data
     private func createLiveActivityState(from game: Game, events: [Afcon_FixtureEvent]) -> LiveScoreActivityAttributes.ContentState {
-        let goalEvents = events.filter { $0.isGoal }
+        let goalEvents = regularTimeGoalEvents(from: events, status: game.statusShort)
         let homeGoals = goalEvents.filter { $0.team.id == Int32(game.homeTeamId) }.map { formatGoalEvent($0) }
         let awayGoals = goalEvents.filter { $0.team.id == Int32(game.awayTeamId) }.map { formatGoalEvent($0) }
 
@@ -620,16 +620,24 @@ open class LiveScoresViewModel {
         }
     }
 
-    /// Format goal event for display
+    /// Returns only regulation/AET goals, excluding penalty shootout events and missed penalties.
+    /// During "P" (shootout in progress) or "PEN" (shootout finished), penalty events are
+    /// tracked separately via penaltyHome/penaltyAway and must not appear in the goal list.
+    private func regularTimeGoalEvents(from events: [Afcon_FixtureEvent], status: String) -> [Afcon_FixtureEvent] {
+        let isShootout = ["P", "PEN"].contains(status.uppercased())
+        return events.filter { event in
+            guard event.isGoal else { return false }
+            let detail = event.detail.lowercased()
+            if detail.contains("missed") { return false }
+            if isShootout && detail.contains("penalty") { return false }
+            return true
+        }
+    }
+
+    /// Format goal event for display — minute + scorer only (no assist)
     private func formatGoalEvent(_ event: Afcon_FixtureEvent) -> String {
         let minute = event.time.elapsed > 0 ? "\(event.time.elapsed)'" : ""
-        let player = event.player.name
-
-        if event.hasAssist && !event.assist.name.isEmpty {
-            return "\(minute) \(player) (Ast. \(event.assist.name))"
-        } else {
-            return "\(minute) \(player)"
-        }
+        return "\(minute) \(event.player.name)"
     }
 
     // MARK: - Stale Update Detection

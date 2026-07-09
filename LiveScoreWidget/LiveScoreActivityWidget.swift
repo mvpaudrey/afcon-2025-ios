@@ -88,13 +88,14 @@ struct LiveScoreActivityWidget: Widget {
                 DynamicIslandExpandedRegion(.bottom) {
                     let state = context.state
 
-                    goalSummaryCompactView(
+                    goalSummaryExpandedView(
                         state: state,
                         homeTeam: context.attributes.homeTeam,
-                        awayTeam: context.attributes.awayTeam
+                        awayTeam: context.attributes.awayTeam,
+                        maxRows: 3
                     )
                     .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 4)
                 }
             } compactLeading: {
                 // Compact leading (left side of Dynamic Island)
@@ -115,10 +116,12 @@ struct LiveScoreActivityWidget: Widget {
                     LogoImageView(path: context.state.awayTeamLogoPath, size: CGSize(width: 20, height: 20), useCircle: true)
                 }
             } minimal: {
-                // Minimal view (when multiple activities are running)
-                Image(systemName: "soccerball")
-                    .resizable()
-                    .font(.system(size: 12))
+                // Minimal view (when multiple activities are running) — show live score at a glance
+                Text("\(context.state.homeScore)-\(context.state.awayScore)")
+                    .font(.system(size: 11, weight: .heavy))
+                    .foregroundColor(.white)
+                    .monospacedDigit()
+                    .minimumScaleFactor(0.7)
             }
         }
     }
@@ -251,8 +254,8 @@ struct LockScreenLiveScoreView: View {
         secondPeriodStart: Date().addingTimeInterval(-(67 - 45) * 60),
         homeTeamLogoPath: nil,
         awayTeamLogoPath: nil,
-        homeGoalEvents: ["12' Benzema (Ast. Modric)", "67' Benzema"],
-        awayGoalEvents: ["46' Lewandowski"]
+        homeGoalEvents: ["12' Benzema", "67' Benzema", "78' Vinicius"],
+        awayGoalEvents: ["46' Lewandowski", "89' Ansu Fati"]
     )
 
     LiveScoreActivityAttributes.ContentState(
@@ -265,8 +268,8 @@ struct LockScreenLiveScoreView: View {
         secondPeriodStart: Date().addingTimeInterval(-(90 - 45) * 60),
         homeTeamLogoPath: nil,
         awayTeamLogoPath: nil,
-        homeGoalEvents: ["12' Benzema (Ast. Modric)", "67' Benzema"],
-        awayGoalEvents: ["46' Lewandowski", "83' Ansu Fati (Ast. Pedri)"]
+        homeGoalEvents: ["12' Benzema", "67' Benzema"],
+        awayGoalEvents: ["46' Lewandowski", "83' Ansu Fati"]
     )
 }
 
@@ -351,39 +354,45 @@ private func goalSummaryCompactView(
     }
 }
 
+/// Groups goal events by scorer: ["12' Benzema", "67' Benzema", "78' Vinicius"]
+/// → ["12', 67' Benzema", "78' Vinicius"] preserving first-goal order
+private func groupedGoals(_ events: [String]) -> [String] {
+    var order: [String] = []
+    var minutesByPlayer: [String: [String]] = [:]
+    for raw in events {
+        let text = sanitizedGoalText(raw).trimmingCharacters(in: .whitespaces)
+        let parts = text.split(separator: " ", maxSplits: 1)
+        guard parts.count == 2 else { continue }
+        let minute = String(parts[0])
+        let player = String(parts[1])
+        if minutesByPlayer[player] == nil {
+            order.append(player)
+            minutesByPlayer[player] = []
+        }
+        minutesByPlayer[player]!.append(minute)
+    }
+    return order.compactMap { player in
+        guard let mins = minutesByPlayer[player] else { return nil }
+        return "\(mins.joined(separator: ", ")) \(player)"
+    }
+}
+
 @ViewBuilder
 private func goalSummaryExpandedView(
     state: LiveScoreActivityAttributes.ContentState,
     homeTeam: String,
-    awayTeam: String
+    awayTeam: String,
+    maxRows: Int = .max
 ) -> some View {
-    let homeEvents = state.homeGoalEvents.map(sanitizedGoalText)
-    let awayEvents = state.awayGoalEvents.map(sanitizedGoalText)
-    let maxCount = max(homeEvents.count, awayEvents.count)
+    let homeEvents = groupedGoals(state.homeGoalEvents)
+    let awayEvents = groupedGoals(state.awayGoalEvents)
+    let rowCount = min(max(homeEvents.count, awayEvents.count), maxRows)
 
-    if maxCount == 0 {
+    if rowCount == 0 {
         EmptyView()
     } else {
         VStack(alignment: .leading, spacing: 6) {
-            /*HStack {
-                Text(homeTeam)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                Text(awayTeam)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-            }*/
-
-            ForEach(0..<maxCount, id: \.self) { index in
+            ForEach(0..<rowCount, id: \.self) { index in
                 HStack(alignment: .top) {
                     Text(homeEvents.count > index ? homeEvents[index] : "")
                         .font(.caption2)

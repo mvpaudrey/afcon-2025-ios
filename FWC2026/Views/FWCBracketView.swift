@@ -364,15 +364,36 @@ private struct FWCBracketContentView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             guard scrollRequestId == id else { return }
             withAnimation(.easeInOut(duration: 0.8)) {
-                switch round {
-                case .roundOf32:     proxy.scrollTo("r32",           anchor: .topLeading)
-                case .roundOf16:     proxy.scrollTo("r16",           anchor: .topLeading)
-                case .quarterFinals: proxy.scrollTo("quarterfinals", anchor: .topLeading)
-                case .semiFinals:    proxy.scrollTo("semifinals",    anchor: .topLeading)
-                case .final:         proxy.scrollTo("final_anchor",  anchor: .center)
-                }
+                let anchor: UnitPoint = round == .final ? .center : .topLeading
+                proxy.scrollTo(targetScrollID(for: round), anchor: anchor)
             }
         }
+    }
+
+    /// Returns the scroll ID of the first unplayed match in the round, falling back to the
+    /// round's first match if all are already finished.
+    private func targetScrollID(for round: FWCBracketRound) -> String {
+        switch round {
+        case .roundOf32:
+            return activeID(in: matches.roundOf32, firstAnchor: "r32",           prefix: "r32_")
+        case .roundOf16:
+            return activeID(in: matches.roundOf16, firstAnchor: "r16",           prefix: "r16_")
+        case .quarterFinals:
+            return activeID(in: matches.quarterFinals, firstAnchor: "quarterfinals", prefix: "qf_")
+        case .semiFinals:
+            return activeID(in: matches.semiFinals, firstAnchor: "semifinals",    prefix: "sf_")
+        case .final:
+            return "final_anchor"
+        }
+    }
+
+    /// First match with no score (upcoming). Falls back to the first match of the list.
+    private func activeID(in list: [FWCBracketMatch], firstAnchor: String, prefix: String) -> String {
+        guard let first = list.first else { return firstAnchor }
+        guard let target = list.first(where: { $0.score1 == nil && !$0.date.isEmpty }) else {
+            return firstAnchor
+        }
+        return target.id == first.id ? firstAnchor : "\(prefix)\(target.id)"
     }
 
     private func formatDate(_ dateString: String) -> String {

@@ -102,7 +102,14 @@ extension Game {
         let hasElapsed = statusElapsed > 0 || statusExtra > 0
         let shouldTick = hasElapsed && (statusUpper == "1H" || statusUpper == "2H" || statusUpper == "ET" || statusUpper == "LIVE")
         let deltaMinutes = shouldTick ? max(Int(Date().timeIntervalSince(lastUpdated) / 60.0), 0) : 0
-        return max(statusElapsed + statusExtra + deltaMinutes, 0)
+        let raw = max(statusElapsed + statusExtra + deltaMinutes, 0)
+        // Cap per period so the timer freezes rather than overflowing during status transitions
+        switch statusUpper {
+        case "ET":   return min(raw, 120)
+        case "2H":   return min(raw, 110)
+        case "1H":   return min(raw, 60)
+        default:     return raw
+        }
     }
 
     public static func formatMinute(statusShort: String, elapsed: Int) -> String {
