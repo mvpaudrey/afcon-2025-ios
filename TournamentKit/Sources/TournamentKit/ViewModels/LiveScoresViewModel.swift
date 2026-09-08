@@ -131,8 +131,10 @@ open class LiveScoresViewModel {
     }
 
     private var tournamentCalendar: Calendar {
+        // Use the device time zone for "is this match today?" windows. (Was hardcoded to
+        // UTC+1 for AFCON/Morocco; U-20 WWC 2026 is in Poland and the demo runs from the UK.)
         var calendar = Calendar.current
-        calendar.timeZone = TimeZone(secondsFromGMT: 3600) ?? .current
+        calendar.timeZone = .current
         return calendar
     }
 

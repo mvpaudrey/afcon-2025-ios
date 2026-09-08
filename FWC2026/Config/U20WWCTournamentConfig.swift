@@ -17,6 +17,7 @@ struct U20WWCTournamentConfig: TournamentConfig {
     let accentColorName = "fifaBlue"
     let secondaryColorName = "fifaGold"
     let appGroupIdentifier = "group.com.cheulah.afcon"
+    var availableTeams: [NationalTeam] { NationalTeam.u20WomensWorldCupTeams }
     // U-20 squads have their own API-Football team IDs (distinct from senior sides).
     // All 24 nations mapped. Flags sourced as SVGs in FWC2026/Assets.xcassets/Teams:
     // TAN/BEN/NGA copied from the AFCON2025 catalog; POL/CHN/CRC/ITA/PRK/NCL hand-authored.

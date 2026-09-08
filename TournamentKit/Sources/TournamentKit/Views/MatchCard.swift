@@ -385,7 +385,7 @@ public struct MatchCard: View {
                     ForEach(displayEvents, id: \.eventKey) { event in
                         MatchEventRow(
                             event: event,
-                            isHomeEvent: event.team.name == match.homeTeam
+                            isHomeEvent: localizedTeamName(event.team.name) == match.homeTeam
                         )
                     }
 

@@ -119,7 +119,7 @@ extension FixtureEventModel {
             timeElapsed: Int(grpcEvent.time.elapsed),
             timeExtra: Int(grpcEvent.time.extra),
             teamId: Int(grpcEvent.team.id),
-            teamName: grpcEvent.team.name,
+            teamName: localizedTeamName(grpcEvent.team.name),
             teamLogo: grpcEvent.team.logo,
             playerId: Int(grpcEvent.player.id),
             playerName: grpcEvent.player.name,

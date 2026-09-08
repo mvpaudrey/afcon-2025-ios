@@ -79,28 +79,18 @@ struct FWCHomeView: View {
         guard !hasCheckedFixtures else { return }
         hasCheckedFixtures = true
 
-        let descriptor = FetchDescriptor<FixtureModel>()
-        let count = (try? modelContext.fetchCount(descriptor)) ?? 0
         let dataManager = FixtureDataManager(modelContext: modelContext)
 
-        if count == 0 {
-            isInitializingFixtures = true
-            await dataManager.initializeFixtures()
-            isInitializingFixtures = false
-            if let viewModel = liveScoresViewModel {
-                await viewModel.fetchLiveMatches()
-                viewModel.startLiveUpdates()
-            }
-        } else {
-            // Full sync of all fixtures if stale (>30 min), then live sync for real-time scores
-            if AppSettings.shared.needsFixturesRefresh {
-                await dataManager.syncAllFixtures()
-            }
-            await dataManager.syncLiveFixtures()
-            if let viewModel = liveScoresViewModel {
-                await viewModel.fetchLiveMatches()
-                viewModel.startLiveUpdates()
-            }
+        // DEMO (league 920): always wipe + reload so a leftover FIFA World Cup 2026 store
+        // from an earlier run of this target can't leak old fixtures into the schedule.
+        // (Client `FixtureModel` has no league field, and incremental sync only adds rows.)
+        // Revert to the `if count == 0 { … } else { … }` incremental path after the talk.
+        isInitializingFixtures = true
+        await dataManager.initializeFixtures()
+        isInitializingFixtures = false
+        if let viewModel = liveScoresViewModel {
+            await viewModel.fetchLiveMatches()
+            viewModel.startLiveUpdates()
         }
     }
 }

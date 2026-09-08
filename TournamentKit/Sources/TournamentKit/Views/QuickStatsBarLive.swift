@@ -83,12 +83,21 @@ public struct QuickStatsBarLive: View {
         liveScoresViewModel.isLoading
     }
 
+    // Two matches side-by-side only fit in the expanded accessory. When the tab bar is
+    // minimized the bar is too narrow, so we show the first match + a "+N" hint instead
+    // (see the minimized indicator in `body`).
     private var showTwoLiveMatches: Bool {
-        liveMatches.count >= 2
+        !isMinimized && liveMatches.count >= 2
     }
 
     private var showTwoUpcomingMatches: Bool {
-        liveMatches.isEmpty && upcomingMatches.count >= 2
+        !isMinimized && liveMatches.isEmpty && upcomingMatches.count >= 2
+    }
+
+    /// Number of simultaneous matches not shown in the minimized bar (0 or 1 here).
+    private var hiddenSimultaneousCount: Int {
+        let active = liveMatches.isEmpty ? upcomingMatches.count : liveMatches.count
+        return max(active - 1, 0)
     }
 
     public var body: some View {
@@ -225,6 +234,15 @@ public struct QuickStatsBarLive: View {
                     }
 
                     Spacer()
+
+                    // Minimized bar can only fit one match — tell the user there's another.
+                    if isMinimized && hiddenSimultaneousCount > 0 {
+                        Text(verbatim: "+\(hiddenSimultaneousCount)")
+                            .font(.caption2)
+                            .fontWeight(.semibold)
+                            .opacity(0.85)
+                            .fixedSize()
+                    }
 
                     // Only show status text when showing single match
                     if !isMinimized && !showTwoLiveMatches && !showTwoUpcomingMatches {

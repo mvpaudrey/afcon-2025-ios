@@ -46,7 +46,7 @@ public class GroupsViewModel {
                 for standingGroup in apiResponse.groups {
                     let teams = standingGroup.standings.map { standing in
                         Team(
-                            name: standing.team.name,
+                            name: localizedTeamName(standing.team.name),
                             teamId: Int(standing.team.id),
                             played: Int(standing.all.played),
                             won: Int(standing.all.win),

@@ -130,8 +130,37 @@ public struct NationalTeam: Identifiable, Hashable, Sendable {
         .init(id: 11, name: "Panama", assetName: "PAN")
     ]
 
+    /// FIFA U-20 Women's World Cup 2026 (API-Football league 920). U-20 squads have their
+    /// own API team IDs. Flag assets: see FWC2026/Assets.xcassets/Teams.
+    public static let u20WomensWorldCupTeams: [NationalTeam] = [
+        .init(id: 23457, name: "Argentina",     assetName: "ARG"),
+        .init(id: 28364, name: "Benin",         assetName: "BEN"),
+        .init(id: 19079, name: "Brazil",        assetName: "BRA"),
+        .init(id: 19080, name: "Canada",        assetName: "CAN"),
+        .init(id: 23209, name: "China PR",      assetName: "CHN"),
+        .init(id: 19081, name: "Colombia",      assetName: "COL"),
+        .init(id: 19082, name: "Costa Rica",    assetName: "CRC"),
+        .init(id: 23460, name: "Ecuador",       assetName: "ECU"),
+        .init(id: 27219, name: "England",       assetName: "ENG"),
+        .init(id: 19083, name: "France",        assetName: "FRA"),
+        .init(id: 19085, name: "Ghana",         assetName: "GHA"),
+        .init(id: 28365, name: "Italy",         assetName: "ITA"),
+        .init(id: 19086, name: "Japan",         assetName: "JPN"),
+        .init(id: 23206, name: "Korea DPR",     assetName: "PRK"),
+        .init(id: 19087, name: "Korea Republic", assetName: "KOR"),
+        .init(id: 19088, name: "Mexico",        assetName: "MEX"),
+        .init(id: 28366, name: "New Caledonia", assetName: "NCL"),
+        .init(id: 19089, name: "New Zealand",   assetName: "NZL"),
+        .init(id: 19090, name: "Nigeria",       assetName: "NGA"),
+        .init(id: 28367, name: "Poland",        assetName: "POL"),
+        .init(id: 28368, name: "Portugal",      assetName: "POR"),
+        .init(id: 19078, name: "Spain",         assetName: "ESP"),
+        .init(id: 28369, name: "Tanzania",      assetName: "TAN"),
+        .init(id: 19091, name: "United States", assetName: "USA"),
+    ]
+
     public static func team(for id: Int) -> NationalTeam? {
-        (sampleTeams + worldCupTeams).first { $0.id == id }
+        (sampleTeams + worldCupTeams + u20WomensWorldCupTeams).first { $0.id == id }
     }
 
     public var localizedName: String {

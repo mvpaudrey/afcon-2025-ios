@@ -23,13 +23,25 @@ public func localizedGroupName(_ name: String) -> String {
     }
 }
 
+/// Strip API-Football age-group / gender tags from a national-team name for display,
+/// e.g. "England U20 W" → "England", "Korea DPR U-17 W" → "Korea DPR", "Brazil W" → "Brazil".
+/// Idempotent, so it is safe to call on an already-clean name.
+public func strippedTeamName(_ name: String) -> String {
+    guard let r = name.range(of: #"\s+(?:U-?\d{2}\s+)?W$"#, options: .regularExpression) else {
+        return name
+    }
+    return String(name[..<r.lowerBound])
+}
+
 public func localizedTeamName(_ name: String) -> String {
+    // Drop the "U20 W" style suffix first, then run the translation lookup.
+    let base = strippedTeamName(name)
     // Normalize: if the stored name is a French localized name (e.g. "Maroc"),
     // resolve it back to the English key before doing the target-language lookup.
-    let englishKey = frenchToEnglishNames[name] ?? name
+    let englishKey = frenchToEnglishNames[base] ?? base
     switch currentLanguageCode() {
-    case "fr": return frenchTeamNames[englishKey] ?? name
-    case "ar": return arabicTeamNames[englishKey] ?? name
+    case "fr": return frenchTeamNames[englishKey] ?? base
+    case "ar": return arabicTeamNames[englishKey] ?? base
     default:   return englishKey
     }
 }
