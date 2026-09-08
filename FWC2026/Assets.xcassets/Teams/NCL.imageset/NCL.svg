@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-nc-kanaky" viewBox="0 0 640 480">
+  <path fill="#0072c6" d="M0 0h640v160H0z"/>
+  <path fill="#e50000" d="M0 160h640v160H0z"/>
+  <path fill="#009543" d="M0 320h640v160H0z"/>
+  <circle cx="150" cy="240" r="120" fill="#fed100" stroke="#000" stroke-width="10"/>
+  <g fill="#000"><rect x="140" y="150" width="20" height="185" rx="6"/><circle cx="150" cy="150" r="17"/><path d="M150 120 L138 152 L162 152 Z"/><path d="M150 250 L112 232 L120 258 Z"/><path d="M150 250 L188 232 L180 258 Z"/><path d="M112 322 q38 -26 76 0 l0 20 q-38 -20 -76 0 Z"/></g>
+</svg>
