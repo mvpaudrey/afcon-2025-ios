@@ -8,7 +8,9 @@ struct FWC2026App: App {
     @UIApplicationDelegateAdaptor(FWCAppDelegate.self) var appDelegate
     @StateObject private var notificationService = AppNotificationService.shared
 
-    private let tournamentConfig = FWCTournamentConfig()
+    // DEMO (conference talk, league 920): swapped from FWCTournamentConfig().
+    // Revert this line + the two in FWCAppDelegate to restore FIFA World Cup 2026.
+    private let tournamentConfig = U20WWCTournamentConfig()
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -91,10 +93,11 @@ class FWCAppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        TournamentConfigStore.current = FWCTournamentConfig()
+        // DEMO (conference talk, league 920): swapped from FWCTournamentConfig().
+        TournamentConfigStore.current = U20WWCTournamentConfig()
 
         // Write config to AppGroup so the widget can read it (before any view appears)
-        writeTournamentConfigToAppGroup(FWCTournamentConfig())
+        writeTournamentConfigToAppGroup(U20WWCTournamentConfig())
 
         LiveMatchStreamService.shared.backgroundRefreshHandler = { [weak self] in
             self?.scheduleBackgroundRefresh()

@@ -57,8 +57,11 @@ public class TournamentServiceWrapper: @unchecked Sendable {
     }
 
     /// Get live fixtures
-    public func getLiveFixtures(leagueId: Int32? = nil) async throws -> [Afcon_Fixture] {
-        return try await service.getLiveFixtures(leagueId: leagueId ?? config.leagueId)
+    public func getLiveFixtures(leagueId: Int32? = nil, season: Int32? = nil) async throws -> [Afcon_Fixture] {
+        return try await service.getLiveFixtures(
+            leagueId: leagueId ?? config.leagueId,
+            season: season ?? config.season
+        )
     }
 
     public func getFixturesByDate(
