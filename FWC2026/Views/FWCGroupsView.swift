@@ -39,6 +39,10 @@ public struct FWCGroupsView: View {
                     ForEach(viewModel.groups, id: \.name) { group in
                         FWCGroupCard(group: group)
                     }
+
+                    if let thirds = viewModel.thirdPlaceRanking {
+                        FWCThirdPlaceCard(group: thirds, advancingCount: 4)
+                    }
                 }
             }
             .padding(.horizontal, 16)
@@ -74,38 +78,7 @@ private struct FWCGroupCard: View {
                     Spacer()
                 }
 
-                HStack(spacing: 4) {
-                    Text(LocalizedStringKey("#"))
-                        .frame(minWidth: Metrics.positionWidth, maxWidth: Metrics.positionWidth, alignment: .trailing)
-                        .monospacedDigit()
-                    Text(LocalizedStringKey("Team"))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(LocalizedStringKey("P"))
-                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .trailing)
-                        .monospacedDigit()
-                    Text(LocalizedStringKey("W"))
-                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .trailing)
-                        .monospacedDigit()
-                    Text(LocalizedStringKey("D"))
-                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .trailing)
-                        .monospacedDigit()
-                    Text(LocalizedStringKey("L"))
-                        .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .trailing)
-                        .monospacedDigit()
-                    Text(LocalizedStringKey("GD"))
-                        .frame(minWidth: Metrics.gdWidth, maxWidth: Metrics.gdWidth, alignment: .trailing)
-                        .monospacedDigit()
-                    Text(LocalizedStringKey("Pts"))
-                        .frame(minWidth: Metrics.pointsWidth, maxWidth: Metrics.pointsWidth, alignment: .trailing)
-                        .fontWeight(.bold)
-                        .monospacedDigit()
-                }
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundColor(.secondary)
-                .padding(.horizontal, Metrics.horizontalPadding - 6)
-                .padding(.vertical, 12)
-                .background(Color("fifaBlue").opacity(0.05))
+                FWCStandingsHeaderRow()
             }
             .padding(.top, 20)
             .padding(.horizontal, Metrics.horizontalPadding)
@@ -113,7 +86,12 @@ private struct FWCGroupCard: View {
 
             VStack(spacing: 0) {
                 ForEach(Array(group.teams.enumerated()), id: \.element.name) { index, team in
-                    FWCTeamRow(team: team, isLast: index == group.teams.count - 1)
+                    FWCTeamRow(
+                        team: team,
+                        isLast: index == group.teams.count - 1,
+                        qualifyCutoff: 2,
+                        qualifyTint: Color("fifaBlue")
+                    )
                 }
             }
         }
@@ -130,6 +108,14 @@ private struct FWCGroupCard: View {
 private struct FWCTeamRow: View {
     let team: Team
     let isLast: Bool
+    /// Positions `1...qualifyCutoff` advance; a coloured line is drawn just below the cutoff.
+    var qualifyCutoff: Int? = nil
+    var qualifyTint: Color = Color("fifaBlue")
+
+    private var qualifies: Bool {
+        guard let cutoff = qualifyCutoff else { return false }
+        return team.position <= cutoff
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -218,7 +204,11 @@ private struct FWCTeamRow: View {
             .padding(.horizontal, Metrics.horizontalPadding)
             .padding(.vertical, 16)
 
-            if !isLast {
+            if let cutoff = qualifyCutoff, team.position == cutoff, !isLast {
+                qualifyTint
+                    .frame(height: 2)
+                    .padding(.horizontal, 16)
+            } else if !isLast {
                 Divider()
                     .padding(.horizontal, 16)
             }
@@ -226,6 +216,9 @@ private struct FWCTeamRow: View {
     }
 
     private var positionBadgeColor: Color {
+        if qualifyCutoff != nil {
+            return qualifies ? qualifyTint : Color.gray
+        }
         switch team.position {
         case 1: return Color("fifaBlue")
         case 2: return Color("fifaBlue").opacity(0.75)
@@ -243,6 +236,103 @@ private struct FWCTeamRow: View {
         if diff > 0 { return Color("fifaBlue") }
         if diff < 0 { return .orange }
         return .secondary
+    }
+}
+
+// MARK: - Shared standings header
+
+private struct FWCStandingsHeaderRow: View {
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(LocalizedStringKey("#"))
+                .frame(minWidth: Metrics.positionWidth, maxWidth: Metrics.positionWidth, alignment: .trailing)
+                .monospacedDigit()
+            Text(LocalizedStringKey("Team"))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text(LocalizedStringKey("P"))
+                .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .trailing)
+                .monospacedDigit()
+            Text(LocalizedStringKey("W"))
+                .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .trailing)
+                .monospacedDigit()
+            Text(LocalizedStringKey("D"))
+                .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .trailing)
+                .monospacedDigit()
+            Text(LocalizedStringKey("L"))
+                .frame(minWidth: Metrics.statWidth, maxWidth: Metrics.statWidth, alignment: .trailing)
+                .monospacedDigit()
+            Text(LocalizedStringKey("GD"))
+                .frame(minWidth: Metrics.gdWidth, maxWidth: Metrics.gdWidth, alignment: .trailing)
+                .monospacedDigit()
+            Text(LocalizedStringKey("Pts"))
+                .frame(minWidth: Metrics.pointsWidth, maxWidth: Metrics.pointsWidth, alignment: .trailing)
+                .fontWeight(.bold)
+                .monospacedDigit()
+        }
+        .font(.caption)
+        .fontWeight(.semibold)
+        .foregroundColor(.secondary)
+        .padding(.horizontal, Metrics.horizontalPadding - 6)
+        .padding(.vertical, 12)
+        .background(Color("fifaBlue").opacity(0.05))
+    }
+}
+
+// MARK: - Best third-placed teams
+
+/// API-Football returns the ranking of the third-placed teams as an extra "group", but
+/// with no indication of how many advance. For a 24-team / 6-group format the top 4 go
+/// through to the Round of 16 — surfaced explicitly here.
+private struct FWCThirdPlaceCard: View {
+    let group: TournamentKit.Group
+    let advancingCount: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack {
+                        Image(systemName: "trophy.fill")
+                            .foregroundColor(.green)
+                            .font(.title2)
+                        Text(LocalizedStringKey("Best Third-Placed Teams"))
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                        Spacer()
+                    }
+                    Text(String.localizedStringWithFormat(
+                        NSLocalizedString("Top %lld advance to the Round of 16", comment: "Third-placed teams qualification rule"),
+                        advancingCount
+                    ))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                }
+
+                FWCStandingsHeaderRow()
+            }
+            .padding(.top, 20)
+            .padding(.horizontal, Metrics.horizontalPadding)
+            .background(Color(.systemBackground))
+
+            VStack(spacing: 0) {
+                ForEach(Array(group.teams.enumerated()), id: \.element.name) { index, team in
+                    FWCTeamRow(
+                        team: team,
+                        isLast: index == group.teams.count - 1,
+                        qualifyCutoff: advancingCount,
+                        qualifyTint: .green
+                    )
+                }
+            }
+        }
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.green.opacity(0.25), lineWidth: 1)
+        )
     }
 }
 

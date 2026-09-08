@@ -62,10 +62,16 @@ public class GroupsViewModel {
 
                     let group = Group(name: standingGroup.groupName, teams: teams)
 
-                    // Check if this is the third-place ranking
-                    if standingGroup.groupName.lowercased().contains("third") ||
-                       standingGroup.groupName.lowercased().contains("troisième") ||
-                       standingGroup.groupName.lowercased().contains("3rd") {
+                    // Check if this is the third-place ranking.
+                    // API-Football labels the real groups "Groups - Group A/B/…" and the
+                    // ranking of the third-placed teams just "Groups" (no letter). It never
+                    // returns a textual "advances" description for this competition.
+                    let lname = standingGroup.groupName.lowercased()
+                    let isThirdPlaceTable =
+                        standingGroup.groupName == "Groups" ||
+                        lname.contains("third") || lname.contains("troisième") || lname.contains("3rd")
+
+                    if isThirdPlaceTable && !teams.isEmpty {
                         thirdPlaceRanking = group
                     } else {
                         calculatedGroups.append(group)

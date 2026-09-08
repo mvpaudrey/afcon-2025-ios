@@ -15,11 +15,18 @@ private func currentLanguageCode() -> String {
 }
 
 public func localizedGroupName(_ name: String) -> String {
-    let suffix = name.hasPrefix("Group ") ? String(name.dropFirst(6)) : name
+    // API-Football gives names like "Groups - Group A"; the local fallback appends a
+    // tournament suffix. Pull out just the group letter/number if there is one.
+    guard let regex = try? NSRegularExpression(pattern: #"(?i)group\s+([A-Z0-9]+)"#),
+          let match = regex.firstMatch(in: name, range: NSRange(name.startIndex..., in: name)),
+          let r = Range(match.range(at: 1), in: name) else {
+        return name   // not a lettered group (e.g. a third-place table) — leave as-is
+    }
+    let letter = String(name[r]).uppercased()
     switch currentLanguageCode() {
-    case "fr": return "Groupe \(suffix)"
-    case "ar": return "المجموعة \(suffix)"
-    default:   return name
+    case "fr": return "Groupe \(letter)"
+    case "ar": return "المجموعة \(letter)"
+    default:   return "Group \(letter)"
     }
 }
 
