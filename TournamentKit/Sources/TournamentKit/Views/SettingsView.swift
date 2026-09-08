@@ -4,6 +4,7 @@ import SwiftData
 public struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.tournamentConfig) private var config
+    @Query private var favoriteTeams: [FavoriteTeam]
     @State private var dataManager: FixtureDataManager?
     @State private var showingClearConfirmation = false
     @State private var fixtureCount: Int = 0
@@ -126,6 +127,11 @@ public struct SettingsView: View {
                             Image(systemName: "star.fill")
                                 .foregroundColor(Color(config.accentColorName))
                             Text(LocalizedStringKey("Manage Favorite Teams"))
+                            Spacer()
+                            if !favoriteTeams.isEmpty {
+                                Text("\(favoriteTeams.count)")
+                                    .foregroundColor(.secondary)
+                            }
                         }
                     }
                 }

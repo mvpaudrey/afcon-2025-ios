@@ -33,6 +33,8 @@ open class LiveScoresViewModel {
 
     // Favorite team IDs loaded from SwiftData
     private var favoriteTeamIds: Set<Int> = []
+    /// Highest score total we've already fired a "GOAL!" banner for, per fixture.
+    private var lastNotifiedGoalTotal: [Int: Int] = [:]
 
     // Reads the name written by AppGroupWriter.writeTournamentConfigToAppGroup at app launch
     private var currentTournamentName: String {
@@ -361,11 +363,31 @@ open class LiveScoresViewModel {
 
         print("📡 Live update for fixture \(update.fixtureID): \(update.eventType)")
 
-        let updatedGame = update.fixture.toGame()
         let fixtureId = Int(update.fixtureID)
 
+        // Conference-talk demo: server asked us to drop this fixture (e.g. POST /demo/reset).
+        // Clear it fully so the next triggered event starts from a clean slate.
+        if update.eventType == "demo_reset" {
+            liveMatches.removeAll { $0.id == fixtureId }
+            fixtureEvents[fixtureId] = nil
+            lastNotifiedGoalTotal[fixtureId] = nil
+            streamService.updateLiveMatchesStatus(hasLiveMatches: !liveMatches.isEmpty)
+            await LiveActivityManager.shared.endActivity(fixtureID: Int32(fixtureId), dismissalPolicy: .immediate)
+            if let dataManager, update.hasFixture {
+                let fixtures = (try? dataManager.getAllFixtures()) ?? []
+                if let existing = fixtures.first(where: { $0.id == fixtureId }) {
+                    dataManager.updateFixtureModel(existing, with: update.fixture)
+                }
+            }
+            print("🎬 Demo reset applied for fixture \(fixtureId)")
+            return
+        }
+
+        let updatedGame = update.fixture.toGame()
+        let previousGame = liveMatches.first(where: { $0.id == fixtureId })
+
         // Check if update is stale before processing
-        if let existingMatch = liveMatches.first(where: { $0.id == fixtureId }) {
+        if let existingMatch = previousGame {
             if shouldIgnoreUpdate(current: existingMatch, next: updatedGame) {
                 print("⏭️ Skipping stale update for fixture \(fixtureId) in ViewModel")
                 print("   Current: \(existingMatch.statusShort) \(existingMatch.minute) \(existingMatch.homeScore)-\(existingMatch.awayScore)")
@@ -373,6 +395,10 @@ open class LiveScoresViewModel {
                 return
             }
         }
+
+        // Local "GOAL!" alert for favourite-team matches (the local demo server sends no
+        // APNs push; the in-app feed and Live Activity update regardless).
+        await notifyGoalIfNeeded(update: update, current: updatedGame)
 
         // Update fixture in SwiftData
         if let dataManager = dataManager {
@@ -595,6 +621,36 @@ open class LiveScoresViewModel {
             awayTeamLogoPath: game.awayTeamFlagAsset,
             homeGoalEvents: homeGoals,
             awayGoalEvents: awayGoals
+        )
+    }
+
+    /// Fire a local "GOAL!" banner when a favourite team's match adds a goal.
+    /// Tracks the last-notified score total per fixture so repeated stream updates (and a
+    /// demo reset followed by fresh goals) never double-notify or get stuck.
+    private func notifyGoalIfNeeded(update: Afcon_LiveMatchUpdate, current: Game) async {
+        guard update.eventType == "goal" else { return }
+        guard isFavoriteTeamMatch(current) else { return }
+
+        let key = Int(update.fixtureID)
+        let currentTotal = current.homeScore + current.awayScore
+        guard currentTotal > (lastNotifiedGoalTotal[key] ?? 0) else { return }
+        lastNotifiedGoalTotal[key] = currentTotal
+
+        let scorer = update.hasEvent
+            ? update.event.player.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            : ""
+        let scoringTeam = update.hasEvent ? localizedTeamName(update.event.team.name) : ""
+        let detail: String = scorer.isEmpty
+            ? NSLocalizedString("Goal!", comment: "Generic goal alert")
+            : "\(scorer) — \(scoringTeam)"
+
+        try? await AppNotificationService.shared.notifyScoreUpdate(
+            fixtureId: Int(update.fixtureID),
+            homeTeam: current.homeTeam,
+            awayTeam: current.awayTeam,
+            homeScore: current.homeScore,
+            awayScore: current.awayScore,
+            event: detail
         )
     }
 

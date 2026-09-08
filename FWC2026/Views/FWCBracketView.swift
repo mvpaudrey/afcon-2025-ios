@@ -410,11 +410,28 @@ private struct FWCBracketContentView: View {
 
 public struct FWCBracketView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.tournamentConfig) private var config
     @State private var viewModel = FWCBracketViewModel.shared
 
     public init() {}
 
+    /// API-Football only publishes group-stage fixtures for the U-20 Women's World Cup
+    /// (league 920) — no knockout draw yet. Show an explicit "not available" state rather
+    /// than a bracket built from placeholders. (Demo scope; remove the guard afterwards.)
+    private var knockoutDataUnavailable: Bool { config.leagueId == 920 }
+
     public var body: some View {
+        Group {
+            if knockoutDataUnavailable {
+                FWCBracketUnavailableView()
+            } else {
+                bracketContent
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var bracketContent: some View {
         VStack(spacing: 0) {
             if let matches = viewModel.bracketMatches {
                 FWCBracketContentView(
@@ -435,6 +452,58 @@ public struct FWCBracketView: View {
             viewModel.configure(modelContext: modelContext)
             await viewModel.loadBracketData()
             await viewModel.syncKnockoutFixturesForPastDates()
+        }
+    }
+}
+
+// MARK: - Knockout unavailable state
+
+private struct FWCBracketUnavailableView: View {
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                VStack(spacing: 14) {
+                    Image(systemName: "trophy")
+                        .font(.system(size: 44))
+                        .foregroundColor(Color("fifaBlue").opacity(0.5))
+                    Text(LocalizedStringKey("Knockout bracket not available yet"))
+                        .font(.title3).fontWeight(.bold)
+                        .multilineTextAlignment(.center)
+                    Text(LocalizedStringKey("API-Football only publishes the group-stage fixtures for this competition. The Round of 16 draw appears once the group stage is complete."))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(24)
+                .frame(maxWidth: .infinity)
+                .background(Color(.systemBackground))
+                .cornerRadius(16)
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color("fifaBlue").opacity(0.12), lineWidth: 1))
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(LocalizedStringKey("How the knockout stage is seeded"))
+                        .font(.caption).fontWeight(.bold).foregroundColor(.secondary)
+                    bulletRow("6 groups of 4 — winners and runners-up advance")
+                    bulletRow("The 4 best third-placed teams also advance")
+                    bulletRow("16 teams → Round of 16 → Quarter-finals → Semi-finals → Final")
+                }
+                .padding(20)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(.systemBackground))
+                .cornerRadius(16)
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color("fifaBlue").opacity(0.12), lineWidth: 1))
+            }
+            .padding(16)
+        }
+        .background(Color(.systemGroupedBackground))
+    }
+
+    private func bulletRow(_ text: LocalizedStringKey) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "circle.fill").font(.system(size: 5)).foregroundColor(Color("fifaBlue")).padding(.top, 6)
+            Text(text).font(.footnote).foregroundColor(.primary)
+            Spacer(minLength: 0)
         }
     }
 }
