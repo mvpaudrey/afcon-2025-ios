@@ -5,9 +5,25 @@ import AFCONClient
 /// Wrapper around AFCONClient for SwiftUI @Observable support
 @Observable
 public class TournamentServiceWrapper: @unchecked Sendable {
-    nonisolated(unsafe) public static let defaultHost = ProcessInfo.processInfo.environment["AFCON_API_HOST"]
-        ?? "production-grpc-nlb-3fc4bc51bc4f783c.elb.eu-west-3.amazonaws.com"
-    nonisolated(unsafe) public static let defaultPort = Int(ProcessInfo.processInfo.environment["AFCON_API_PORT"] ?? "") ?? 50051
+    /// Set once at launch by a demo target. Wins over the environment and the production default, so the
+    /// app keeps talking to the local server even when launched from the home screen (no scheme env vars).
+    nonisolated(unsafe) public private(set) static var serverOverride: (host: String, port: Int)?
+
+    nonisolated(unsafe) public static var defaultHost: String {
+        serverOverride?.host
+            ?? ProcessInfo.processInfo.environment["AFCON_API_HOST"]
+            ?? "production-grpc-nlb-3fc4bc51bc4f783c.elb.eu-west-3.amazonaws.com"
+    }
+    nonisolated(unsafe) public static var defaultPort: Int {
+        serverOverride?.port
+            ?? Int(ProcessInfo.processInfo.environment["AFCON_API_PORT"] ?? "")
+            ?? 50051
+    }
+
+    /// Must run before any service is created.
+    public static func useServer(host: String, port: Int) {
+        serverOverride = (host: host, port: port)
+    }
 
     private let service: AFCONService
 
